@@ -17,18 +17,15 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         val captureButton = view.findViewById<Button>(R.id.btn_capture)
 
         captureButton.setOnClickListener {
-            // just move to the summary atm, in the future from here will send photo to the server and will wait for an answer
 
-            // TEMP MOCK: simulate a detected meal instead of real server response
             val mockMeal = Meal(
                 title = "Chicken and rice",
                 carbs = 48f
             )
 
-            // Save the detected meal as the current active meal
             MealSessionManager.setCurrentMeal(mockMeal)
 
-            // Move to summary
+            // TODO: Replace mock meal with real backend response based on captured image
             findNavController().navigate(R.id.summaryFragment)
         }
     }

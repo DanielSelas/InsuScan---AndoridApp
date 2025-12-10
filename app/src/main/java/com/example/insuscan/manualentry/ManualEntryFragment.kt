@@ -8,6 +8,8 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
+import com.example.insuscan.meal.Meal
+import com.example.insuscan.meal.MealSessionManager
 
 class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
@@ -18,23 +20,52 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
         val carbsEditText = view.findViewById<EditText>(R.id.et_carbs)
         val saveButton = view.findViewById<Button>(R.id.btn_save_manual)
 
+        // TODO: In the future, support editing multiple items instead of a single meal title + total carbs
+        val currentMeal = MealSessionManager.currentMeal
+        if (currentMeal != null) {
+            foodNameEditText.setText(currentMeal.title)
+            carbsEditText.setText(currentMeal.carbs.toInt().toString())
+        }
+
         saveButton.setOnClickListener {
             val name = foodNameEditText.text.toString().trim()
             val carbs = carbsEditText.text.toString().trim()
 
-
-            // add validation here
+            // TODO: Move common validation logic (name + carbs) to a shared helper if reused in other screens
             if (name.isEmpty() || carbs.isEmpty()) {
-                Toast.makeText(requireContext(), "Please fill food name and carbs", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Please fill food name and carbs",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@setOnClickListener
             }
-            // message for getting the values
+
+            val carbsValue = carbs.toFloatOrNull()
+            if (carbsValue == null || carbsValue <= 0f) {
+                Toast.makeText(
+                    requireContext(),
+                    "Carbs must be a positive number",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            // TODO: When backend is ready, also send this manual update to the server for sync
+            val updatedMeal = Meal(
+                title = name,
+                carbs = carbsValue
+            )
+            MealSessionManager.setCurrentMeal(updatedMeal)
+
+            // TODO: Replace Toast with a more user-friendly confirmation (e.g. Snackbar or inline info)
             Toast.makeText(
                 requireContext(),
-                "Saved (mock): $name - $carbs g carbs",
+                "Edited meal: $name - ${carbsValue.toInt()} g carbs",
                 Toast.LENGTH_SHORT
             ).show()
 
+            // TODO: Consider navigating explicitly back to Summary via nav graph action if flow changes
             findNavController().popBackStack()
         }
     }

@@ -24,11 +24,9 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         val previousHeader = view.findViewById<TextView>(R.id.tv_previous_meals_header)
         val recyclerView = view.findViewById<RecyclerView>(R.id.rv_meal_history)
 
-        // Get real meal history collected by the app
         val allMeals = MealSessionManager.getHistory()
         val dateFormat = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
 
-        // If there is no history yet, show an empty state
         if (allMeals.isEmpty()) {
             lastTitle.text = "No meals yet"
             lastDetails.text = "Your meals and insulin doses will appear here."
@@ -36,17 +34,16 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
             previousHeader.text = "Previous meals"
 
-            // LayoutManager - vertical carousel
             recyclerView.layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             recyclerView.adapter = MealHistoryAdapter(emptyList())
 
             val snapHelper = PagerSnapHelper()
             snapHelper.attachToRecyclerView(recyclerView)
+            // TODO: Persist empty/non-empty state using local storage (Room/SharedPreferences) if history should survive app restarts
             return
         }
 
-        // There is at least one meal in history - the latest meal is the first item
         val lastMeal = allMeals.first()
 
         val lastCarbsText = "Carbs: ${lastMeal.carbs.toInt()} g"
@@ -60,14 +57,12 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         lastDetails.text = "$lastCarbsText   |   $lastInsulinText"
         lastTime.text = "Time: ${dateFormat.format(Date(lastMeal.timestamp))}"
 
-        // All other meals go into the vertical carousel list
         val previousMeals = if (allMeals.size > 1) {
             allMeals.drop(1)
         } else {
             emptyList()
         }
 
-        // Map Meal to MealHistoryItem
         val itemsForAdapter = previousMeals.map { meal ->
             val carbsText = "Carbs: ${meal.carbs.toInt()} g"
             val insulinText = if (meal.insulinDose != null) {
@@ -85,14 +80,13 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             )
         }
 
-        // LayoutManager - vertical carousel
         recyclerView.layoutManager =
             LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
 
         recyclerView.adapter = MealHistoryAdapter(itemsForAdapter)
 
-        // Snap helper makes the list behave like a vertical carousel (one card per snap)
         val snapHelper = PagerSnapHelper()
         snapHelper.attachToRecyclerView(recyclerView)
+        // TODO: Consider grouping meals by day or adding filters (e.g. by time of day or carbs range)
     }
 }
