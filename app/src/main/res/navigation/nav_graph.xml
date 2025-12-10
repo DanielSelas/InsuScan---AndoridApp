@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.insuscan.home.HomeFragment"
+        android:label="Home" />
+    <fragment
+        android:id="@+id/scanFragment"
+        android:name="com.example.insuscan.scan.ScanFragment"
+        android:label="Scan">
+
+        <action
+            android:id="@+id/action_scanFragment_to_summaryFragment"
+            app:destination="@id/summaryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/historyFragment"
+        android:name="com.example.insuscan.history.HistoryFragment"
+        android:label="History" />
+
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.insuscan.profile.ProfileFragment"
+        android:label="Profile" />
+
+    <fragment
+        android:id="@+id/summaryFragment"
+        android:name="com.example.insuscan.summary.SummaryFragment"
+        android:label="Summary">
+
+        <action
+            android:id="@+id/action_summaryFragment_to_manualEntryFragment"
+            app:destination="@id/manualEntryFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/manualEntryFragment"
+        android:name="com.example.insuscan.manualentry.ManualEntryFragment"
+        android:label="Manual Entry" />
+
+</navigation>

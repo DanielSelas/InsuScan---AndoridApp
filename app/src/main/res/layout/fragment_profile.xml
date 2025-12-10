@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/tv_profile_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Profile settings"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_medical_section_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Medical parameters"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp" />
+
+        <TextView
+            android:id="@+id/tv_insulin_carb_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Insulin to carb ratio (units per 1 g carbs)" />
+
+        <EditText
+            android:id="@+id/et_insulin_carb_ratio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Example: 1:10"
+            android:inputType="text" />
+
+        <TextView
+            android:id="@+id/tv_correction_factor_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Correction factor (mg/dL per 1 unit)"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/et_correction_factor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Example: 50"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/tv_target_glucose_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Target glucose (mg/dL)"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/et_target_glucose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Example: 100"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/tv_personal_section_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Personal information"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp" />
+
+        <TextView
+            android:id="@+id/tv_name_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Name" />
+
+        <EditText
+            android:id="@+id/et_user_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your name"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/tv_age_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Age"
+            android:layout_marginTop="16dp" />
+
+        <EditText
+            android:id="@+id/et_user_age"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Your age"
+            android:inputType="number" />
+
+        <Button
+            android:id="@+id/btn_save_profile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Save changes"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+</ScrollView>
