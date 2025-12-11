@@ -1,12 +1,20 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item
         android:id="@+id/homeFragment"
         android:icon="@android:drawable/ic_menu_view"
         android:title="Home" />
+
+    <item
+        android:id="@+id/summaryFragment"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="Summary" />
+
     <item
         android:id="@+id/scanFragment"
         android:icon="@android:drawable/ic_menu_camera"
         android:title="Scan" />
+
     <item
         android:id="@+id/historyFragment"
         android:icon="@android:drawable/ic_menu_recent_history"
@@ -16,4 +24,5 @@
         android:id="@+id/profileFragment"
         android:icon="@android:drawable/ic_menu_manage"
         android:title="Profile" />
+
 </menu>

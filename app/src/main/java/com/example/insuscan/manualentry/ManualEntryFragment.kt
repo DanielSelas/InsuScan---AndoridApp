@@ -7,6 +7,7 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.example.insuscan.MainActivity
 import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
@@ -23,6 +24,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
         // TODO: In the future, support editing multiple items instead of a single meal title + total carbs
         val currentMeal = MealSessionManager.currentMeal
         if (currentMeal != null) {
+            // Pre-fill manual form with the current meal data
             foodNameEditText.setText(currentMeal.title)
             carbsEditText.setText(currentMeal.carbs.toInt().toString())
         }
@@ -51,12 +53,16 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
                 return@setOnClickListener
             }
 
+            // Build updated meal based on manual input
             // TODO: When backend is ready, also send this manual update to the server for sync
             val updatedMeal = Meal(
                 title = name,
                 carbs = carbsValue
             )
             MealSessionManager.setCurrentMeal(updatedMeal)
+
+            // Summary tab should be available once a valid meal exists
+            (requireActivity() as? MainActivity)?.enableSummaryTab()
 
             // TODO: Replace Toast with a more user-friendly confirmation (e.g. Snackbar or inline info)
             Toast.makeText(
@@ -65,6 +71,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
                 Toast.LENGTH_SHORT
             ).show()
 
+            // For now just go back to the previous screen (usually Summary)
             // TODO: Consider navigating explicitly back to Summary via nav graph action if flow changes
             findNavController().popBackStack()
         }
