@@ -10,27 +10,44 @@ import com.example.insuscan.R
 import com.example.insuscan.profile.UserProfileManager
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
+    private lateinit var startScanButton: Button
+    private lateinit var greetingText: TextView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val startScanButton = view.findViewById<Button>(R.id.btn_start_scan)
-        val greetingText = view.findViewById<TextView>(R.id.tv_home_greeting)
+        findViews(view)
+        renderGreeting()
+        initializeListeners()
+    }
+
+    private fun findViews(view: View) {
+        startScanButton = view.findViewById(R.id.btn_start_scan)
+        greetingText = view.findViewById(R.id.tv_home_greeting)
+    }
+
+    private fun renderGreeting() {
+        val displayName = getDisplayName()
+        greetingText.text = "Hello, $displayName"
+    }
+
+    private fun getDisplayName(): String {
+        val ctx = requireContext()
 
         // Try to use stored name, fallback to "Daniel" if nothing is saved yet
-        val storedName = UserProfileManager.getUserName(requireContext())
-        val displayName = if (!storedName.isNullOrBlank()) {
-            storedName
-        } else {
-            "Daniel"
-        }
+        val storedName = UserProfileManager.getUserName(ctx)
+        return if (!storedName.isNullOrBlank()) storedName else DEFAULT_NAME
+    }
 
-        greetingText.text = "Hello, $displayName"
-
+    private fun initializeListeners() {
         // Main entry point to start a new scan
         startScanButton.setOnClickListener {
             // TODO: Consider clearing current meal before start if flow requires it
             (activity as? MainActivity)?.selectScanTab()
         }
+    }
+
+    companion object {
+        private const val DEFAULT_NAME = "Daniel"
     }
 }
