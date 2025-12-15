@@ -10,7 +10,6 @@
 
     <!-- ARCore -->
     <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
-    <meta-data android:name="com.google.ar.core" android:value="optional" />
 
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
@@ -24,6 +23,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.InsuScan"
         tools:targetApi="31">
+
+        <!-- ARCore -->
+        <meta-data android:name="com.google.ar.core" android:value="optional" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

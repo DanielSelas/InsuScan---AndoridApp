@@ -101,6 +101,59 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp" />
 
+    <!-- Analysis Results Section -->
+    <LinearLayout
+        android:id="@+id/layout_analysis_results"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#F0F0F0"
+        app:layout_constraintTop_toBottomOf="@id/tv_total_carbs"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tv_analysis_header"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Portion Analysis"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_portion_weight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Estimated weight: --"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tv_plate_dimensions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Plate: -- cm diameter, -- cm depth"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tv_analysis_confidence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confidence: --%"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/tv_reference_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reference object: --"
+            android:layout_marginTop="4dp" />
+
+    </LinearLayout>
+
     <!-- bottom primary action -->
     <Button
         android:id="@+id/btn_log_meal"

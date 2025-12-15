@@ -26,6 +26,7 @@ import java.util.concurrent.Executors
  * - Capture high-quality images
  * - Analyze frames in real time for on-screen validation
  */
+
 class CameraManager(private val context: Context) {
 
     private var imageCapture: ImageCapture? = null
@@ -45,9 +46,8 @@ class CameraManager(private val context: Context) {
         private const val MIN_RESOLUTION = 1920 * 1080
     }
 
-    /**
-     * Starts the camera and attaches it to the given PreviewView.
-     */
+
+    // Starts the camera and attaches it to the given PreviewView.
     fun startCamera(
         lifecycleOwner: LifecycleOwner,
         previewView: PreviewView,
@@ -107,9 +107,8 @@ class CameraManager(private val context: Context) {
         }, ContextCompat.getMainExecutor(context))
     }
 
-    /**
-     * Captures a photo and saves it into the provided directory.
-     */
+
+    // Captures a photo and saves it into the provided directory.
     fun captureImage(
         outputDirectory: File,
         onImageCaptured: (File) -> Unit,
@@ -146,10 +145,9 @@ class CameraManager(private val context: Context) {
         )
     }
 
-    /**
-     * Analyzes frame quality in real time.
-     * Checks: brightness, sharpness, and resolution.
-     */
+
+    // Analyzes frame quality in real time.
+    // Checks: brightness, sharpness, and resolution.
     private fun analyzeImageQuality(imageProxy: ImageProxy) {
         try {
             val buffer = imageProxy.planes[0].buffer
@@ -187,9 +185,8 @@ class CameraManager(private val context: Context) {
         }
     }
 
-    /**
-     * Computes average brightness from the Y plane.
-     */
+
+    // Computes average brightness from the Y plane.
     private fun calculateBrightness(data: ByteArray): Float {
         var sum = 0L
         for (byte in data) {
@@ -198,9 +195,8 @@ class CameraManager(private val context: Context) {
         return sum.toFloat() / data.size
     }
 
-    /**
-     * Estimates sharpness using pixel variance.
-     */
+
+    // Estimates sharpness using pixel variance.
     private fun estimateSharpness(data: ByteArray, width: Int): Float {
         if (data.size < width * 2) return 0f
 
@@ -215,18 +211,14 @@ class CameraManager(private val context: Context) {
         return (variance / data.size).toFloat()
     }
 
-    /**
-     * Stops camera and releases resources.
-     */
+    // Stops camera and releases resources.
     fun shutdown() {
         cameraProvider?.unbindAll()
         cameraExecutor.shutdown()
     }
 }
 
-/**
- * Image quality check result.
- */
+// Image quality check result.
 data class ImageQualityResult(
     val brightness: Float,
     val isBrightnessOk: Boolean,
@@ -235,15 +227,12 @@ data class ImageQualityResult(
     val resolution: Int,
     val isResolutionOk: Boolean
 ) {
-    /**
-     * True if the frame passes all quality checks.
-     */
+
+    //True if the frame passes all quality checks.
     val isValid: Boolean
         get() = isBrightnessOk && isSharpnessOk && isResolutionOk
 
-    /**
-     * Returns a user-facing message based on the current quality status.
-     */
+    // Returns a user-facing message based on the current quality status.
     fun getValidationMessage(): String {
         return when {
             !isBrightnessOk && brightness < 50f -> "Image is too dark. Please add more light."

@@ -3,6 +3,7 @@ package com.example.insuscan.scan
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
@@ -13,6 +14,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
+import com.example.insuscan.analysis.PortionEstimator
+import com.example.insuscan.analysis.PortionResult
 import com.example.insuscan.camera.CameraManager
 import com.example.insuscan.camera.ImageQualityResult
 import com.example.insuscan.camera.ImageValidator
@@ -22,13 +25,12 @@ import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.utils.ToastHelper
 import java.io.File
 
-/**
- * ScanFragment - food scan screen.
- *
- * Uses CameraX to show preview, runs lightweight validation in real time,
- * and captures an image to continue to Summary.
- */
+// ScanFragment - food scan screen with camera preview and portion analysis
 class ScanFragment : Fragment(R.layout.fragment_scan) {
+
+    companion object {
+        private const val TAG = "ScanFragment"
+    }
 
     // Views
     private lateinit var cameraPreview: PreviewView
@@ -39,6 +41,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     // Camera
     private lateinit var cameraManager: CameraManager
     private var isImageQualityOk = false
+
+    // Portion analysis (ARCore + OpenCV)
+    private var portionEstimator: PortionEstimator? = null
 
     // Camera permission flow
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -57,6 +62,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
         findViews(view)
         initializeCameraManager()
+        initializePortionEstimator()
         initializeListeners()
         checkCameraPermission()
     }
@@ -68,23 +74,20 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         loadingOverlay = view.findViewById(R.id.loading_overlay)
     }
 
-    // This is the "real" version (kept commented on purpose for now).
-    // We use this when running on a real device and trusting analysis results.
+    // Real version - use this on physical device
 //    private fun initializeCameraManager() {
 //        cameraManager = CameraManager(requireContext())
-//
-//        // Listen for live quality updates coming from ImageAnalysis
 //        cameraManager.onImageQualityUpdate = { qualityResult ->
 //            updateQualityStatus(qualityResult)
 //        }
 //    }
 
+    // Dev mode version - forces good quality for emulator testing
     private fun initializeCameraManager() {
         cameraManager = CameraManager(requireContext())
 
-        // Listen for live quality updates coming from ImageAnalysis
         cameraManager.onImageQualityUpdate = { qualityResult ->
-            // Dev mode: force a "good" result so we can test UX on emulator.
+            // Dev mode: force good result for emulator testing
             val devModeResult = ImageQualityResult(
                 brightness = 120f,
                 isBrightnessOk = true,
@@ -94,8 +97,27 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 isResolutionOk = true
             )
 
-            // TODO: Switch back to qualityResult when testing on a real device.
+            // TODO: Switch to qualityResult on real device
             updateQualityStatus(devModeResult)
+        }
+    }
+
+    // Initialize ARCore + OpenCV for portion estimation
+    private fun initializePortionEstimator() {
+        portionEstimator = PortionEstimator(requireContext())
+
+        val result = portionEstimator?.initialize()
+
+        result?.let {
+            val arStatus = it.arCoreStatus.name
+            val cvStatus = if (it.openCvReady) "Ready" else "Failed"
+
+            Log.d(TAG, "Portion estimator init - ARCore: $arStatus, OpenCV: $cvStatus")
+
+            if (!it.isReady) {
+                // OpenCV failed but we can continue with fallback values
+                Log.w(TAG, "Analysis module not fully ready, using fallbacks")
+            }
         }
     }
 
@@ -144,13 +166,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
     }
 
-    // Updates the UI based on live quality checks.
+    // Updates UI based on live quality checks
     private fun updateQualityStatus(qualityResult: ImageQualityResult) {
         isImageQualityOk = qualityResult.isValid
 
         qualityStatusText.text = qualityResult.getValidationMessage()
 
-        // Background color indicates status
         val backgroundColor = if (qualityResult.isValid) {
             ContextCompat.getColor(requireContext(), android.R.color.holo_green_light)
         } else {
@@ -158,7 +179,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
         qualityStatusText.setBackgroundColor(backgroundColor)
 
-        // Capture is enabled only when quality is valid
         captureButton.isEnabled = qualityResult.isValid
         captureButton.alpha = if (qualityResult.isValid) 1f else 0.5f
     }
@@ -166,7 +186,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private fun onCaptureClicked() {
         showLoading(true)
 
-        // We store the captured image in cache for now.
         val outputDir = requireContext().cacheDir
 
         cameraManager.captureImage(
@@ -181,23 +200,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
     }
 
-    /**
-     * Validates the captured image and continues the flow.
-     * For now, once valid, we create a mock meal and go to Summary.
-     */
-
+    // Real version - use on physical device
 //    private fun validateAndProcessImage(imageFile: File) {
 //        val validationResult = ImageValidator.validateCapturedImage(imageFile)
 //
 //        when (validationResult) {
 //            is ValidationResult.Valid -> {
-//                // Image is valid - create a meal and continue to Summary
-//                // TODO: Later we'll send the image to the backend for real recognition
-//                val mockMeal = createMockMealFromImage()
-//                MealSessionManager.setCurrentMeal(mockMeal)
-//
-//                showLoading(false)
-//                navigateToSummary()
+//                // Run portion estimation on the captured image
+//                analyzePortionAndContinue(imageFile)
 //            }
 //            is ValidationResult.Invalid -> {
 //                showLoading(false)
@@ -213,16 +223,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 //        }
 //    }
 
+    // Dev mode version - skips validation for emulator
     private fun validateAndProcessImage(imageFile: File) {
-        // Dev mode: skip file validation to avoid emulator false negatives.
-        // TODO: Turn this off on real devices.
         val devMode = true
 
         if (devMode) {
-            val mockMeal = createMockMealFromImage()
-            MealSessionManager.setCurrentMeal(mockMeal)
-            showLoading(false)
-            navigateToSummary()
+            // Skip validation, go straight to analysis
+            analyzePortionAndContinue(imageFile)
             return
         }
 
@@ -230,10 +237,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
         when (validationResult) {
             is ValidationResult.Valid -> {
-                val mockMeal = createMockMealFromImage()
-                MealSessionManager.setCurrentMeal(mockMeal)
-                showLoading(false)
-                navigateToSummary()
+                analyzePortionAndContinue(imageFile)
             }
 
             is ValidationResult.Invalid -> {
@@ -251,7 +255,66 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-    // Temporary stub until backend recognition is wired.
+    // Analyze portion using ARCore + OpenCV, then continue to Summary
+    private fun analyzePortionAndContinue(imageFile: File) {
+        val bitmap = android.graphics.BitmapFactory.decodeFile(imageFile.absolutePath)
+
+        if (bitmap == null) {
+            Log.e(TAG, "Failed to decode image file")
+            showLoading(false)
+            ToastHelper.showShort(requireContext(), "Failed to process image")
+            return
+        }
+
+        // Run portion estimation
+        val portionResult = portionEstimator?.estimatePortion(bitmap)
+
+        val meal = when (portionResult) {
+            is PortionResult.Success -> {
+                Log.d(TAG, "Portion estimated: ${portionResult.estimatedWeightGrams}g")
+                createMealFromAnalysis(portionResult)
+            }
+            is PortionResult.Error -> {
+                Log.w(TAG, "Portion estimation failed: ${portionResult.message}")
+                createMockMealFromImage()
+            }
+            null -> {
+                Log.w(TAG, "PortionEstimator not initialized")
+                createMockMealFromImage()
+            }
+        }
+
+        MealSessionManager.setCurrentMeal(meal)
+        showLoading(false)
+        navigateToSummary()
+    }
+
+    // Create meal from actual analysis results
+    private fun createMealFromAnalysis(result: PortionResult.Success): Meal {
+        val estimatedCarbs = estimateCarbsFromPortion(result.estimatedWeightGrams)
+
+        return Meal(
+            title = "Detected meal",
+            carbs = estimatedCarbs,
+            portionWeightGrams = result.estimatedWeightGrams,
+            portionVolumeCm3 = result.volumeCm3,
+            plateDiameterCm = result.plateDiameterCm,
+            plateDepthCm = result.depthCm,
+            analysisConfidence = result.confidence,
+            referenceObjectDetected = result.referenceObjectDetected
+        )
+    }
+
+    // Rough carb estimation based on portion weight
+    // Real values will come from nutrition API
+    private fun estimateCarbsFromPortion(weightGrams: Float): Float {
+        // Assume average carb density of 0.2g carbs per gram of food
+        // This is a rough estimate - real value depends on food type
+        val avgCarbDensity = 0.2f
+        return weightGrams * avgCarbDensity
+    }
+
+    // Fallback when analysis fails
     private fun createMockMealFromImage(): Meal {
         return Meal(
             title = "Chicken and rice",
@@ -271,5 +334,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     override fun onDestroyView() {
         super.onDestroyView()
         cameraManager.shutdown()
+        portionEstimator?.release()
+        portionEstimator = null
     }
 }
