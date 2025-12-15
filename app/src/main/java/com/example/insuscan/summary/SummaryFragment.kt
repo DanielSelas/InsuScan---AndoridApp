@@ -10,92 +10,89 @@ import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.utils.ToastHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
-
+    private lateinit var editButton: Button
+    private lateinit var calcButton: Button
+    private lateinit var logButton: Button
     private var totalCarbsTextView: TextView? = null
+
+    private val ctx get() = requireContext()
+
+    companion object {
+        private const val MSG_SET_RATIO =
+            "Please set insulin to carb ratio in Profile first"
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val editButton = view.findViewById<Button>(R.id.btn_edit_meal)
-        val calcButton = view.findViewById<Button>(R.id.btn_calculate_insulin)
-        val logButton = view.findViewById<Button>(R.id.btn_log_meal)
-        totalCarbsTextView = view.findViewById(R.id.tv_total_carbs)
-
+        findViews(view)
         updateTotalCarbsLabel()
+        initializeListeners()
+    }
 
-        editButton.setOnClickListener {
-            findNavController().navigate(R.id.action_summaryFragment_to_manualEntryFragment)
+    private fun findViews(view: View) {
+        editButton = view.findViewById(R.id.btn_edit_meal)
+        calcButton = view.findViewById(R.id.btn_calculate_insulin)
+        logButton = view.findViewById(R.id.btn_log_meal)
+        totalCarbsTextView = view.findViewById(R.id.tv_total_carbs)
+    }
+
+    private fun initializeListeners() {
+        editButton.setOnClickListener { onEditClicked() }
+        calcButton.setOnClickListener { onCalculateClicked() }
+        logButton.setOnClickListener { onLogClicked() }
+    }
+
+    private fun onEditClicked() {
+        findNavController().navigate(R.id.action_summaryFragment_to_manualEntryFragment)
+    }
+
+    private fun onCalculateClicked() {
+        val meal = MealSessionManager.currentMeal
+        if (meal == null) {
+            ToastHelper.showShort(ctx, "No meal data - please scan your meal first")
+            return
         }
 
-        calcButton.setOnClickListener {
-            val meal = MealSessionManager.currentMeal
-            if (meal == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "No meal data - please scan your meal first",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
-            }
-
-            val unitsPerGram = UserProfileManager.getUnitsPerGram(requireContext())
-            if (unitsPerGram == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "Please set insulin to carb ratio in Profile first",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
-            }
-
-            val dose = meal.carbs * unitsPerGram
-            val doseRounded = String.format("%.1f", dose)
-
-            Toast.makeText(
-                requireContext(),
-                "Recommended dose: $doseRounded units",
-                Toast.LENGTH_SHORT
-            ).show()
+        val unitsPerGram = UserProfileManager.getUnitsPerGram(ctx)
+        if (unitsPerGram == null) {
+            ToastHelper.showShort(ctx,MSG_SET_RATIO)
+            return
         }
 
-        logButton.setOnClickListener {
-            val meal = MealSessionManager.currentMeal
-            if (meal == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "No meal data to save",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
-            }
+        val dose = meal.carbs * unitsPerGram
+        val doseRounded = String.format("%.1f", dose)
+        ToastHelper.showShort(ctx,"Recommended dose: $doseRounded units")
+    }
 
-            val unitsPerGram = UserProfileManager.getUnitsPerGram(requireContext())
-            if (unitsPerGram == null) {
-                Toast.makeText(
-                    requireContext(),
-                    "Please set insulin to carb ratio in Profile first",
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
-            }
-
-            val dose = meal.carbs * unitsPerGram
-            MealSessionManager.saveCurrentMealWithDose(dose)
-
-            // TODO: Replace Toast with a more visible "meal saved" indication
-            Toast.makeText(
-                requireContext(),
-                "Meal saved to history",
-                Toast.LENGTH_SHORT
-            ).show()
-
-            val bottomNav =
-                requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
-            bottomNav.selectedItemId = R.id.historyFragment
+    private fun onLogClicked() {
+        val meal = MealSessionManager.currentMeal
+        if (meal == null) {
+            ToastHelper.showShort(ctx,"No meal data to save")
+            return
         }
+
+        val unitsPerGram = UserProfileManager.getUnitsPerGram(ctx)
+        if (unitsPerGram == null) {
+            ToastHelper.showShort(ctx,MSG_SET_RATIO)
+            return
+        }
+
+        val dose = meal.carbs * unitsPerGram
+        MealSessionManager.saveCurrentMealWithDose(dose)
+
+        // TODO: Replace Toast with a more visible "meal saved" indication
+        ToastHelper.showShort(ctx,"Meal saved to history")
+        selectHistoryTab()
+    }
+
+    private fun selectHistoryTab() {
+        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
+        bottomNav.selectedItemId = R.id.historyFragment
     }
 
     override fun onResume() {

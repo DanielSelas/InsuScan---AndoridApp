@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
+import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.SimpleDateFormat
@@ -16,64 +17,87 @@ import java.util.Date
 import java.util.Locale
 
 class HistoryFragment : Fragment(R.layout.fragment_history) {
+    private lateinit var lastTitle: TextView
+    private lateinit var lastDetails: TextView
+    private lateinit var lastTime: TextView
+    private lateinit var previousHeader: TextView
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var scanNextButton: Button
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val lastTitle = view.findViewById<TextView>(R.id.tv_last_meal_title)
-        val lastDetails = view.findViewById<TextView>(R.id.tv_last_meal_details)
-        val lastTime = view.findViewById<TextView>(R.id.tv_last_meal_time)
-        val previousHeader = view.findViewById<TextView>(R.id.tv_previous_meals_header)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.rv_meal_history)
-
-        val scanNextButton = view.findViewById<Button>(R.id.btn_scan_next_meal)
+        findViews(view)
 
         val allMeals = MealSessionManager.getHistory()
-        val dateFormat = SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+        val dateFormat = createDateFormat()
+
+        setupRecyclerView()
 
         if (allMeals.isEmpty()) {
-            lastTitle.text = "No meals yet"
-            lastDetails.text = "Your meals and insulin doses will appear here."
-            lastTime.text = ""
-
-            previousHeader.text = "Previous meals"
-
-            recyclerView.layoutManager =
-                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
-            recyclerView.adapter = MealHistoryAdapter(emptyList())
-
-            val snapHelper = PagerSnapHelper()
-            snapHelper.attachToRecyclerView(recyclerView)
+            renderEmptyState()
             // TODO: Persist empty/non-empty state using local storage (Room/SharedPreferences) if history should survive app restarts
             return
         }
 
-        val lastMeal = allMeals.first()
+        renderLastMeal(allMeals.first(), dateFormat)
 
-        val lastCarbsText = "Carbs: ${lastMeal.carbs.toInt()} g"
-        val lastInsulinText = if (lastMeal.insulinDose != null) {
-            "Insulin: ${String.format("%.1f", lastMeal.insulinDose)} units"
-        } else {
-            "Insulin: -"
-        }
+        val itemsForAdapter = buildPreviousMealItems(allMeals, dateFormat)
+        recyclerView.adapter = MealHistoryAdapter(itemsForAdapter)
+
+        // TODO: Consider grouping meals by day or adding filters (e.g. by time of day or carbs range)
+
+        initializeListeners()
+    }
+
+    private fun findViews(view: View) {
+        lastTitle = view.findViewById(R.id.tv_last_meal_title)
+        lastDetails = view.findViewById(R.id.tv_last_meal_details)
+        lastTime = view.findViewById(R.id.tv_last_meal_time)
+        previousHeader = view.findViewById(R.id.tv_previous_meals_header)
+        recyclerView = view.findViewById(R.id.rv_meal_history)
+        scanNextButton = view.findViewById(R.id.btn_scan_next_meal)
+    }
+
+    private fun createDateFormat(): SimpleDateFormat {
+        return SimpleDateFormat("dd/MM HH:mm", Locale.getDefault())
+    }
+
+    private fun setupRecyclerView() {
+        recyclerView.layoutManager =
+            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+
+        val snapHelper = PagerSnapHelper()
+        snapHelper.attachToRecyclerView(recyclerView)
+    }
+
+    private fun renderEmptyState() {
+        lastTitle.text = "No meals yet"
+        lastDetails.text = "Your meals and insulin doses will appear here."
+        lastTime.text = ""
+
+        previousHeader.text = "Previous meals"
+        recyclerView.adapter = MealHistoryAdapter(emptyList())
+    }
+
+    private fun renderLastMeal(lastMeal: Meal, dateFormat: SimpleDateFormat) {
+        val lastCarbsText = buildCarbsText(lastMeal.carbs)
+        val lastInsulinText = buildInsulinText(lastMeal.insulinDose)
 
         lastTitle.text = lastMeal.title
         lastDetails.text = "$lastCarbsText   |   $lastInsulinText"
         lastTime.text = "Time: ${dateFormat.format(Date(lastMeal.timestamp))}"
+    }
 
-        val previousMeals = if (allMeals.size > 1) {
-            allMeals.drop(1)
-        } else {
-            emptyList()
-        }
+    private fun buildPreviousMealItems(
+        allMeals: List<Meal>,
+        dateFormat: SimpleDateFormat
+    ): List<MealHistoryItem> {
+        val previousMeals = if (allMeals.size > 1) allMeals.drop(1) else emptyList()
 
-        val itemsForAdapter = previousMeals.map { meal ->
-            val carbsText = "Carbs: ${meal.carbs.toInt()} g"
-            val insulinText = if (meal.insulinDose != null) {
-                "Insulin: ${String.format("%.1f", meal.insulinDose)} units"
-            } else {
-                "Insulin: -"
-            }
+        return previousMeals.map { meal ->
+            val carbsText = buildCarbsText(meal.carbs)
+            val insulinText = buildInsulinText(meal.insulinDose)
             val timeText = dateFormat.format(Date(meal.timestamp))
 
             MealHistoryItem(
@@ -83,16 +107,21 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
                 timeText = timeText
             )
         }
+    }
 
-        recyclerView.layoutManager =
-            LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+    private fun buildCarbsText(carbs: Float): String {
+        return "Carbs: ${carbs.toInt()} g"
+    }
 
-        recyclerView.adapter = MealHistoryAdapter(itemsForAdapter)
+    private fun buildInsulinText(insulinDose: Float?): String {
+        return if (insulinDose != null) {
+            "Insulin: ${String.format("%.1f", insulinDose)} units"
+        } else {
+            "Insulin: -"
+        }
+    }
 
-        val snapHelper = PagerSnapHelper()
-        snapHelper.attachToRecyclerView(recyclerView)
-        // TODO: Consider grouping meals by day or adding filters (e.g. by time of day or carbs range)
-
+    private fun initializeListeners() {
         scanNextButton.setOnClickListener {
             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
             bottomNav.selectedItemId = R.id.scanFragment
