@@ -24,9 +24,8 @@ object ImageValidator {
     private const val MAX_BRIGHTNESS = 220
     private const val MIN_SHARPNESS_SCORE = 100.0
 
-    /**
-     * Runs full validation for a captured image file.
-     */
+
+     // Runs full validation for a captured image file.
     fun validateCapturedImage(imageFile: File): ValidationResult {
         if (!imageFile.exists()) {
             return ValidationResult.Error("File not found")
@@ -38,9 +37,8 @@ object ImageValidator {
         return validateBitmap(bitmap)
     }
 
-    /**
-     * Runs validation on a Bitmap instance.
-     */
+
+    // Runs validation on a Bitmap instance.
     fun validateBitmap(bitmap: Bitmap): ValidationResult {
         val issues = mutableListOf<String>()
 
@@ -78,10 +76,7 @@ object ImageValidator {
         }
     }
 
-    /**
-     * Computes average brightness using luminance:
-     * 0.299R + 0.587G + 0.114B
-     */
+   // Computes average brightness using luminance: 0.299R + 0.587G + 0.114B
     private fun calculateAverageBrightness(bitmap: Bitmap): Int {
         // Sample pixels (not all pixels) to keep it fast
         val sampleSize = 50
@@ -107,10 +102,8 @@ object ImageValidator {
         return if (count > 0) (totalBrightness / count).toInt() else 0
     }
 
-    /**
-     * Computes a sharpness score using Laplacian variance (approx).
-     * Higher value = sharper image.
-     */
+    // Computes a sharpness score using Laplacian variance (approx).
+    // Higher value = sharper image.
     private fun calculateSharpnessScore(bitmap: Bitmap): Double {
         // Convert to grayscale (sampled)
         val sampleSize = 100
@@ -138,10 +131,10 @@ object ImageValidator {
         return sqrt(variance)
     }
 
-    /**
-     * Checks if there is a hint of a reference object in the image.
-     * This is only a lightweight heuristic - full detection should happen server-side.
-     */
+
+     // Checks if there is a hint of a reference object in the image.
+     // This is only a lightweight heuristic - full detection should happen server-side.
+
     fun hasReferenceObjectHint(bitmap: Bitmap): Boolean {
         // Basic heuristic: look for a reasonable amount of very bright pixels
         // (often white/light-gray elongated areas typical for an insulin pen/syringe)
