@@ -12,7 +12,7 @@
         android:text="Scan your meal"
         android:textSize="22sp"
         android:textStyle="bold"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:layout_marginStart="24dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -21,48 +21,78 @@
         android:id="@+id/tv_scan_subtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Place your plate and insulin pen in the frame, then tap Capture."
+        android:text="Place your plate and insulin pen in the frame, then tap Capture"
         android:textSize="14sp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="8dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         app:layout_constraintTop_toBottomOf="@id/tv_scan_title"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <FrameLayout
-        android:id="@+id/camera_placeholder"
+    <androidx.camera.view.PreviewView
+        android:id="@+id/camera_preview"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="#DDDDDD"
-        android:layout_marginStart="24dp"
-        android:layout_marginEnd="24dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/tv_scan_subtitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btn_capture"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintBottom_toTopOf="@id/tv_quality_status" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Camera preview\n(placeholder)"
-            android:textAlignment="center"
-            android:textSize="16sp"
-            android:layout_gravity="center" />
-    </FrameLayout>
+    <TextView
+        android:id="@+id/tv_quality_status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Validate the photo"
+        android:textAlignment="center"
+        android:textSize="14sp"
+        android:padding="8dp"
+        android:background="#E0E0E0"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/btn_capture"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/btn_capture"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Capture"
+        android:textSize="18sp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/loading_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="מעבד תמונה..."
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:layout_gravity="center"
+            android:layout_marginTop="60dp" />
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
