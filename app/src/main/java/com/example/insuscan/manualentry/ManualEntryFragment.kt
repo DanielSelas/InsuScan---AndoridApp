@@ -4,14 +4,13 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.example.insuscan.MainActivity
 import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.utils.ToastHelper
+import com.example.insuscan.utils.TopBarHelper
 
 class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     private lateinit var foodNameEditText: EditText
@@ -19,8 +18,15 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     private lateinit var saveButton: Button
 
     private val ctx get() = requireContext()
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        TopBarHelper.setupTopBar(
+            rootView = view,
+            title = "Manual meal edit",
+            onBack = { findNavController().popBackStack() }
+        )
 
         findViews(view)
         prefillIfExistingMeal()
@@ -59,7 +65,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
         val carbsValue = carbs.toFloatOrNull()
         if (carbsValue == null || carbsValue <= 0f) {
-            ToastHelper.showShort(ctx,"Carbs must be a positive number")
+            ToastHelper.showShort(ctx, "Carbs must be a positive number")
             return
         }
 
@@ -75,7 +81,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 //        (requireActivity() as? MainActivity)?.enableSummaryTab()
 
         // TODO: Replace Toast with a more user-friendly confirmation (e.g. Snackbar or inline info)
-        ToastHelper.showShort(ctx,"Edited meal: $name - ${carbsValue.toInt()} g carbs")
+        ToastHelper.showShort(ctx, "Edited meal: $name - ${carbsValue.toInt()} g carbs")
 
         // For now just go back to the previous screen (usually Summary)
         // TODO: Consider navigating explicitly back to Summary via nav graph action if flow changes

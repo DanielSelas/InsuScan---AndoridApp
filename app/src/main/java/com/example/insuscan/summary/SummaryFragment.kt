@@ -12,6 +12,7 @@ import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.ToastHelper
+import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
@@ -39,9 +40,22 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         super.onViewCreated(view, savedInstanceState)
 
         findViews(view)
+        initializeTopBar(view)
+
         updateTotalCarbsLabel()
         updateAnalysisResults()
         initializeListeners()
+    }
+
+    private fun initializeTopBar(rootView: View) {
+        TopBarHelper.setupTopBarBackToScan(
+            rootView = rootView,
+            title = "Meal summary"
+        ) {
+            val bottomNav =
+                requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
+            bottomNav.selectedItemId = R.id.scanFragment
+        }
     }
 
     private fun findViews(view: View) {
@@ -134,20 +148,16 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val meal = MealSessionManager.currentMeal
 
         if (meal == null || !hasAnalysisData(meal)) {
-            // Hide analysis section if no data
             analysisLayout?.visibility = View.GONE
             return
         }
 
-        // Show analysis section
         analysisLayout?.visibility = View.VISIBLE
 
-        // Portion weight
         meal.portionWeightGrams?.let { weight ->
             portionWeightText?.text = "Estimated weight: ${weight.toInt()} g"
         }
 
-        // Plate dimensions
         val diameter = meal.plateDiameterCm
         val depth = meal.plateDepthCm
         if (diameter != null && depth != null) {
@@ -157,13 +167,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             )
         }
 
-        // Confidence
         meal.analysisConfidence?.let { confidence ->
             val percentage = (confidence * 100).toInt()
             confidenceText?.text = "Confidence: $percentage%"
         }
 
-        // Reference object status
         val refStatus = if (meal.referenceObjectDetected) {
             "Reference object: Detected ✓"
         } else {
@@ -172,7 +180,6 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         referenceStatusText?.text = refStatus
     }
 
-    // Check if meal has analysis data
     private fun hasAnalysisData(meal: Meal): Boolean {
         return meal.portionWeightGrams != null ||
                 meal.plateDiameterCm != null ||
