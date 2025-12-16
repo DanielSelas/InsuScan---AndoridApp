@@ -11,12 +11,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
+import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class HistoryFragment : Fragment(R.layout.fragment_history) {
+
     private lateinit var lastTitle: TextView
     private lateinit var lastDetails: TextView
     private lateinit var lastTime: TextView
@@ -26,6 +28,16 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Top bar (shared component)
+        TopBarHelper.setupTopBar(
+            rootView = view,
+            title = "Meal history",
+            onBack = {
+                val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
+                bottomNav.selectedItemId = R.id.homeFragment
+            }
+        )
 
         findViews(view)
 

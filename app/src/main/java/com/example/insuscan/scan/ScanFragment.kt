@@ -23,6 +23,7 @@ import com.example.insuscan.camera.ValidationResult
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.utils.ToastHelper
+import com.example.insuscan.utils.TopBarHelper
 import java.io.File
 
 // ScanFragment - food scan screen with camera preview and portion analysis
@@ -59,6 +60,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Top bar (shared component)
+        TopBarHelper.setupTopBar(
+            rootView = view,
+            title = "Scan your meal",
+            onBack = { findNavController().navigate(R.id.homeFragment) }
+        )
 
         findViews(view)
         initializeCameraManager()
@@ -266,7 +274,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             return
         }
 
-        // Run portion estimation
         val portionResult = portionEstimator?.estimatePortion(bitmap)
 
         val meal = when (portionResult) {
@@ -289,7 +296,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         navigateToSummary()
     }
 
-    // Create meal from actual analysis results
     private fun createMealFromAnalysis(result: PortionResult.Success): Meal {
         val estimatedCarbs = estimateCarbsFromPortion(result.estimatedWeightGrams)
 
@@ -305,16 +311,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
     }
 
-    // Rough carb estimation based on portion weight
-    // Real values will come from nutrition API
     private fun estimateCarbsFromPortion(weightGrams: Float): Float {
-        // Assume average carb density of 0.2g carbs per gram of food
-        // This is a rough estimate - real value depends on food type
         val avgCarbDensity = 0.2f
         return weightGrams * avgCarbDensity
     }
 
-    // Fallback when analysis fails
     private fun createMockMealFromImage(): Meal {
         return Meal(
             title = "Chicken and rice",
