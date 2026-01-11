@@ -65,4 +65,22 @@ dependencies {
 
     // OpenCV
     implementation(libs.opencv.android)
+
+    // Retrofit - HTTP client
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // OkHttp - for logging and interceptors
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
+
+    // Gson - JSON parsing
+    implementation(libs.gson)
+
+    // Coroutines - async calls
+    implementation(libs.kotlinx.coroutines.android)
+
+    // ViewModel + LiveData
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
 }
