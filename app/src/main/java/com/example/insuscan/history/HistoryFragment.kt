@@ -17,6 +17,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import androidx.lifecycle.lifecycleScope
+import com.example.insuscan.network.repository.MealRepository
+import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.utils.ToastHelper
+import kotlinx.coroutines.launch
+
 class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     private lateinit var lastTitle: TextView
@@ -25,6 +31,9 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     private lateinit var previousHeader: TextView
     private lateinit var recyclerView: RecyclerView
     private lateinit var scanNextButton: Button
+
+    private val mealRepository = MealRepository()
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -60,6 +69,8 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         // TODO: Consider grouping meals by day or adding filters (e.g. by time of day or carbs range)
 
         initializeListeners()
+
+        loadMealsFromServer()
     }
 
     private fun findViews(view: View) {
@@ -137,6 +148,31 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         scanNextButton.setOnClickListener {
             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
             bottomNav.selectedItemId = R.id.scanFragment
+        }
+    }
+
+    private fun loadMealsFromServer() {
+        val email = UserProfileManager.getUserEmail(requireContext())
+        if (email.isNullOrBlank()) {
+            renderEmptyState()
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = mealRepository.getRecentMeals(email, 10)
+            result.onSuccess { meals ->
+                if (meals.isEmpty()) {
+                    renderEmptyState()
+                } else {
+                    // Convert MealDto to display format and render
+                    // TODO: implement conversion
+                }
+            }.onFailure { error ->
+                // Fallback to local data or show error
+                ToastHelper.showShort(requireContext(), "Could not load from server")
+                val localMeals = MealSessionManager.getHistory()
+                // ... render local meals ...
+            }
         }
     }
 }
