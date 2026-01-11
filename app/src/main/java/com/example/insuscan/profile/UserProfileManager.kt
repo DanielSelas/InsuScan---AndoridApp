@@ -3,9 +3,8 @@ package com.example.insuscan.profile
 import android.content.Context
 
 object UserProfileManager {
-
+    private const val KEY_USER_EMAIL = "user_email"
     private const val PREFS_NAME = "insu_profile_prefs"
-
     private const val KEY_RATIO = "insulin_carb_ratio"
     private const val KEY_USER_NAME = "user_name"
     private const val KEY_CORRECTION_FACTOR = "correction_factor"
@@ -87,6 +86,16 @@ object UserProfileManager {
         return if (p.contains(KEY_TARGET_GLUCOSE))
             p.getInt(KEY_TARGET_GLUCOSE, 0)
         else null
+    }
+
+    fun saveUserEmail(context: Context, email: String) {
+        prefs(context).edit()
+            .putString(KEY_USER_EMAIL, email)
+            .apply()
+    }
+
+    fun getUserEmail(context: Context): String? {
+        return prefs(context).getString(KEY_USER_EMAIL, null)
     }
 
     // endregion
