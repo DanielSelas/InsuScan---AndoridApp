@@ -26,6 +26,16 @@ import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import java.io.File
 
+import androidx.lifecycle.lifecycleScope
+import com.example.insuscan.meal.FoodItem
+import com.example.insuscan.network.dto.MealDto
+import com.example.insuscan.network.repository.ScanRepository
+import com.example.insuscan.profile.UserProfileManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+
 // ScanFragment - food scan screen with camera preview and portion analysis
 class ScanFragment : Fragment(R.layout.fragment_scan) {
 
@@ -45,6 +55,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     // Portion analysis (ARCore + OpenCV)
     private var portionEstimator: PortionEstimator? = null
+
+    // Add as class member
+    private val scanRepository = ScanRepository()
 
     // Camera permission flow
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -263,7 +276,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-    // Analyze portion using ARCore + OpenCV, then continue to Summary
+
+    // Replace the analyzePortionAndContinue function:
     private fun analyzePortionAndContinue(imageFile: File) {
         val bitmap = android.graphics.BitmapFactory.decodeFile(imageFile.absolutePath)
 
@@ -274,26 +288,84 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             return
         }
 
-        val portionResult = portionEstimator?.estimatePortion(bitmap)
+        // Get user email
+        val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
 
-        val meal = when (portionResult) {
-            is PortionResult.Success -> {
-                Log.d(TAG, "Portion estimated: ${portionResult.estimatedWeightGrams}g")
-                createMealFromAnalysis(portionResult)
+        // Local portion analysis (optional - for extra data)
+        val portionResult = portionEstimator?.estimatePortion(bitmap)
+        val estimatedWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
+        val confidence = (portionResult as? PortionResult.Success)?.confidence
+
+        // Send to server
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                scanRepository.scanImage(bitmap, email, estimatedWeight, confidence)
             }
-            is PortionResult.Error -> {
-                Log.w(TAG, "Portion estimation failed: ${portionResult.message}")
-                createMockMealFromImage()
-            }
-            null -> {
-                Log.w(TAG, "PortionEstimator not initialized")
-                createMockMealFromImage()
+
+            result.onSuccess { mealDto ->
+                Log.d(TAG, "Server returned meal: ${mealDto.mealId}")
+
+                // Convert server response to local Meal object
+                val meal = convertMealDtoToMeal(mealDto, portionResult)
+                MealSessionManager.setCurrentMeal(meal)
+                showLoading(false)
+                navigateToSummary()
+
+            }.onFailure { error ->
+                Log.e(TAG, "Server scan failed: ${error.message}")
+                // Fallback to local mock data
+                val meal = createFallbackMeal(portionResult)
+                MealSessionManager.setCurrentMeal(meal)
+                showLoading(false)
+                navigateToSummary()
             }
         }
+    }
 
-        MealSessionManager.setCurrentMeal(meal)
-        showLoading(false)
-        navigateToSummary()
+    // Helper to convert server response to local Meal
+    private fun convertMealDtoToMeal(dto: MealDto, portionResult: PortionResult?): Meal {
+        val totalCarbs = dto.totalCarbs ?: dto.foodItems?.sumOf {
+            (it.carbsGrams ?: 0f).toDouble()
+        }?.toFloat() ?: 0f
+
+        return Meal(
+            title = dto.foodItems?.firstOrNull()?.name ?: "Detected meal",
+            carbs = totalCarbs,
+            portionWeightGrams = dto.estimatedWeight ?: (portionResult as? PortionResult.Success)?.estimatedWeightGrams,
+            portionVolumeCm3 = dto.plateVolumeCm3 ?: (portionResult as? PortionResult.Success)?.volumeCm3,
+            plateDiameterCm = dto.plateDiameterCm ?: (portionResult as? PortionResult.Success)?.plateDiameterCm,
+            plateDepthCm = dto.plateDepthCm ?: (portionResult as? PortionResult.Success)?.depthCm,
+            analysisConfidence = dto.analysisConfidence ?: (portionResult as? PortionResult.Success)?.confidence,
+            referenceObjectDetected = dto.referenceDetected ?: (portionResult as? PortionResult.Success)?.referenceObjectDetected,
+            foodItems = dto.foodItems?.map { item ->
+                FoodItem(
+                    name = item.name,
+                    nameHebrew = item.nameHebrew,
+                    carbsGrams = item.carbsGrams,
+                    weightGrams = item.estimatedWeightGrams,
+                    confidence = item.confidence
+                )
+            }
+        )
+    }
+
+    // Fallback when server is unavailable
+    private fun createFallbackMeal(portionResult: PortionResult?): Meal {
+        return when (portionResult) {
+            is PortionResult.Success -> {
+                Meal(
+                    title = "Detected meal",
+                    carbs = portionResult.estimatedWeightGrams * 0.2f, // rough estimate
+                    portionWeightGrams = portionResult.estimatedWeightGrams,
+                    portionVolumeCm3 = portionResult.volumeCm3,
+                    plateDiameterCm = portionResult.plateDiameterCm,
+                    plateDepthCm = portionResult.depthCm,
+                    analysisConfidence = portionResult.confidence,
+                    referenceObjectDetected = portionResult.referenceObjectDetected
+                )
+            }
+            else -> Meal(title = "Unknown meal", carbs = 30f)
+        }
     }
 
     private fun createMealFromAnalysis(result: PortionResult.Success): Meal {

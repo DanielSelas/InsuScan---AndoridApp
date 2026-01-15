@@ -1,0 +1,44 @@
+package com.example.insuscan.network.repository
+
+import android.graphics.Bitmap
+import com.example.insuscan.network.RetrofitClient
+import com.example.insuscan.network.dto.MealDto
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.ByteArrayOutputStream
+
+// Handles image scanning API calls
+class ScanRepository {
+
+    private val api = RetrofitClient.api
+
+    // Send image to server for analysis
+    suspend fun scanImage(
+        bitmap: Bitmap,
+        email: String,
+        estimatedWeight: Float? = null,
+        confidence: Float? = null
+    ): Result<MealDto> {
+        return try {
+            // Convert bitmap to byte array
+            val stream = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+            val byteArray = stream.toByteArray()
+
+            // Create multipart body
+            val requestBody = byteArray.toRequestBody("image/jpeg".toMediaType())
+            val part = MultipartBody.Part.createFormData("file", "meal.jpg", requestBody)
+
+            val response = api.analyzeImage(part, email, estimatedWeight, confidence)
+
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Scan failed: ${response.code()} - ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}
