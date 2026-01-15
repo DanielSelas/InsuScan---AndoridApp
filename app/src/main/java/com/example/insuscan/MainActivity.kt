@@ -1,6 +1,7 @@
 package com.example.insuscan
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
@@ -37,6 +38,14 @@ class MainActivity : AppCompatActivity() {
 
         // Connect bottom navigation to navigation controller
         bottomNav.setupWithNavController(navController)
+
+        // Hide bottom nav on login screen
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.loginFragment -> bottomNav.visibility = View.GONE
+                else -> bottomNav.visibility = View.VISIBLE
+            }
+        }
     }
 
     //    private fun setupBottomNavigationListener() {
