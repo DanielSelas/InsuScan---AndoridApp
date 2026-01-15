@@ -9,6 +9,7 @@ object UserProfileManager {
     private const val KEY_USER_NAME = "user_name"
     private const val KEY_CORRECTION_FACTOR = "correction_factor"
     private const val KEY_TARGET_GLUCOSE = "target_glucose"
+    private const val KEY_EMAIL = "user_email"
 
     // small helper to get prefs once
     private fun prefs(context: Context) =
@@ -88,12 +89,16 @@ object UserProfileManager {
         else null
     }
 
-    fun saveUserEmail(context: Context, email: String) {
-        prefs(context).edit()
-            .putString(KEY_USER_EMAIL, email)
-            .apply()
-    }
+//    fun saveUserEmail(context: Context, email: String) {
+//        prefs(context).edit()
+//            .putString(KEY_USER_EMAIL, email)
+//            .apply()
+//    }
 
+    fun saveUserEmail(context: Context, email: String) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(KEY_EMAIL, email).apply()
+    }
     fun getUserEmail(context: Context): String? {
         return prefs(context).getString(KEY_USER_EMAIL, null)
     }
