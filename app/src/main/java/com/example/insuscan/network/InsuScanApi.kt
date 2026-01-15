@@ -1,6 +1,7 @@
 package com.example.insuscan.network
 
 import com.example.insuscan.network.dto.*
+import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -81,4 +82,15 @@ interface InsuScanApi {
         @Path("systemId") systemId: String,
         @Path("mealId") mealId: String
     ): Response<Unit>
+
+    // ===== Vision Analysis =====
+
+    @Multipart
+    @POST("vision/analyze")
+    suspend fun analyzeImage(
+        @Part file: MultipartBody.Part,
+        @Query("email") email: String,
+        @Query("estimatedWeightGrams") estimatedWeightGrams: Float? = null,
+        @Query("portionConfidence") portionConfidence: Float? = null
+    ): Response<MealDto>
 }
