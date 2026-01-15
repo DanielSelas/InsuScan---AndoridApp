@@ -12,6 +12,7 @@ import com.example.insuscan.utils.TopBarHelper
 import androidx.lifecycle.lifecycleScope
 import com.example.insuscan.network.repository.UserRepository
 import kotlinx.coroutines.launch
+import com.example.insuscan.auth.AuthManager
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
@@ -21,6 +22,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var nameEditText: EditText
     private lateinit var ageEditText: EditText
     private lateinit var saveButton: Button
+
+    private lateinit var logoutButton: Button
 
     private lateinit var storedRatio: String
     private lateinit var storedCorrection: String
@@ -57,6 +60,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         nameEditText = view.findViewById(R.id.et_user_name)
         ageEditText = view.findViewById(R.id.et_user_age)
         saveButton = view.findViewById(R.id.btn_save_profile)
+        logoutButton = view.findViewById(R.id.btn_logout)
+
     }
 
     private fun setUpHardCodedProfile() {
@@ -83,6 +88,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private fun initializeListeners() {
         saveButton.setOnClickListener { onSaveClicked() }
+        logoutButton.setOnClickListener { onLogoutClicked() }
+
     }
 
     private fun onSaveClicked() {
@@ -143,5 +150,9 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 userRepository.register(email, name)
             }
         }
+    }
+    private fun onLogoutClicked() {
+        AuthManager.signOut()
+        findNavController().navigate(R.id.loginFragment)
     }
 }

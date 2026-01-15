@@ -34,7 +34,7 @@ import com.example.insuscan.profile.UserProfileManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
+import android.provider.MediaStore
 
 // ScanFragment - food scan screen with camera preview and portion analysis
 class ScanFragment : Fragment(R.layout.fragment_scan) {
@@ -48,6 +48,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private lateinit var captureButton: Button
     private lateinit var qualityStatusText: TextView
     private lateinit var loadingOverlay: FrameLayout
+    private lateinit var galleryButton: Button
+
 
     // Camera
     private lateinit var cameraManager: CameraManager
@@ -69,6 +71,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             ToastHelper.showShort(requireContext(), "Camera permission is required to scan")
             findNavController().popBackStack()
         }
+    }
+
+    private val galleryLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { processGalleryImage(it) }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -93,6 +101,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         captureButton = view.findViewById(R.id.btn_capture)
         qualityStatusText = view.findViewById(R.id.tv_quality_status)
         loadingOverlay = view.findViewById(R.id.loading_overlay)
+        galleryButton = view.findViewById(R.id.btn_gallery)
+
     }
 
     // Real version - use this on physical device
@@ -149,6 +159,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             } else {
                 ToastHelper.showShort(requireContext(), "Please wait until image quality is OK")
             }
+        }
+        galleryButton.setOnClickListener {
+            galleryLauncher.launch("image/*")
         }
     }
 
@@ -409,5 +422,67 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         cameraManager.shutdown()
         portionEstimator?.release()
         portionEstimator = null
+    }
+
+    private fun processGalleryImage(uri: android.net.Uri) {
+        showLoading(true)
+
+        try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri)
+            val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+
+            if (bitmap == null) {
+                showLoading(false)
+                ToastHelper.showShort(requireContext(), "Failed to load image")
+                return
+            }
+
+            // Get user email
+            val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
+
+            // Send to server
+            lifecycleScope.launch {
+                try {
+                    val result = scanRepository.scanImage(bitmap, email, null, null)
+
+                    withContext(Dispatchers.Main) {
+                        showLoading(false)
+
+                        result.onSuccess { mealDto ->
+                            Log.d(TAG, "Scan successful: ${mealDto.foodItems?.size} items")
+
+                            val meal = Meal(
+                                title = mealDto.foodItems?.firstOrNull()?.name ?: "Scanned meal",
+                                carbs = mealDto.totalCarbs ?: 0f,
+                                foodItems = mealDto.foodItems?.map { item ->
+                                    FoodItem(
+                                        name = item.name,
+                                        nameHebrew = item.nameHebrew,
+                                        carbsGrams = item.carbsGrams,
+                                        weightGrams = item.estimatedWeightGrams,
+                                        confidence = item.confidence
+                                    )
+                                }
+                            )
+                            MealSessionManager.setCurrentMeal(meal)
+                            navigateToSummary()
+                        }.onFailure { error ->
+                            Log.e(TAG, "Scan failed: ${error.message}")
+                            ToastHelper.showShort(requireContext(), "Scan failed: ${error.message}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        showLoading(false)
+                        Log.e(TAG, "Error: ${e.message}")
+                        ToastHelper.showShort(requireContext(), "Error: ${e.message}")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            showLoading(false)
+            ToastHelper.showShort(requireContext(), "Failed to process image: ${e.message}")
+        }
     }
 }

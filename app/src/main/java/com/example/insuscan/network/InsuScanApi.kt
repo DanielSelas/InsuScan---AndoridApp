@@ -9,22 +9,22 @@ interface InsuScanApi {
 
     // ===== Users =====
 
-    @POST("insuscan/users")
+    @POST("users")
     suspend fun createUser(@Body newUser: NewUserDto): Response<UserDto>
 
-    @GET("insuscan/users/login/{systemId}/{email}")
+    @GET("users/login/{systemId}/{email}")
     suspend fun login(
         @Path("systemId") systemId: String,
         @Path("email") email: String
     ): Response<UserDto>
 
-    @GET("insuscan/users/{systemId}/{email}")
+    @GET("users/{systemId}/{email}")
     suspend fun getUser(
         @Path("systemId") systemId: String,
         @Path("email") email: String
     ): Response<UserDto>
 
-    @PUT("insuscan/users/{systemId}/{email}")
+    @PUT("users/{systemId}/{email}")
     suspend fun updateUser(
         @Path("systemId") systemId: String,
         @Path("email") email: String,
@@ -33,16 +33,16 @@ interface InsuScanApi {
 
     // ===== Meals =====
 
-    @POST("insuscan/meals")
+    @POST("meals")
     suspend fun createMeal(@Body request: CreateMealRequest): Response<MealDto>
 
-    @GET("insuscan/meals/{systemId}/{mealId}")
+    @GET("meals/{systemId}/{mealId}")
     suspend fun getMeal(
         @Path("systemId") systemId: String,
         @Path("mealId") mealId: String
     ): Response<MealDto>
 
-    @GET("insuscan/meals/user/{systemId}/{email}")
+    @GET("meals/user/{systemId}/{email}")
     suspend fun getUserMeals(
         @Path("systemId") systemId: String,
         @Path("email") email: String,
@@ -50,34 +50,34 @@ interface InsuScanApi {
         @Query("size") size: Int = 10
     ): Response<List<MealDto>>
 
-    @GET("insuscan/meals/recent/{systemId}/{email}")
+    @GET("meals/recent/{systemId}/{email}")
     suspend fun getRecentMeals(
         @Path("systemId") systemId: String,
         @Path("email") email: String,
         @Query("count") count: Int = 5
     ): Response<List<MealDto>>
 
-    @PUT("insuscan/meals/{systemId}/{mealId}/fooditems")
+    @PUT("meals/{systemId}/{mealId}/fooditems")
     suspend fun updateFoodItems(
         @Path("systemId") systemId: String,
         @Path("mealId") mealId: String,
         @Body foodItems: List<FoodItemDto>
     ): Response<MealDto>
 
-    @PUT("insuscan/meals/{systemId}/{mealId}/confirm")
+    @PUT("meals/{systemId}/{mealId}/confirm")
     suspend fun confirmMeal(
         @Path("systemId") systemId: String,
         @Path("mealId") mealId: String,
         @Query("actualDose") actualDose: Float? = null
     ): Response<MealDto>
 
-    @PUT("insuscan/meals/{systemId}/{mealId}/complete")
+    @PUT("meals/{systemId}/{mealId}/complete")
     suspend fun completeMeal(
         @Path("systemId") systemId: String,
         @Path("mealId") mealId: String
     ): Response<MealDto>
 
-    @DELETE("insuscan/meals/{systemId}/{mealId}")
+    @DELETE("meals/{systemId}/{mealId}")
     suspend fun deleteMeal(
         @Path("systemId") systemId: String,
         @Path("mealId") mealId: String
