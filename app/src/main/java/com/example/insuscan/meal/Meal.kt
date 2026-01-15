@@ -13,5 +13,19 @@ data class Meal(
     val plateDiameterCm: Float? = null,
     val plateDepthCm: Float? = null,
     val analysisConfidence: Float? = null,
-    val referenceObjectDetected: Boolean = false
+    val referenceObjectDetected: Boolean? = null,
+
+    // Food items from server
+    val foodItems: List<FoodItem>? = null,
+
+    // Server IDs for sync
+    val serverId: String? = null
+)
+
+data class FoodItem(
+    val name: String,
+    val nameHebrew: String? = null,
+    val carbsGrams: Float? = null,
+    val weightGrams: Float? = null,
+    val confidence: Float? = null
 )

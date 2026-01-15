@@ -39,6 +39,24 @@ class MainActivity : AppCompatActivity() {
         bottomNav.setupWithNavController(navController)
     }
 
+    //    private fun setupBottomNavigationListener() {
+//        bottomNav.setOnItemSelectedListener { item ->
+//            when (item.itemId) {
+//                R.id.summaryFragment -> {
+//                    if (!hasMeal()) {
+//                        ToastHelper.showShort(this, "Scan a meal first to view summary")
+//                        return@setOnItemSelectedListener false
+//                    }
+//                    NavigationUI.onNavDestinationSelected(item, navController)
+//                    return@setOnItemSelectedListener true
+//                }
+//                else -> {
+//                    NavigationUI.onNavDestinationSelected(item, navController)
+//                    return@setOnItemSelectedListener true
+//                }
+//            }
+//        }
+//    }
     private fun setupBottomNavigationListener() {
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -47,12 +65,14 @@ class MainActivity : AppCompatActivity() {
                         ToastHelper.showShort(this, "Scan a meal first to view summary")
                         return@setOnItemSelectedListener false
                     }
-                    NavigationUI.onNavDestinationSelected(item, navController)
-                    return@setOnItemSelectedListener true
+                    // Navigate directly instead of using NavigationUI
+                    navController.navigate(item.itemId)
+                    true
                 }
+
                 else -> {
-                    NavigationUI.onNavDestinationSelected(item, navController)
-                    return@setOnItemSelectedListener true
+                    navController.navigate(item.itemId)
+                    true
                 }
             }
         }

@@ -172,10 +172,10 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             confidenceText?.text = "Confidence: $percentage%"
         }
 
-        val refStatus = if (meal.referenceObjectDetected) {
-            "Reference object: Detected ✓"
-        } else {
-            "Reference object: Not detected (using estimates)"
+        val refStatus = when (meal.referenceObjectDetected) {
+            true -> "Reference object: Detected ✓"
+            false -> "Reference object: Not detected (using estimates)"
+            null -> "Reference object: No data"
         }
         referenceStatusText?.text = refStatus
     }

@@ -9,6 +9,9 @@ import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
+import androidx.lifecycle.lifecycleScope
+import com.example.insuscan.network.repository.UserRepository
+import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
@@ -24,6 +27,11 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var storedTarget: String
     private lateinit var storedName: String
     private lateinit var storedAge: String
+
+    private val ctx get() = requireContext()
+
+    private val userRepository = UserRepository()
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -114,5 +122,26 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         // TODO: When age is persisted, validate and save it here as well
         ToastHelper.showShort(ctx, "Profile saved")
+    }
+
+    private fun saveProfileToServer() {
+        val email = UserProfileManager.getUserEmail(ctx) ?: return
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            // First try to get existing user
+            val getResult = userRepository.getUser(email)
+
+            getResult.onSuccess { existingUser ->
+                // Update existing user
+                val updatedUser = existingUser.copy(
+                    // update fields as needed
+                )
+                userRepository.updateUser(email, updatedUser)
+            }.onFailure {
+                // User doesn't exist, create new one
+                val name = nameEditText.text.toString()
+                userRepository.register(email, name)
+            }
+        }
     }
 }
