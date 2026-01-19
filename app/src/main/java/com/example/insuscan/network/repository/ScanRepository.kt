@@ -33,7 +33,27 @@ class ScanRepository {
             val response = api.analyzeImage(part, email, estimatedWeight, confidence)
 
             if (response.isSuccessful && response.body() != null) {
-                Result.success(response.body()!!)
+                val body = response.body()!!
+
+                // Defensive: if server returned a different JSON shape (e.g. error/vision-only),
+                // Gson may still deserialize into MealDto with all nulls -> leads to "0g carbs".
+                val looksLikeMeal =
+                    body.mealId != null ||
+                    body.foodItems != null ||
+                    body.totalCarbs != null ||
+                    body.recommendedDose != null ||
+                    body.actualDose != null
+
+                val isFailed =
+                    body.status?.equals("FAILED", ignoreCase = true) == true &&
+                            (body.foodItems.isNullOrEmpty()) &&
+                            ((body.totalCarbs ?: 0f) <= 0f)
+
+                if (!looksLikeMeal || isFailed) {
+                    Result.failure(Exception("Scan failed: server returned unexpected response"))
+                } else {
+                    Result.success(body)
+                }
             } else {
                 Result.failure(Exception("Scan failed: ${response.code()} - ${response.message()}"))
             }
