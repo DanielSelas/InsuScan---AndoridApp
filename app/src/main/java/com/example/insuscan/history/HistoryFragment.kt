@@ -1,6 +1,7 @@
 package com.example.insuscan.history
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -18,12 +19,18 @@ import java.util.Date
 import java.util.Locale
 
 import androidx.lifecycle.lifecycleScope
+import com.example.insuscan.network.dto.MealDto
 import com.example.insuscan.network.repository.MealRepository
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.ToastHelper
 import kotlinx.coroutines.launch
+import java.text.ParseException
+import java.text.SimpleDateFormat as JavaSimpleDateFormat
 
 class HistoryFragment : Fragment(R.layout.fragment_history) {
+    companion object {
+        private const val TAG = "HistoryFragment"
+    }
 
     private lateinit var lastTitle: TextView
     private lateinit var lastDetails: TextView
@@ -49,27 +56,22 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         )
 
         findViews(view)
-
-        val allMeals = MealSessionManager.getHistory()
-        val dateFormat = createDateFormat()
-
         setupRecyclerView()
-
-        if (allMeals.isEmpty()) {
-            renderEmptyState()
-            // TODO: Persist empty/non-empty state using local storage (Room/SharedPreferences) if history should survive app restarts
-            return
-        }
-
-        renderLastMeal(allMeals.first(), dateFormat)
-
-        val itemsForAdapter = buildPreviousMealItems(allMeals, dateFormat)
-        recyclerView.adapter = MealHistoryAdapter(itemsForAdapter)
-
-        // TODO: Consider grouping meals by day or adding filters (e.g. by time of day or carbs range)
-
         initializeListeners()
 
+        // Render local meals (if any) immediately, but always try to refresh from server.
+        val localMeals = MealSessionManager.getHistory()
+        val dateFormat = createDateFormat()
+
+        if (localMeals.isEmpty()) {
+            renderEmptyState()
+            // TODO: Persist empty/non-empty state using local storage (Room/SharedPreferences) if history should survive app restarts
+        } else {
+            renderLastMeal(localMeals.first(), dateFormat)
+            recyclerView.adapter = MealHistoryAdapter(buildPreviousMealItems(localMeals, dateFormat))
+        }
+
+        // Always load from server (this is the source of truth)
         loadMealsFromServer()
     }
 
@@ -154,25 +156,99 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     private fun loadMealsFromServer() {
         val email = UserProfileManager.getUserEmail(requireContext())
         if (email.isNullOrBlank()) {
-            renderEmptyState()
             return
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = mealRepository.getRecentMeals(email, 10)
+            val result = loadAllMealsForUser(email)
             result.onSuccess { meals ->
-                if (meals.isEmpty()) {
-                    renderEmptyState()
+                if (meals.isNotEmpty()) {
+                    renderMealsFromServer(meals)
                 } else {
-                    // Convert MealDto to display format and render
-                    // TODO: implement conversion
+                    renderEmptyState()
                 }
-            }.onFailure { error ->
+            }.onFailure { e ->
+                Log.e(TAG, "Failed to load meals from server for email=$email", e)
                 // Fallback to local data or show error
-                ToastHelper.showShort(requireContext(), "Could not load from server")
+                ToastHelper.showShort(requireContext(), "Could not load from server: ${e.message}")
                 val localMeals = MealSessionManager.getHistory()
                 // ... render local meals ...
             }
         }
+    }
+
+    private suspend fun loadAllMealsForUser(email: String): Result<List<MealDto>> {
+        val pageSize = 25
+        val maxPages = 20 // safety cap (max 500 meals)
+
+        val all = mutableListOf<MealDto>()
+        var page = 0
+
+        while (page < maxPages) {
+            val result = mealRepository.getUserMeals(email = email, page = page, size = pageSize)
+            if (result.isFailure) return result
+
+            val items = result.getOrNull().orEmpty()
+            if (items.isEmpty()) break
+
+            all.addAll(items)
+
+            // If server returned less than a full page, we're done.
+            if (items.size < pageSize) break
+
+            page++
+        }
+
+        return Result.success(all)
+    }
+
+    private fun renderMealsFromServer(meals: List<MealDto>) {
+        val dateFormat = createDateFormat()
+
+        val serverMealsAsLocal = meals.map { dto ->
+            Meal(
+                title = dto.foodItems?.firstOrNull()?.name ?: "Meal",
+                carbs = dto.totalCarbs ?: 0f,
+                insulinDose = dto.actualDose ?: dto.recommendedDose ?: dto.insulinCalculation?.recommendedDose,
+                timestamp = parseServerTimestampToMillis(dto.scannedTimestamp) ?: System.currentTimeMillis(),
+                serverId = dto.mealId?.id
+            )
+        }
+
+        val last = serverMealsAsLocal.firstOrNull()
+        if (last == null) {
+            renderEmptyState()
+            return
+        }
+
+        renderLastMeal(last, dateFormat)
+        recyclerView.adapter = MealHistoryAdapter(buildPreviousMealItems(serverMealsAsLocal, dateFormat))
+    }
+
+    private fun parseServerTimestampToMillis(value: String?): Long? {
+        if (value.isNullOrBlank()) return null
+
+        // Spring Boot Date serialization is commonly ISO-8601 (e.g. 2026-01-18T12:34:56.789+00:00)
+        // Try a small set of formats; if all fail, return null.
+        val candidates = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'"
+        )
+
+        for (pattern in candidates) {
+            try {
+                val df = JavaSimpleDateFormat(pattern, Locale.US)
+                df.isLenient = true
+                val parsed = df.parse(value)
+                if (parsed != null) return parsed.time
+            } catch (_: ParseException) {
+                // try next
+            } catch (_: IllegalArgumentException) {
+                // try next
+            }
+        }
+        return null
     }
 }

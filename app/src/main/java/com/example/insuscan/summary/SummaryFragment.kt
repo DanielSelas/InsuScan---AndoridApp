@@ -90,6 +90,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             return
         }
 
+        if (meal.carbs <= 0f) {
+            ToastHelper.showShort(ctx, "No carbs detected. Try scanning again or tap Edit to enter items manually.")
+            return
+        }
+
         val unitsPerGram = UserProfileManager.getUnitsPerGram(ctx)
         if (unitsPerGram == null) {
             ToastHelper.showShort(ctx, MSG_SET_RATIO)
@@ -105,6 +110,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val meal = MealSessionManager.currentMeal
         if (meal == null) {
             ToastHelper.showShort(ctx, "No meal data to save")
+            return
+        }
+
+        if (meal.carbs <= 0f) {
+            ToastHelper.showShort(ctx, "No carbs detected. Please Edit the meal before saving.")
             return
         }
 

@@ -152,6 +152,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
     }
     private fun onLogoutClicked() {
+        // Clear local session (server-side auth is email-based)
+        UserProfileManager.clearUserEmail(ctx)
         AuthManager.signOut()
         findNavController().navigate(R.id.loginFragment)
     }

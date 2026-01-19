@@ -20,11 +20,11 @@ import kotlinx.coroutines.launch
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private lateinit var etEmail: TextInputEditText
-    private lateinit var etPassword: TextInputEditText
     private lateinit var btnLogin: Button
     private lateinit var btnRegister: Button
     private lateinit var btnGoogle: Button
     private lateinit var progressBar: ProgressBar
+    private val userRepository = UserRepository()
 
     // Google Sign-In result handler
     private val googleSignInLauncher = registerForActivityResult(
@@ -38,7 +38,13 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 AuthManager.signInWithGoogle(token) { success, error ->
                     showLoading(false)
                     if (success) {
-                        onLoginSuccess()
+                        val email = AuthManager.getUserEmail()
+                        if (email.isNullOrBlank()) {
+                            showError("Google sign-in succeeded but email is missing")
+                            return@signInWithGoogle
+                        }
+                        val displayName = AuthManager.currentUser()?.displayName ?: email.substringBefore("@")
+                        onLoginSuccess(email, displayName)
                     } else {
                         showError("Google sign-in failed: $error")
                     }
@@ -52,8 +58,9 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Skip login if already logged in
-        if (AuthManager.isLoggedIn()) {
+        // Skip login if already have a local session (server uses email-only users)
+        val existingEmail = UserProfileManager.getUserEmail(requireContext())
+        if (!existingEmail.isNullOrBlank()) {
             navigateToHome()
             return
         }
@@ -65,7 +72,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private fun findViews(view: View) {
         etEmail = view.findViewById(R.id.et_email)
-        etPassword = view.findViewById(R.id.et_password)
         btnLogin = view.findViewById(R.id.btn_login)
         btnRegister = view.findViewById(R.id.btn_register)
         btnGoogle = view.findViewById(R.id.btn_google)
@@ -81,19 +87,17 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private fun setupListeners() {
         btnLogin.setOnClickListener {
             val email = etEmail.text.toString().trim()
-            val password = etPassword.text.toString()
 
-            if (validateInput(email, password)) {
-                performLogin(email, password)
+            if (validateEmail(email)) {
+                performServerLogin(email)
             }
         }
 
         btnRegister.setOnClickListener {
             val email = etEmail.text.toString().trim()
-            val password = etPassword.text.toString()
 
-            if (validateInput(email, password)) {
-                performRegister(email, password)
+            if (validateEmail(email)) {
+                performServerRegister(email)
             }
         }
 
@@ -104,7 +108,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
     }
 
-    private fun validateInput(email: String, password: String): Boolean {
+    private fun validateEmail(email: String): Boolean {
         if (email.isEmpty()) {
             showError("Please enter your email")
             return false
@@ -113,54 +117,57 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             showError("Please enter a valid email")
             return false
         }
-        if (password.length < 6) {
-            showError("Password must be at least 6 characters")
-            return false
-        }
         return true
     }
 
-    private fun performLogin(email: String, password: String) {
+    private fun performServerLogin(email: String) {
         showLoading(true)
-        AuthManager.signInWithEmail(email, password) { success, error ->
-            showLoading(false)
-            if (success) {
-                onLoginSuccess()
-            } else {
-                showError("Login failed: $error")
+        lifecycleScope.launch {
+            try {
+                val result = userRepository.login(email)
+                result.onSuccess { user ->
+                    val displayName = user.username ?: email.substringBefore("@")
+                    onLoginSuccess(email, displayName)
+                }.onFailure {
+                    // If user doesn't exist yet, offer registration via the button
+                    showError("User not found on server. Tap 'Create user' to register.")
+                }
+            } finally {
+                showLoading(false)
             }
         }
     }
 
-    private fun performRegister(email: String, password: String) {
+    private fun performServerRegister(email: String) {
         showLoading(true)
-        AuthManager.registerWithEmail(email, password) { success, error ->
-            showLoading(false)
-            if (success) {
-                onLoginSuccess()
-            } else {
-                showError("Registration failed: $error")
+        lifecycleScope.launch {
+            try {
+                val name = email.substringBefore("@")
+                val result = userRepository.register(email, name)
+                result.onSuccess { user ->
+                    val displayName = user.username ?: name
+                    onLoginSuccess(email, displayName)
+                }.onFailure { e ->
+                    showError("Registration failed: ${e.message}")
+                }
+            } finally {
+                showLoading(false)
             }
         }
     }
 
-    private fun onLoginSuccess() {
-        val email = AuthManager.getUserEmail() ?: return
-        val displayName = AuthManager.currentUser()?.displayName ?: email.substringBefore("@")
-
+    private fun onLoginSuccess(email: String, displayName: String) {
         // Save email locally
         UserProfileManager.saveUserEmail(requireContext(), email)
         UserProfileManager.saveUserName(requireContext(), displayName)
 
-        // Create user in Firestore (if doesn't exist)
+        // Ensure user exists in server DB (if doesn't exist)
         createUserInDatabase(email, displayName)
     }
 
     private fun createUserInDatabase(email: String, name: String) {
         lifecycleScope.launch {
             try {
-                val userRepository = UserRepository()
-
                 // Try to get user first
                 val result = userRepository.getUser(email)
 
