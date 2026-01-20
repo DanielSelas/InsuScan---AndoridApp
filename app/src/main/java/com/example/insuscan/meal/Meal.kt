@@ -14,6 +14,9 @@ data class Meal(
     val plateDepthCm: Float? = null,
     val analysisConfidence: Float? = null,
     val referenceObjectDetected: Boolean? = null,
+    val wasSickMode: Boolean = false,
+    val wasStressMode: Boolean = false,
+    val glucoseLevel: Int? = null,
 
     // Food items from server
     val foodItems: List<FoodItem>? = null,

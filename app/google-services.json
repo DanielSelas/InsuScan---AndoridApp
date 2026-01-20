@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1080476634600",
+    "project_id": "insuscan-1567c",
+    "storage_bucket": "insuscan-1567c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080476634600:android:e949476a771625f596285d",
+        "android_client_info": {
+          "package_name": "com.example.insuscan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1080476634600-tec970ffjjuhsqedf93i707pkquchshm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR7l51YMVEdfyK7SaCd7dv6noDoob1ubo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1080476634600-tec970ffjjuhsqedf93i707pkquchshm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
