@@ -90,4 +90,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth.ktx)
     implementation(libs.play.services.auth)
+
+    // Glide
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }
