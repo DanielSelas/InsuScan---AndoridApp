@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="?attr/selectableItemBackground">
+
+    <TextView
+        android:id="@+id/tv_food_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Food name"
+        android:textSize="15sp"
+        android:textColor="#333333"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/tv_food_carbs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="25g carbs per 100g"
+        android:textSize="12sp"
+        android:textColor="#1976D2"
+        android:layout_marginTop="2dp" />
+
+</LinearLayout>

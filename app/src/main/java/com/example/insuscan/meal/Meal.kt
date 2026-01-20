@@ -14,15 +14,26 @@ data class Meal(
     val plateDepthCm: Float? = null,
     val analysisConfidence: Float? = null,
     val referenceObjectDetected: Boolean? = null,
-    val wasSickMode: Boolean = false,
-    val wasStressMode: Boolean = false,
-    val glucoseLevel: Int? = null,
 
     // Food items from server
     val foodItems: List<FoodItem>? = null,
 
     // Server IDs for sync
-    val serverId: String? = null
+    val serverId: String? = null,
+
+    // Context flags (existing)
+    val wasSickMode: Boolean = false,
+    val wasStressMode: Boolean = false,
+
+    // Glucose and activity data
+    val glucoseLevel: Int? = null,
+    val glucoseUnits: String? = null,  // "mg/dL" or "mmol/L"
+    val activityLevel: String? = null,  // "normal", "light", "intense"
+
+    // Calculation breakdown
+    val carbDose: Float? = null,
+    val correctionDose: Float? = null,
+    val exerciseAdjustment: Float? = null
 )
 
 data class FoodItem(
