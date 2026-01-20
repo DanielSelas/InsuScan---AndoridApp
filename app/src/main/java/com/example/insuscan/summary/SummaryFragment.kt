@@ -413,12 +413,60 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             return
         }
 
-        // Save with calculated dose
-        MealSessionManager.saveCurrentMealWithDose(lastCalculatedDose)
+        // Get glucose value if entered
+        val glucoseValue = glucoseEditText.text.toString().toIntOrNull()
+        val glucoseUnits = UserProfileManager.getGlucoseUnits(ctx)
+
+        // Get activity level
+        val activityLevel = when (activityRadioGroup.checkedRadioButtonId) {
+            R.id.rb_activity_light -> "light"
+            R.id.rb_activity_intense -> "intense"
+            else -> "normal"
+        }
+
+        // Get calculation breakdown
+        val pm = UserProfileManager
+        val unitsPerGram = pm.getUnitsPerGram(ctx)
+        val carbDose = if (unitsPerGram != null) meal.carbs * unitsPerGram else null
+
+        var correctionDose: Float? = null
+        if (glucoseValue != null && unitsPerGram != null) {
+            val target = pm.getTargetGlucose(ctx) ?: 100
+            val isf = pm.getCorrectionFactor(ctx) ?: 50f
+            val glucoseInMgDl = if (glucoseUnits == "mmol/L") glucoseValue * 18 else glucoseValue
+            if (glucoseInMgDl > target) {
+                correctionDose = (glucoseInMgDl - target) / isf
+            }
+        }
+
+        // Calculate exercise adjustment
+        var exerciseAdj: Float? = null
+        if (activityLevel != "normal" && carbDose != null) {
+            val adjPercent = when (activityLevel) {
+                "light" -> pm.getLightExerciseAdjustment(ctx)
+                "intense" -> pm.getIntenseExerciseAdjustment(ctx)
+                else -> 0
+            }
+            exerciseAdj = -(carbDose * adjPercent / 100f)
+        }
+
+        // Create updated meal with all details
+        val updatedMeal = meal.copy(
+            insulinDose = lastCalculatedDose,
+            glucoseLevel = glucoseValue,
+            glucoseUnits = glucoseUnits,
+            activityLevel = activityLevel,
+            carbDose = carbDose,
+            correctionDose = correctionDose,
+            exerciseAdjustment = exerciseAdj,
+            wasSickMode = pm.isSickModeEnabled(ctx),
+            wasStressMode = pm.isStressModeEnabled(ctx)
+        )
+
+        MealSessionManager.saveCurrentMealWithDose(updatedMeal)
         ToastHelper.showShort(ctx, "Meal saved to history")
         selectHistoryTab()
     }
-
     private fun selectHistoryTab() {
         val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
         bottomNav.selectedItemId = R.id.historyFragment
