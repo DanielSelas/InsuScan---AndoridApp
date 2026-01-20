@@ -93,4 +93,11 @@ interface InsuScanApi {
         @Query("estimatedWeightGrams") estimatedWeightGrams: Float? = null,
         @Query("portionConfidence") portionConfidence: Float? = null
     ): Response<MealDto>
+
+    // Search USDA food database
+    @GET("food/search")
+    suspend fun searchFood(
+        @Query("query") query: String,
+        @Query("limit") limit: Int = 10
+    ): Response<List<FoodSearchResultDto>>
 }
