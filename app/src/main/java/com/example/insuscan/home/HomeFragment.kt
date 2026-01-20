@@ -4,26 +4,57 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
+import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import com.example.insuscan.MainActivity
 import com.example.insuscan.R
 import com.example.insuscan.profile.UserProfileManager
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
+
     private lateinit var startScanButton: Button
     private lateinit var greetingText: TextView
+    private lateinit var subtitleText: TextView
+
+    // Temporary modes
+    private lateinit var sickModeSwitch: SwitchCompat
+    private lateinit var stressModeSwitch: SwitchCompat
+    private lateinit var exerciseModeSwitch: SwitchCompat
+    private lateinit var sickWarningCard: CardView
+    private lateinit var sickWarningText: TextView
+    private lateinit var activeModesText: TextView
+
+    private val ctx get() = requireContext()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         findViews(view)
         renderGreeting()
+        loadTemporaryModes()
         initializeListeners()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh modes when returning to home
+        loadTemporaryModes()
+        renderGreeting()
     }
 
     private fun findViews(view: View) {
         startScanButton = view.findViewById(R.id.btn_start_scan)
         greetingText = view.findViewById(R.id.tv_home_greeting)
+        subtitleText = view.findViewById(R.id.tv_home_subtitle)
+
+        // Temporary modes
+        sickModeSwitch = view.findViewById(R.id.switch_sick_mode)
+        stressModeSwitch = view.findViewById(R.id.switch_stress_mode)
+        exerciseModeSwitch = view.findViewById(R.id.switch_exercise_mode)
+        sickWarningCard = view.findViewById(R.id.card_sick_warning)
+        sickWarningText = view.findViewById(R.id.tv_sick_warning)
+        activeModesText = view.findViewById(R.id.tv_active_modes)
     }
 
     private fun renderGreeting() {
@@ -32,18 +63,83 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun getDisplayName(): String {
-        val ctx = requireContext()
-
-        // Try to use stored name, fallback to "Daniel" if nothing is saved yet
         val storedName = UserProfileManager.getUserName(ctx)
         return if (!storedName.isNullOrBlank()) storedName else DEFAULT_NAME
     }
 
+    private fun loadTemporaryModes() {
+        val pm = UserProfileManager
+
+        // Load saved states
+        sickModeSwitch.isChecked = pm.isSickModeEnabled(ctx)
+        stressModeSwitch.isChecked = pm.isStressModeEnabled(ctx)
+        exerciseModeSwitch.isChecked = pm.isExerciseModeEnabled(ctx)
+
+        // Check sick mode duration warning
+        updateSickWarning()
+        updateActiveModesText()
+    }
+
     private fun initializeListeners() {
-        // Main entry point to start a new scan
+        // Scan button
         startScanButton.setOnClickListener {
-            // TODO: Consider clearing current meal before start if flow requires it
             (activity as? MainActivity)?.selectScanTab()
+        }
+
+        // Sick mode toggle
+        sickModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            UserProfileManager.setSickModeEnabled(ctx, isChecked)
+            updateSickWarning()
+            updateActiveModesText()
+        }
+
+        // Stress mode toggle
+        stressModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            UserProfileManager.setStressModeEnabled(ctx, isChecked)
+            updateActiveModesText()
+        }
+
+        // Exercise mode toggle
+        exerciseModeSwitch.setOnCheckedChangeListener { _, isChecked ->
+            UserProfileManager.setExerciseModeEnabled(ctx, isChecked)
+            updateActiveModesText()
+        }
+    }
+
+    private fun updateSickWarning() {
+        val isSick = UserProfileManager.isSickModeEnabled(ctx)
+        val days = UserProfileManager.getSickModeDays(ctx)
+
+        if (isSick && days >= 3) {
+            sickWarningCard.visibility = View.VISIBLE
+            sickWarningText.text = "Sick mode has been ON for $days days. Consider consulting your doctor."
+        } else {
+            sickWarningCard.visibility = View.GONE
+        }
+    }
+
+    private fun updateActiveModesText() {
+        val pm = UserProfileManager
+        val activeModes = mutableListOf<String>()
+
+        if (pm.isSickModeEnabled(ctx)) {
+            val adj = pm.getSickDayAdjustment(ctx)
+            activeModes.add("Sick +$adj%")
+        }
+        if (pm.isStressModeEnabled(ctx)) {
+            val adj = pm.getStressAdjustment(ctx)
+            activeModes.add("Stress +$adj%")
+        }
+        if (pm.isExerciseModeEnabled(ctx)) {
+            val adj = pm.getLightExerciseAdjustment(ctx)
+            activeModes.add("Exercise -$adj%")
+        }
+
+        if (activeModes.isNotEmpty()) {
+            activeModesText.visibility = View.VISIBLE
+            activeModesText.text = "Active: ${activeModes.joinToString(" • ")}"
+        } else {
+            activeModesText.visibility = View.GONE
         }
     }
 
