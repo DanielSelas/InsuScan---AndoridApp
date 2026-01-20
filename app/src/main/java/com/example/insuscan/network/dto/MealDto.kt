@@ -16,6 +16,10 @@ data class MealDto(
     val analysisConfidence: Float?,
     val referenceDetected: Boolean?,
     val insulinCalculation: InsulinCalculationDto?,
+    // Professional health status fields added for accuracy
+    val wasSickMode: Boolean?,
+    val wasStressMode: Boolean?,
+
     // Server-side insulin fields (Spring MealBoundary uses top-level recommendedDose/actualDose)
     val recommendedDose: Float?,
     val actualDose: Float?,

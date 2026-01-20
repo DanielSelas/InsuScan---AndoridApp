@@ -39,6 +39,10 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     private lateinit var recyclerView: RecyclerView
     private lateinit var scanNextButton: Button
 
+    private lateinit var lastSickInd: TextView
+    private lateinit var lastStressInd: TextView
+    private lateinit var lastGlucoseInd: TextView
+
     private val mealRepository = MealRepository()
 
 
@@ -76,12 +80,20 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     }
 
     private fun findViews(view: View) {
-        lastTitle = view.findViewById(R.id.tv_last_meal_title)
-        lastDetails = view.findViewById(R.id.tv_last_meal_details)
-        lastTime = view.findViewById(R.id.tv_last_meal_time)
+        // Header & Navigation
         previousHeader = view.findViewById(R.id.tv_previous_meals_header)
         recyclerView = view.findViewById(R.id.rv_meal_history)
         scanNextButton = view.findViewById(R.id.btn_scan_next_meal)
+
+        // Last Meal Card Views
+        lastTitle = view.findViewById(R.id.tv_last_meal_title)
+        lastDetails = view.findViewById(R.id.tv_last_meal_details)
+        lastTime = view.findViewById(R.id.tv_last_meal_time)
+
+        // Accuracy Indicators
+        lastSickInd = view.findViewById(R.id.tv_last_sick_ind)
+        lastStressInd = view.findViewById(R.id.tv_last_stress_ind)
+        lastGlucoseInd = view.findViewById(R.id.tv_last_glucose_ind)
     }
 
     private fun createDateFormat(): SimpleDateFormat {
@@ -112,6 +124,17 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         lastTitle.text = lastMeal.title
         lastDetails.text = "$lastCarbsText   |   $lastInsulinText"
         lastTime.text = "Time: ${dateFormat.format(Date(lastMeal.timestamp))}"
+
+        // Professional status indicators for accuracy
+        lastSickInd.visibility = if (lastMeal.wasSickMode) View.VISIBLE else View.GONE
+        lastStressInd.visibility = if (lastMeal.wasStressMode) View.VISIBLE else View.GONE
+
+        if (lastMeal.glucoseLevel != null) {
+            lastGlucoseInd.visibility = View.VISIBLE
+            lastGlucoseInd.text = "🩸 Glucose: ${lastMeal.glucoseLevel} mg/dL"
+        } else {
+            lastGlucoseInd.visibility = View.GONE
+        }
     }
 
     private fun buildPreviousMealItems(
@@ -121,15 +144,14 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         val previousMeals = if (allMeals.size > 1) allMeals.drop(1) else emptyList()
 
         return previousMeals.map { meal ->
-            val carbsText = buildCarbsText(meal.carbs)
-            val insulinText = buildInsulinText(meal.insulinDose)
-            val timeText = dateFormat.format(Date(meal.timestamp))
-
             MealHistoryItem(
                 title = meal.title,
-                carbsText = carbsText,
-                insulinText = insulinText,
-                timeText = timeText
+                carbsText = buildCarbsText(meal.carbs),
+                insulinText = buildInsulinText(meal.insulinDose),
+                timeText = dateFormat.format(Date(meal.timestamp)),
+                wasSickMode = meal.wasSickMode,
+                wasStressMode = meal.wasStressMode,
+                glucoseLevel = meal.glucoseLevel?.toString()
             )
         }
     }
@@ -211,7 +233,14 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
                 carbs = dto.totalCarbs ?: 0f,
                 insulinDose = dto.actualDose ?: dto.recommendedDose ?: dto.insulinCalculation?.recommendedDose,
                 timestamp = parseServerTimestampToMillis(dto.scannedTimestamp) ?: System.currentTimeMillis(),
-                serverId = dto.mealId?.id
+                serverId = dto.mealId?.id,
+
+                // Accurate mapping from the updated DTO fields
+                wasSickMode = dto.wasSickMode ?: false,
+                wasStressMode = dto.wasStressMode ?: false,
+
+                // Extracting glucose from the nested insulinCalculation object
+                glucoseLevel = dto.insulinCalculation?.currentGlucose
             )
         }
 
