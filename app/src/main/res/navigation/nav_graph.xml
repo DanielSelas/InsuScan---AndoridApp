@@ -49,6 +49,11 @@
         <action
             android:id="@+id/action_summaryFragment_to_manualEntryFragment"
             app:destination="@id/manualEntryFragment" />
+
+        <action
+            android:id="@+id/action_summaryFragment_to_profileFragment"
+            app:destination="@id/profileFragment" />
+
     </fragment>
 
     <fragment

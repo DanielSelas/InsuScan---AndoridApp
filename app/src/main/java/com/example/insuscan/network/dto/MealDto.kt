@@ -16,6 +16,9 @@ data class MealDto(
     val analysisConfidence: Float?,
     val referenceDetected: Boolean?,
     val insulinCalculation: InsulinCalculationDto?,
+    val profileComplete: Boolean?,
+    val missingProfileFields: List<String>?,
+    val insulinMessage: String?,
     // Professional health status fields added for accuracy
     val wasSickMode: Boolean?,
     val wasStressMode: Boolean?,
