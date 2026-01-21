@@ -33,7 +33,11 @@ data class Meal(
     // Calculation breakdown
     val carbDose: Float? = null,
     val correctionDose: Float? = null,
-    val exerciseAdjustment: Float? = null
+    val exerciseAdjustment: Float? = null,
+
+    val profileComplete: Boolean = false,
+    val missingProfileFields: List<String> = emptyList(),
+    val insulinMessage: String? = null,
 )
 
 data class FoodItem(

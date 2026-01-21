@@ -244,8 +244,35 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     }
 
     private fun calculateDose() {
-        val meal = MealSessionManager.currentMeal
+        val meal = MealSessionManager.currentMeal?: return
         val pm = UserProfileManager
+
+        // --- 1. Server Status Check (Hybrid Check) ---
+        // If server indicates incomplete profile -> stop and show warning
+        if (!meal.profileComplete) {
+            // Set text color to warning color
+            finalDoseText.text = "Setup Required"
+            // Make sure R.color.red_warning exists, or use Color.RED
+            finalDoseText.setTextColor(resources.getColor(R.color.red_warning, null))
+
+            // Change button to call-to-action
+            val msg = meal.insulinMessage ?: "Complete profile to see dose"
+            calculateButton.text = msg
+            calculateButton.setOnClickListener {
+                // Check that this ID matches your nav_graph
+                findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
+            }
+
+            // Hide other parameters to avoid confusion
+            carbDoseText.text = "--"
+            correctionLayout.visibility = View.GONE
+            return
+        }
+
+        // --- If profile is complete, reset button state ---
+        calculateButton.text = "Calculate Insulin"
+        calculateButton.setOnClickListener { calculateDose() }
+        finalDoseText.setTextColor(resources.getColor(R.color.black, null))
 
         // Get ICR
         val unitsPerGram = pm.getUnitsPerGram(ctx)
@@ -472,8 +499,33 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         bottomNav.selectedItemId = R.id.historyFragment
     }
 
+    // Checks if the user has completed the profile and updates the meal object
+    private fun checkAndRefreshProfileStatus() {
+        val meal = MealSessionManager.currentMeal ?: return
+
+        // If already complete, nothing to do
+        if (meal.profileComplete) return
+
+        // Check local profile data
+        val pm = UserProfileManager
+        val hasICR = pm.getInsulinCarbRatioRaw(ctx) != null
+        val hasISF = pm.getCorrectionFactor(ctx) != null
+        val hasTarget = pm.getTargetGlucose(ctx) != null
+
+        // If profile is now full, update the object in memory
+        if (hasICR && hasISF && hasTarget) {
+            val updatedMeal = meal.copy(
+                profileComplete = true,
+                insulinMessage = null // Clear the warning message
+            )
+            MealSessionManager.setCurrentMeal(updatedMeal)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
+        checkAndRefreshProfileStatus()
+
         setupGlucoseUnit()
         updateFoodDisplay()
         updateAnalysisResults()

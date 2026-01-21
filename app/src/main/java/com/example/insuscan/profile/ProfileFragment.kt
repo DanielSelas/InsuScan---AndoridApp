@@ -354,6 +354,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         // Try to sync to server
         syncToServer()
+
+        findNavController().popBackStack()
     }
 
     private fun syncToServer() {
