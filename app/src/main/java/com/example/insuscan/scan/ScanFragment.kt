@@ -350,6 +350,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             plateDepthCm = dto.plateDepthCm ?: (portionResult as? PortionResult.Success)?.depthCm,
             analysisConfidence = dto.analysisConfidence ?: (portionResult as? PortionResult.Success)?.confidence,
             referenceObjectDetected = dto.referenceDetected ?: (portionResult as? PortionResult.Success)?.referenceObjectDetected,
+
+            profileComplete = dto.profileComplete ?: false,
+            insulinMessage = dto.insulinMessage,
+            missingProfileFields = dto.missingProfileFields ?: emptyList(),
+            // ----------------------------------------
+
             foodItems = dto.foodItems?.map { item ->
                 FoodItem(
                     name = item.name,
@@ -452,19 +458,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                         result.onSuccess { mealDto ->
                             Log.d(TAG, "Scan successful: ${mealDto.foodItems?.size} items")
 
-                            val meal = Meal(
-                                title = mealDto.foodItems?.firstOrNull()?.name ?: "Scanned meal",
-                                carbs = mealDto.totalCarbs ?: 0f,
-                                foodItems = mealDto.foodItems?.map { item ->
-                                    FoodItem(
-                                        name = item.name,
-                                        nameHebrew = item.nameHebrew,
-                                        carbsGrams = item.carbsGrams,
-                                        weightGrams = item.estimatedWeightGrams,
-                                        confidence = item.confidence
-                                    )
-                                }
-                            )
+                            val meal = convertMealDtoToMeal(mealDto, null)
+
                             MealSessionManager.setCurrentMeal(meal)
                             navigateToSummary()
                         }.onFailure { error ->
