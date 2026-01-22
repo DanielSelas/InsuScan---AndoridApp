@@ -3,6 +3,7 @@ package com.example.insuscan.profile
 
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.widget.SwitchCompat
@@ -15,6 +16,7 @@ import com.example.insuscan.utils.TopBarHelper
 import androidx.lifecycle.lifecycleScope
 import com.example.insuscan.network.repository.UserRepository
 import com.bumptech.glide.Glide
+import com.example.insuscan.network.dto.UserDto
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -81,8 +83,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         setupTopBar(view)
         setupSpinners()
         setupListeners()
+
         loadProfile()
         loadGoogleProfile()
+        fetchServerProfile()
     }
 
     private fun findViews(view: View) {
@@ -254,11 +258,34 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         pm.getDiabetesType(ctx)?.let { setSpinnerSelection(diabetesTypeSpinner, diabetesOptions, it) }
         pm.getInsulinType(ctx)?.let { setSpinnerSelection(insulinTypeSpinner, insulinOptions, it) }
 
-        // Insulin Parameters
-        icrEditText.setText(pm.getInsulinCarbRatioRaw(ctx) ?: "1:10")
-        pm.getCorrectionFactor(ctx)?.let { isfEditText.setText(it.toInt().toString()) }
-        pm.getTargetGlucose(ctx)?.let { targetGlucoseEditText.setText(it.toString()) }
-        activeInsulinTimeText.text = "${pm.getActiveInsulinTime(ctx).toInt()}h"
+        // Insulin Parameters - Handle nulls safely (No defaults)
+        val rawRatio = pm.getInsulinCarbRatioRaw(ctx)
+        if (rawRatio != null) {
+            val ratioParts = rawRatio.split(":")
+            if (ratioParts.size == 2) {
+                icrEditText.setText(ratioParts[1].trim())
+            }
+        } else {
+            icrEditText.text.clear()
+        }
+
+        val isf = pm.getCorrectionFactor(ctx)
+        if (isf != null) {
+            isfEditText.setText(isf.toInt().toString())
+        } else {
+            isfEditText.text.clear()
+        }
+
+        val target = pm.getTargetGlucose(ctx)
+        if (target != null) {
+            targetGlucoseEditText.setText(target.toString())
+        } else {
+            targetGlucoseEditText.text.clear()
+        }
+
+        // Active Insulin Time (DIA)
+        val diaValue = pm.getActiveInsulinTime(ctx)
+        activeInsulinTimeText.text = "${diaValue.toInt()}h"
 
         // Syringe Settings
         setSpinnerByValue(syringeSizeSpinner, syringeOptions, pm.getSyringeSize(ctx))
@@ -289,19 +316,17 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         val pm = UserProfileManager
 
         // Validate required fields
-        val icr = icrEditText.text.toString().trim()
+        val icrValue = icrEditText.text.toString().trim()
         val isf = isfEditText.text.toString().trim()
         val target = targetGlucoseEditText.text.toString().trim()
 
-        if (icr.isEmpty() || isf.isEmpty() || target.isEmpty()) {
+        if (icrValue.isEmpty() || isf.isEmpty() || target.isEmpty()) {
             ToastHelper.showShort(ctx, "Please fill all insulin parameters")
             return
         }
 
-        if (!icr.contains(":")) {
-            ToastHelper.showShort(ctx, "Carb ratio format should be like 1:10")
-            return
-        }
+        // Format to 1:X
+        val fullIcrString = "1:$icrValue"
 
         // Save Personal Info
         val name = nameEditText.text.toString().trim()
@@ -326,7 +351,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         if (insulinType != "Select") pm.saveInsulinType(ctx, insulinType)
 
         // Save Insulin Parameters
-        pm.saveInsulinCarbRatio(ctx, icr)
+        pm.saveInsulinCarbRatio(ctx, fullIcrString)
         isf.toFloatOrNull()?.let { pm.saveCorrectionFactor(ctx, it) }
         target.toIntOrNull()?.let { pm.saveTargetGlucose(ctx, it) }
 
@@ -352,10 +377,25 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ToastHelper.showShort(ctx, "Profile saved locally")
 
-        // Try to sync to server
         syncToServer()
 
         findNavController().popBackStack()
+    }
+
+    private fun fetchServerProfile() {
+        val email = UserProfileManager.getUserEmail(ctx) ?: return
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            userRepository.getUser(email).onSuccess { userDto ->
+                UserProfileManager.syncFromServer(ctx, userDto)
+
+                loadProfile()
+
+                android.util.Log.d("ProfileFragment", "Profile synced from server")
+            }.onFailure { e ->
+                android.util.Log.e("ProfileFragment", "Failed to fetch profile: ${e.message}")
+            }
+        }
     }
 
     private fun syncToServer() {
@@ -363,20 +403,84 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val result = userRepository.getUser(email)
+                // 1. Determine dose rounding
+                val doseRoundingValue = if (doseRoundingSpinner.selectedItemPosition == 0) "0.5" else "1"
+
+                // 2. Determine active insulin time (integer)
+                val diaValue = activeInsulinTimeText.text.toString().replace("h", "").trim().toIntOrNull()
+
+                // 3. FIX: Map Syringe UI selection to Server Enum Name
+                // UI Options: ["0.3ml (30u)", "0.5ml (50u)", "1ml (100u)"]
+                // Server Enums: SYRINGE_30_UNIT, SYRINGE_50_UNIT, SYRINGE_100_UNIT
+                val selectedSyringeIndex = syringeSizeSpinner.selectedItemPosition
+                val syringeEnumValue = when (selectedSyringeIndex) {
+                    0 -> "SYRINGE_30_UNIT"  // 0.3ml
+                    1 -> "SYRINGE_50_UNIT"  // 0.5ml
+                    else -> "SYRINGE_100_UNIT" // 1ml
+                }
+
+                // Build UserDto with ALL fields
+                val userDto = UserDto(
+                    userId = null,
+                    username = nameEditText.text.toString().trim().ifEmpty { null },
+                    role = null,
+                    avatar = null,
+
+                    // Medical
+                    insulinCarbRatio = icrEditText.text.toString().trim().let {
+                        if (it.isEmpty()) null else "1:$it"
+                    },
+                    correctionFactor = isfEditText.text.toString().toFloatOrNull(),
+                    targetGlucose = targetGlucoseEditText.text.toString().toIntOrNull(),
+
+                    // Syringe - SEND ENUM NAME, NOT UI STRING
+                    syringeType = syringeEnumValue,
+                    customSyringeLength = null,
+
+                    // Personal
+                    age = ageEditText.text.toString().toIntOrNull(),
+                    gender = genderOptions.getOrNull(genderSpinner.selectedItemPosition).takeIf { it != "Select" },
+                    pregnant = pregnantSwitch.isChecked,
+                    dueDate = dueDateTextView.text.toString().takeIf { it != "Select date" },
+
+                    // Medical Extended
+                    diabetesType = diabetesOptions.getOrNull(diabetesTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
+                    insulinType = insulinOptions.getOrNull(insulinTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
+                    activeInsulinTime = diaValue,
+
+                    // Dose Settings
+                    doseRounding = doseRoundingValue,
+
+                    // Adjustments
+                    sickDayAdjustment = sickAdjustmentEditText.text.toString().toIntOrNull(),
+                    stressAdjustment = stressAdjustmentEditText.text.toString().toIntOrNull(),
+                    lightExerciseAdjustment = lightExerciseEditText.text.toString().toIntOrNull(),
+                    intenseExerciseAdjustment = intenseExerciseEditText.text.toString().toIntOrNull(),
+
+                    // Preferences
+                    glucoseUnits = glucoseUnitOptions.getOrNull(glucoseUnitsSpinner.selectedItemPosition),
+
+                    createdTimestamp = null,
+                    updatedTimestamp = null
+                )
+
+                val result = userRepository.updateUser(email, userDto)
+
                 result.onSuccess {
                     ToastHelper.showShort(ctx, "Synced to server ✓")
-                }.onFailure {
-                    // Server not available, data saved locally
+                    android.util.Log.d("ProfileFragment", "Sync success!")
+                }.onFailure { e ->
+                    android.util.Log.e("ProfileFragment", "Sync failed: ${e.message}")
+                    ToastHelper.showShort(ctx, "Sync failed: ${e.message}")
                 }
             } catch (e: Exception) {
-                // Silent fail - data is saved locally
+                android.util.Log.e("ProfileFragment", "Sync error: ${e.message}")
             }
         }
     }
 
     private fun logout() {
-        UserProfileManager.clearUserEmail(ctx)
+        UserProfileManager.clearAllData(ctx)
         AuthManager.signOut()
         findNavController().navigate(R.id.loginFragment)
     }

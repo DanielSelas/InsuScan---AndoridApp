@@ -4,13 +4,17 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
-import com.example.insuscan.meal.MealSessionManager
-import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class HistoryFragment : Fragment(R.layout.fragment_history) {
 
@@ -19,23 +23,20 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     private lateinit var btnScanNext: Button
     private lateinit var adapter: MealHistoryAdapter
 
+    private val viewModel: HistoryViewModel by viewModels {
+        HistoryViewModelFactory(requireContext())
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupTopBar(view)
+        // Hide standard top bar if present
+        view.findViewById<View>(R.id.top_bar)?.visibility = View.GONE
+
         findViews(view)
         setupRecyclerView()
         setupListeners()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        loadHistory()
-    }
-
-    private fun setupTopBar(view: View) {
-        // History doesn't need back button, title is in layout
-        view.findViewById<View>(R.id.top_bar)?.visibility = View.GONE
+        observeData()
     }
 
     private fun findViews(view: View) {
@@ -52,23 +53,26 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     private fun setupListeners() {
         btnScanNext.setOnClickListener {
-            val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
-            bottomNav.selectedItemId = R.id.scanFragment
+            requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
+                .selectedItemId = R.id.scanFragment
+        }
+
+        // Handle empty states based on loading state
+        adapter.addLoadStateListener { loadState ->
+            val isListEmpty = loadState.refresh is LoadState.NotLoading && adapter.itemCount == 0
+            emptyState.isVisible = isListEmpty
+            recyclerView.isVisible = !isListEmpty
+
+            // Optional: Show progress bar during initial load
+            // progressBar.isVisible = loadState.source.refresh is LoadState.Loading
         }
     }
 
-    private fun loadHistory() {
-        val history = MealSessionManager.getHistory()
-
-        val emptyLayout = view?.findViewById<View>(R.id.layout_empty)
-
-        if (history.isEmpty()) {
-            recyclerView.visibility = View.GONE
-            emptyLayout?.visibility = View.VISIBLE
-        } else {
-            recyclerView.visibility = View.VISIBLE
-            emptyLayout?.visibility = View.GONE
-            adapter.submitList(history)
+    private fun observeData() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.historyFlow.collectLatest { pagingData ->
+                adapter.submitData(pagingData)
+            }
         }
     }
 }

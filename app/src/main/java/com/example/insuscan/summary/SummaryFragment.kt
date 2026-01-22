@@ -45,7 +45,6 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private lateinit var exerciseLayout: LinearLayout
     private lateinit var exerciseAdjustmentText: TextView
     private lateinit var finalDoseText: TextView
-    private lateinit var calculateButton: Button
 
     // Analysis views
     private lateinit var analysisCard: CardView
@@ -117,7 +116,6 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         exerciseLayout = view.findViewById(R.id.layout_exercise_adjustment)
         exerciseAdjustmentText = view.findViewById(R.id.tv_exercise_adjustment)
         finalDoseText = view.findViewById(R.id.tv_final_dose)
-        calculateButton = view.findViewById(R.id.btn_calculate_insulin)
 
         // Analysis
         analysisCard = view.findViewById(R.id.card_analysis_results)
@@ -139,10 +137,6 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private fun initializeListeners() {
         editButton.setOnClickListener {
             findNavController().navigate(R.id.action_summaryFragment_to_manualEntryFragment)
-        }
-
-        calculateButton.setOnClickListener {
-            calculateDose()
         }
 
         logButton.setOnClickListener {
@@ -250,29 +244,16 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         // --- 1. Server Status Check (Hybrid Check) ---
         // If server indicates incomplete profile -> stop and show warning
         if (!meal.profileComplete) {
-            // Set text color to warning color
             finalDoseText.text = "Setup Required"
-            // Make sure R.color.red_warning exists, or use Color.RED
             finalDoseText.setTextColor(resources.getColor(R.color.red_warning, null))
-
-            // Change button to call-to-action
-            val msg = meal.insulinMessage ?: "Complete profile to see dose"
-            calculateButton.text = msg
-            calculateButton.setOnClickListener {
-                // Check that this ID matches your nav_graph
+            carbDoseText.text = "Tap here to complete profile"
+            carbDoseText.setTextColor(resources.getColor(R.color.light_blue, null))
+            carbDoseText.setOnClickListener {
                 findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
             }
-
-            // Hide other parameters to avoid confusion
-            carbDoseText.text = "--"
             correctionLayout.visibility = View.GONE
             return
         }
-
-        // --- If profile is complete, reset button state ---
-        calculateButton.text = "Calculate Insulin"
-        calculateButton.setOnClickListener { calculateDose() }
-        finalDoseText.setTextColor(resources.getColor(R.color.black, null))
 
         // Get ICR
         val unitsPerGram = pm.getUnitsPerGram(ctx)
