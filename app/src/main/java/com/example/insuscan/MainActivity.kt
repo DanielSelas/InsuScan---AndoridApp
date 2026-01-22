@@ -13,6 +13,13 @@ import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.utils.ToastHelper
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.insuscan.auth.AuthManager
+import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.network.repository.UserRepository
+import android.util.Log
 class MainActivity : AppCompatActivity() {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var navController: NavController
@@ -31,7 +38,7 @@ class MainActivity : AppCompatActivity() {
 
         setupBottomNavigationListener()
 
-        // TODO: Consider styling the Scan tab to be visually larger (main action button style)
+        prefetchProfile()
     }
 
     private fun initializeViews() {
@@ -55,24 +62,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //    private fun setupBottomNavigationListener() {
-//        bottomNav.setOnItemSelectedListener { item ->
-//            when (item.itemId) {
-//                R.id.summaryFragment -> {
-//                    if (!hasMeal()) {
-//                        ToastHelper.showShort(this, "Scan a meal first to view summary")
-//                        return@setOnItemSelectedListener false
-//                    }
-//                    NavigationUI.onNavDestinationSelected(item, navController)
-//                    return@setOnItemSelectedListener true
-//                }
-//                else -> {
-//                    NavigationUI.onNavDestinationSelected(item, navController)
-//                    return@setOnItemSelectedListener true
-//                }
-//            }
-//        }
-//    }
     private fun setupBottomNavigationListener() {
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
@@ -110,6 +99,26 @@ class MainActivity : AppCompatActivity() {
 
         // Also update bottom navigation selection so the Scan tab is highlighted
         bottomNav.selectedItemId = R.id.scanFragment
+    }
+    private fun prefetchProfile() {
+        if (AuthManager.isLoggedIn()) {
+            lifecycleScope.launch {
+                val email = UserProfileManager.getUserEmail(this@MainActivity)
+                if (email != null) {
+                    try {
+                        val repo = UserRepository()
+                        repo.getUser(email).onSuccess { userDto ->
+                            UserProfileManager.syncFromServer(applicationContext, userDto)
+                            Log.d("InsuScan", "Startup sync: Profile updated from server")
+                        }.onFailure {
+                            Log.w("InsuScan", "Startup sync failed: ${it.message}")
+                        }
+                    } catch (e: Exception) {
+                        Log.e("InsuScan", "Startup sync error", e)
+                    }
+                }
+            }
+        }
     }
 
 }

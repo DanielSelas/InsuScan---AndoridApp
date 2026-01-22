@@ -389,15 +389,6 @@
                             android:textColor="#1565C0" />
                     </LinearLayout>
 
-                    <!-- Calculate button -->
-                    <Button
-                        android:id="@+id/btn_calculate_insulin"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="🔄 Recalculate"
-                        android:textAllCaps="false"
-                        android:layout_marginTop="12dp" />
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
