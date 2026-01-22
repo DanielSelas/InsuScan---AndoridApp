@@ -6,39 +6,54 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
+import java.text.SimpleDateFormat
+import java.util.Locale
 
-class MealHistoryAdapter : RecyclerView.Adapter<MealHistoryAdapter.ViewHolder>() {
+class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHolder>(UI_MODEL_COMPARATOR) {
 
-    private var meals = listOf<Meal>()
+    private val expandedPositions = mutableSetOf<String>() // Using String ID for stability
 
-    // Track which items are expanded
-    private val expandedPositions = mutableSetOf<Int>()
-
-    fun submitList(newMeals: List<Meal>) {
-        meals = newMeals
-        expandedPositions.clear()
-        notifyDataSetChanged()
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is HistoryUiModel.Header -> R.layout.item_history_header
+            is HistoryUiModel.MealItem -> R.layout.item_meal_history_expandable
+            else -> throw UnsupportedOperationException("Unknown view")
+        }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_meal_history_expandable, parent, false)
-        return ViewHolder(view)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return if (viewType == R.layout.item_history_header) {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_history_header, parent, false)
+            HeaderViewHolder(view)
+        } else {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_meal_history_expandable, parent, false)
+            MealViewHolder(view)
+        }
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val meal = meals[position]
-        val isExpanded = expandedPositions.contains(position)
-        holder.bind(meal, isExpanded)
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val item = getItem(position)
+        if (holder is MealViewHolder && item is HistoryUiModel.MealItem) {
+            val isExpanded = expandedPositions.contains(item.meal.serverId ?: "")
+            holder.bind(item.meal, isExpanded)
+        } else if (holder is HeaderViewHolder && item is HistoryUiModel.Header) {
+            holder.bind(item.date)
+        }
     }
 
-    override fun getItemCount(): Int = meals.size
+    inner class HeaderViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        private val dateText: TextView = view.findViewById(R.id.tv_header_date)
+        fun bind(date: String) {
+            dateText.text = date
+        }
+    }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-
+    inner class MealViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         // Header views
         private val headerLayout: LinearLayout = itemView.findViewById(R.id.layout_header)
         private val titleText: TextView = itemView.findViewById(R.id.tv_meal_title)
@@ -61,116 +76,78 @@ class MealHistoryAdapter : RecyclerView.Adapter<MealHistoryAdapter.ViewHolder>()
         private val calcFinal: TextView = itemView.findViewById(R.id.tv_calc_final)
 
         fun bind(meal: Meal, isExpanded: Boolean) {
-            // Header - always visible
             titleText.text = meal.title
             detailsText.text = "${meal.carbs.toInt()}g carbs  |  ${formatDose(meal.insulinDose)} units"
-            timeText.text = formatTime(meal.timestamp)
+            timeText.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date(meal.timestamp))
 
-            // Indicators
             sickIndicator.visibility = if (meal.wasSickMode) View.VISIBLE else View.GONE
             stressIndicator.visibility = if (meal.wasStressMode) View.VISIBLE else View.GONE
 
-            // Expand icon rotation
             expandIcon.rotation = if (isExpanded) 180f else 0f
-
-            // Expanded section visibility
             expandedLayout.visibility = if (isExpanded) View.VISIBLE else View.GONE
 
-            // Populate expanded content
-            if (isExpanded) {
-                bindExpandedContent(meal)
-            }
+            if (isExpanded) bindExpandedContent(meal)
 
-            // Click to expand/collapse
             headerLayout.setOnClickListener {
-                val pos = adapterPosition
-                if (pos == RecyclerView.NO_POSITION) return@setOnClickListener
-
-                if (expandedPositions.contains(pos)) {
-                    expandedPositions.remove(pos)
+                val mealId = meal.serverId ?: return@setOnClickListener
+                if (expandedPositions.contains(mealId)) {
+                    expandedPositions.remove(mealId)
                 } else {
-                    expandedPositions.add(pos)
+                    expandedPositions.add(mealId)
                 }
-                notifyItemChanged(pos)
+                notifyItemChanged(bindingAdapterPosition)
             }
         }
 
         private fun bindExpandedContent(meal: Meal) {
-            // Food items list
             val foodItemsStr = meal.foodItems?.joinToString("\n") { item ->
-                val weight = item.weightGrams?.toInt() ?: 0
-                val carbs = item.carbsGrams?.toInt() ?: 0
-                "• ${item.name} (${weight}g) - ${carbs}g carbs"
-            } ?: "• ${meal.title} - ${meal.carbs.toInt()}g carbs"
+                "• ${item.name} (${item.weightGrams?.toInt() ?: 0}g) - ${item.carbsGrams?.toInt() ?: 0}g carbs"
+            } ?: "• ${meal.title}"
 
             foodItemsText.text = foodItemsStr
 
-            // Glucose info
             if (meal.glucoseLevel != null) {
                 glucoseLayout.visibility = View.VISIBLE
-                val units = meal.glucoseUnits ?: "mg/dL"
-                glucoseValue.text = "${meal.glucoseLevel} $units"
+                glucoseValue.text = "${meal.glucoseLevel} mg/dL"
             } else {
                 glucoseLayout.visibility = View.GONE
             }
 
-            // Activity level
             if (meal.activityLevel != null && meal.activityLevel != "normal") {
                 activityLayout.visibility = View.VISIBLE
-                activityValue.text = when (meal.activityLevel) {
-                    "light" -> "Light exercise"
-                    "intense" -> "Intense exercise"
-                    else -> "Normal"
-                }
+                activityValue.text = meal.activityLevel
             } else {
                 activityLayout.visibility = View.GONE
             }
 
-            // Calculation breakdown
             calcCarbDose.text = "Carb dose: ${formatDose(meal.carbDose)}u"
 
-            if (meal.correctionDose != null && meal.correctionDose != 0f) {
-                calcCorrection.visibility = View.VISIBLE
-                val sign = if (meal.correctionDose > 0) "+" else ""
-                calcCorrection.text = "Correction: ${sign}${formatDose(meal.correctionDose)}u"
-            } else {
-                calcCorrection.visibility = View.GONE
-            }
+            calcCorrection.visibility = if (meal.correctionDose != null && meal.correctionDose != 0f) View.VISIBLE else View.GONE
+            calcCorrection.text = "Correction: ${formatDose(meal.correctionDose)}u"
 
-            if (meal.exerciseAdjustment != null && meal.exerciseAdjustment != 0f) {
-                calcExercise.visibility = View.VISIBLE
-                val sign = if (meal.exerciseAdjustment > 0) "+" else ""
-                calcExercise.text = "Exercise adj: ${sign}${formatDose(meal.exerciseAdjustment)}u"
-            } else {
-                calcExercise.visibility = View.GONE
-            }
+            calcExercise.visibility = if (meal.exerciseAdjustment != null && meal.exerciseAdjustment != 0f) View.VISIBLE else View.GONE
+            calcExercise.text = "Exercise adj: ${formatDose(meal.exerciseAdjustment)}u"
 
             calcFinal.text = "Final dose: ${formatDose(meal.insulinDose)}u"
         }
 
         private fun formatDose(dose: Float?): String {
             if (dose == null) return "—"
-            return if (dose == dose.toInt().toFloat()) {
-                dose.toInt().toString()
-            } else {
-                String.format("%.1f", dose)
-            }
+            return if (dose == dose.toInt().toFloat()) dose.toInt().toString() else String.format("%.1f", dose)
         }
+    }
 
-        private fun formatTime(timestamp: Long): String {
-            val now = System.currentTimeMillis()
-            val diff = now - timestamp
+    companion object {
+        private val UI_MODEL_COMPARATOR = object : DiffUtil.ItemCallback<HistoryUiModel>() {
+            override fun areItemsTheSame(oldItem: HistoryUiModel, newItem: HistoryUiModel): Boolean {
+                return (oldItem is HistoryUiModel.MealItem && newItem is HistoryUiModel.MealItem &&
+                        oldItem.meal.serverId == newItem.meal.serverId) ||
+                        (oldItem is HistoryUiModel.Header && newItem is HistoryUiModel.Header &&
+                                oldItem.date == newItem.date)
+            }
 
-            val sdf = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-            val time = sdf.format(java.util.Date(timestamp))
-
-            return when {
-                diff < 24 * 60 * 60 * 1000 -> "Today, $time"
-                diff < 48 * 60 * 60 * 1000 -> "Yesterday, $time"
-                else -> {
-                    val dateSdf = java.text.SimpleDateFormat("dd/MM", java.util.Locale.getDefault())
-                    "${dateSdf.format(java.util.Date(timestamp))}, $time"
-                }
+            override fun areContentsTheSame(oldItem: HistoryUiModel, newItem: HistoryUiModel): Boolean {
+                return oldItem == newItem
             }
         }
     }

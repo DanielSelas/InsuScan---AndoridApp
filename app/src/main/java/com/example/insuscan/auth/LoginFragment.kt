@@ -78,16 +78,20 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Skip if already logged in
-        val existingEmail = UserProfileManager.getUserEmail(requireContext())
-        if (!existingEmail.isNullOrBlank() && AuthManager.isLoggedIn()) {
-            navigateToHome()
-            return
-        }
-
         findViews(view)
         setupGoogleSignIn()
         setupListeners()
+
+        // Check if already logged in (Auto-Login)
+        val existingEmail = UserProfileManager.getUserEmail(requireContext())
+        if (!existingEmail.isNullOrBlank() && AuthManager.isLoggedIn()) {
+            // Use the stored name or a default
+            val storedName = UserProfileManager.getUserName(requireContext()) ?: "User"
+            // Call onLoginSuccess to perform Sync + Reset before navigating
+            onLoginSuccess(existingEmail, storedName)
+            return
+        }
+
         updateUI()
     }
 
@@ -348,12 +352,35 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     // --- Success handling ---
 
     private fun onLoginSuccess(email: String, displayName: String) {
-        // Save locally
+        // Save basic info locally
         UserProfileManager.saveUserEmail(requireContext(), email)
         UserProfileManager.saveUserName(requireContext(), displayName)
 
-        // Create user in server DB (for meal history etc)
-        createUserInServerDB(email, displayName)
+        showLoading(true)
+
+        lifecycleScope.launch {
+            try {
+                // Try to fetch full profile from server
+                val result = userRepository.getUser(email)
+
+                if (result.isSuccess) {
+                    val userDto = result.getOrNull()
+                    if (userDto != null) {
+                        UserProfileManager.syncFromServer(requireContext(), userDto)
+                        Toast.makeText(requireContext(), "Profile synced successfully", Toast.LENGTH_SHORT).show()
+                    }
+                    showLoading(false)
+                    navigateToHome()
+                } else {
+                    // User not found on server, proceed to create
+                    createUserInServerDB(email, displayName)
+                }
+            } catch (e: Exception) {
+                // Network error or offline - proceed to home with local data
+                showLoading(false)
+                navigateToHome()
+            }
+        }
     }
 
     private fun createUserInServerDB(email: String, name: String) {

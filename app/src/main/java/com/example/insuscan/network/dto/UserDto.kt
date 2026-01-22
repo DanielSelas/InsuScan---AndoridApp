@@ -9,11 +9,40 @@ data class UserDto(
     val username: String?,
     val role: String?,
     val avatar: String?,
+
+    // Medical Profile
     val insulinCarbRatio: String?,
     val correctionFactor: Float?,
     val targetGlucose: Int?,
+
+    // Syringe Settings
     val syringeType: String?,
     val customSyringeLength: Float?,
+
+    // Personal Info
+    val age: Int?,
+    val gender: String?,
+    val pregnant: Boolean?,
+    val dueDate: String?,
+
+    // Medical Info Extended
+    val diabetesType: String?,
+    val insulinType: String?,
+    val activeInsulinTime: Int?,
+
+    // Dose Settings
+    val doseRounding: String?, // Server expects String "0.5" or "1"
+
+    // Adjustment Factors
+    val sickDayAdjustment: Int?,
+    val stressAdjustment: Int?,
+    val lightExerciseAdjustment: Int?,
+    val intenseExerciseAdjustment: Int?,
+
+    // Preferences
+    val glucoseUnits: String?,
+
+    // Timestamps
     val createdTimestamp: String?,
     val updatedTimestamp: String?
 )
