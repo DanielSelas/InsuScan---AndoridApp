@@ -297,6 +297,75 @@ object UserProfileManager {
         return prefs(context).getString(KEY_PROFILE_PHOTO_URL, null)
     }
 
+//    fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) {
+//        // Sync personal info
+//        user.username?.let { saveUserName(context, it) }
+//
+//        // Sync medical info
+//        user.insulinCarbRatio?.let { saveInsulinCarbRatio(context, it) }
+//        user.correctionFactor?.let { saveCorrectionFactor(context, it) }
+//        user.targetGlucose?.let { saveTargetGlucose(context, it) }
+//
+//        // Sync syringe settings (assuming text match)
+//        user.syringeType?.let { saveSyringeSize(context, it) }
+//
+//        // Reset transient modes (Stress/Exercise) to false
+//        resetTransientModes(context)
+//    }
+
+    fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) {
+        // 1. Keep current email to prevent data loss during wipe
+        val currentEmail = getUserEmail(context)
+
+        // 2. Clear ALL local preferences to remove data from previous users
+        prefs(context).edit().clear().apply()
+
+        // 3. Restore the correct email
+        val emailToSave = user.userId?.email ?: currentEmail
+        if (emailToSave != null) {
+            saveUserEmail(context, emailToSave)
+        }
+
+        // 4. Save fresh data from server
+        // Personal info
+        user.username?.let { saveUserName(context, it) }
+        user.age?.let { saveUserAge(context, it) }
+        user.gender?.let { saveUserGender(context, it) }
+        user.pregnant?.let { saveIsPregnant(context, it) }
+        user.dueDate?.let { saveDueDate(context, it) }
+
+        // Medical info
+        user.insulinCarbRatio?.let { saveInsulinCarbRatio(context, it) }
+        user.correctionFactor?.let { saveCorrectionFactor(context, it) }
+        user.targetGlucose?.let { saveTargetGlucose(context, it) }
+        user.diabetesType?.let { saveDiabetesType(context, it) }
+        user.insulinType?.let { saveInsulinType(context, it) }
+
+        // Syringe settings
+        user.syringeType?.let { saveSyringeSize(context, it) }
+
+        // Dose settings
+        user.doseRounding?.toFloatOrNull()?.let { saveDoseRounding(context, it) }
+
+        // Adjustment factors
+        user.sickDayAdjustment?.let { saveSickDayAdjustment(context, it) }
+        user.stressAdjustment?.let { saveStressAdjustment(context, it) }
+        user.lightExerciseAdjustment?.let { saveLightExerciseAdjustment(context, it) }
+        user.intenseExerciseAdjustment?.let { saveIntenseExerciseAdjustment(context, it) }
+
+        // Preferences
+        user.glucoseUnits?.let { saveGlucoseUnits(context, it) }
+
+        // Reset temporary modes
+        resetTransientModes(context)
+    }
+
+    fun resetTransientModes(context: Context) {
+        setStressModeEnabled(context, false)
+        setExerciseModeEnabled(context, false)
+        // Sick mode is intentionally left as-is (persistent)
+    }
+
     // ============== Clear All ==============
     fun clearAllData(context: Context) {
         prefs(context).edit().clear().apply()
