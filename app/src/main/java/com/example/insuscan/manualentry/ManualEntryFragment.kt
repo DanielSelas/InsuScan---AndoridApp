@@ -25,7 +25,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import android.app.AlertDialog
+import com.google.android.material.textfield.TextInputEditText
 class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
     // Views
@@ -36,6 +37,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     private lateinit var totalCarbsText: TextView
     private lateinit var btnSave: Button
     private lateinit var btnRescan: Button
+    private lateinit var btnAddCustom: Button
 
     // Adapters
     private lateinit var foodItemAdapter: FoodItemEditorAdapter
@@ -76,6 +78,8 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
         totalCarbsText = view.findViewById(R.id.tv_total_carbs)
         btnSave = view.findViewById(R.id.btn_save)
         btnRescan = view.findViewById(R.id.btn_rescan)
+        btnAddCustom = view.findViewById(R.id.btn_add_custom)
+
     }
 
     private fun setupAdapters() {
@@ -171,6 +175,10 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
             val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
             bottomNav.selectedItemId = R.id.scanFragment
         }
+
+        btnAddCustom.setOnClickListener {
+            showAddCustomFoodDialog()
+        }
     }
 
     private fun loadExistingMeal() {
@@ -260,12 +268,82 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
             plateDiameterCm = existingMeal?.plateDiameterCm,
             plateDepthCm = existingMeal?.plateDepthCm,
             analysisConfidence = existingMeal?.analysisConfidence,
-            referenceObjectDetected = existingMeal?.referenceObjectDetected
+            referenceObjectDetected = existingMeal?.referenceObjectDetected,
+            // Keep the image path when editing
+            imagePath = existingMeal?.imagePath
         )
 
         MealSessionManager.setCurrentMeal(updatedMeal)
 
         ToastHelper.showShort(ctx, "Meal updated: ${totalCarbs.toInt()}g carbs")
         findNavController().popBackStack()
+    }
+
+    private fun showAddCustomFoodDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_custom_food, null)
+
+        val etName = dialogView.findViewById<TextInputEditText>(R.id.et_food_name)
+        val etWeight = dialogView.findViewById<TextInputEditText>(R.id.et_weight)
+        val etCarbsPer100g = dialogView.findViewById<TextInputEditText>(R.id.et_carbs_per_100g)
+        val tvCarbsPreview = dialogView.findViewById<TextView>(R.id.tv_carbs_preview)
+
+        // Update carbs preview when values change
+        val updatePreview = {
+            val weight = etWeight.text.toString().toFloatOrNull() ?: 0f
+            val carbsPer100g = etCarbsPer100g.text.toString().toFloatOrNull() ?: 0f
+            val totalCarbs = (weight * carbsPer100g) / 100f
+            tvCarbsPreview.text = "Total carbs: ${totalCarbs.toInt()}g"
+        }
+
+        val textWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) { updatePreview() }
+        }
+
+        etWeight.addTextChangedListener(textWatcher)
+        etCarbsPer100g.addTextChangedListener(textWatcher)
+
+        AlertDialog.Builder(ctx)
+            .setView(dialogView)
+            .setPositiveButton("Add") { _, _ ->
+                val name = etName.text.toString().trim()
+                val weight = etWeight.text.toString().toFloatOrNull()
+                val carbsPer100g = etCarbsPer100g.text.toString().toFloatOrNull()
+
+                // Validate input
+                if (name.isEmpty()) {
+                    ToastHelper.showShort(ctx, "Please enter food name")
+                    return@setPositiveButton
+                }
+                if (weight == null || weight <= 0) {
+                    ToastHelper.showShort(ctx, "Please enter valid weight")
+                    return@setPositiveButton
+                }
+                if (carbsPer100g == null || carbsPer100g < 0) {
+                    ToastHelper.showShort(ctx, "Please enter carbs per 100g")
+                    return@setPositiveButton
+                }
+
+                // Add custom item
+                addCustomFoodItem(name, weight, carbsPer100g)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun addCustomFoodItem(name: String, weight: Float, carbsPer100g: Float) {
+        val newItem = EditableFoodItem(
+            name = name,
+            weightGrams = weight,
+            carbsPer100g = carbsPer100g,
+            usdaFdcId = null  // no USDA ID for custom items
+        )
+
+        editableItems.add(newItem)
+        foodItemAdapter.addItem(newItem)
+        updateEmptyState()
+
+        ToastHelper.showShort(ctx, "Added: $name")
     }
 }
