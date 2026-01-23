@@ -30,7 +30,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Hide standard top bar if present
         view.findViewById<View>(R.id.top_bar)?.visibility = View.GONE
 
         findViews(view)
@@ -74,5 +73,10 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
                 adapter.submitData(pagingData)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        adapter.refresh()
     }
 }

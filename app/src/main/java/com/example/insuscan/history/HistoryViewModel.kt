@@ -1,7 +1,6 @@
 package com.example.insuscan.history
 
 import android.content.Context
-import android.text.format.DateUtils
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,16 +10,16 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import androidx.paging.map
-import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.network.dto.MealDto
 import com.example.insuscan.network.repository.MealRepository
 import com.example.insuscan.profile.UserProfileManager
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.insuscan.utils.DateTimeHelper
+import com.example.insuscan.mapping.MealDtoMapper
+import com.example.insuscan.network.repository.MealRepositoryImpl
+import com.example.insuscan.utils.DoseFormatter
 
 class HistoryViewModel(
     private val repository: MealRepository,
@@ -35,9 +34,10 @@ class HistoryViewModel(
         MealPagingSource(repository, userEmail)
     }.flow
         .map { pagingData ->
-            // Convert DTO to Domain/UI Model
+            // Convert DTO to Domain Meal, then to UI Model
             pagingData.map { dto ->
-                HistoryUiModel.MealItem(mapDtoToMeal(dto))
+                val meal = mapDtoToMeal(dto)
+                HistoryUiModel.MealItem(meal)
             }
         }
         .map { pagingData ->
@@ -48,14 +48,14 @@ class HistoryViewModel(
                     return@insertSeparators null
                 }
 
-                val afterDate = formatDate(after.meal.timestamp)
+                val afterDate = DateTimeHelper.formatDate(after.meal.timestamp)
 
                 if (before == null) {
                     // Beginning of list
                     return@insertSeparators HistoryUiModel.Header(afterDate)
                 }
 
-                val beforeDate = formatDate(before.meal.timestamp)
+                val beforeDate = DateTimeHelper.formatDate(before.meal.timestamp)
 
                 if (beforeDate != afterDate) {
                     HistoryUiModel.Header(afterDate)
@@ -66,74 +66,61 @@ class HistoryViewModel(
         }
         .cachedIn(viewModelScope)
 
-    private fun formatDate(timestamp: Long): String {
-        return if (DateUtils.isToday(timestamp)) {
-            "Today"
-        } else if (DateUtils.isToday(timestamp + DateUtils.DAY_IN_MILLIS)) {
-            "Yesterday"
-        } else {
-            SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(timestamp))
-        }
-    }
-
-    // Helper to convert DTO to existing Meal object to keep Adapter logic simpler
-    private fun mapDtoToMeal(dto: MealDto): Meal {
-        val calc = dto.insulinCalculation
-
-        return Meal(
-            title = "Meal Analysis",
-            carbs = dto.totalCarbs ?: 0f,
-            insulinDose = dto.actualDose ?: dto.recommendedDose,
-            timestamp = parseTimestamp(dto.scannedTimestamp),
-
-            // use serverId instead of id
-            serverId = dto.mealId?.id,
-
-            foodItems = dto.foodItems?.map {
-                FoodItem(
-                    name = it.name,
-                    nameHebrew = it.nameHebrew,
-                    carbsGrams = it.carbsGrams,
-                    weightGrams = it.estimatedWeightGrams,
-                    confidence = it.confidence
-                )
-            },
-
-            glucoseLevel = calc?.currentGlucose,
-            correctionDose = calc?.correctionDose,
-            carbDose = calc?.carbDose,
-
-            wasSickMode = dto.wasSickMode == true,
-            wasStressMode = dto.wasStressMode == true
-        )
-    }
-    private fun parseTimestamp(ts: String?): Long {
-        if (ts == null) return System.currentTimeMillis()
-        ts.toLongOrNull()?.let { return it }
-
-        try {
-            val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            return format.parse(ts)?.time ?: System.currentTimeMillis()
-        } catch (e: Exception) {
-            return System.currentTimeMillis()
-        }
-    }
+    private fun mapDtoToMeal(dto: MealDto): Meal = MealDtoMapper.map(dto)
 }
 
-
-
-// Sealed class for the list items
+// Sealed class for the list items with UI logic moved here
 sealed class HistoryUiModel {
-    data class MealItem(val meal: Meal) : HistoryUiModel()
     data class Header(val date: String) : HistoryUiModel()
+
+    data class MealItem(val meal: Meal) : HistoryUiModel() {
+
+        // Logic moved from Adapter to Model
+        val formattedFoodList: String
+            get() = meal.foodItems?.joinToString("\n") { item ->
+                "• ${item.name} (${item.weightGrams?.toInt() ?: 0}g) - ${item.carbsGrams?.toInt() ?: 0}g carbs"
+            } ?: "• ${meal.title}"
+
+        val isGlucoseVisible: Boolean
+            get() = meal.glucoseLevel != null
+
+        val isActivityVisible: Boolean
+            get() = meal.activityLevel != null && meal.activityLevel != "normal"
+
+        val isCorrectionVisible: Boolean
+            get() = meal.correctionDose != null && meal.correctionDose != 0f
+
+        val isExerciseVisible: Boolean
+            get() = meal.exerciseAdjustment != null && meal.exerciseAdjustment != 0f
+
+        val glucoseText: String
+            get() = "${meal.glucoseLevel} mg/dL"
+
+        val activityText: String
+            get() = meal.activityLevel ?: ""
+
+        val carbDoseText: String
+            get() = "Carb dose: ${DoseFormatter.formatDose(meal.carbDose)}u"
+
+        val correctionDoseText: String
+            get() = "Correction: ${DoseFormatter.formatDose(meal.correctionDose)}u"
+
+        val exerciseDoseText: String
+            get() = "Exercise adj: ${DoseFormatter.formatDose(meal.exerciseAdjustment)}u"
+
+        val finalDoseText: String
+            get() = "Final dose: ${DoseFormatter.formatDose(meal.insulinDose)}u"
+
+        val summaryDetailsText: String
+            get() = "${meal.carbs.toInt()}g carbs  |  ${DoseFormatter.formatDose(meal.insulinDose)} units"
+    }
 }
 
-// Factory to pass Context/Repo to ViewModel
 class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HistoryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return HistoryViewModel(MealRepository(), context) as T
+            return HistoryViewModel(MealRepositoryImpl(), context) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.insuscan.network.repository.UserRepository
 import com.bumptech.glide.Glide
 import com.example.insuscan.network.dto.UserDto
+import com.example.insuscan.network.repository.UserRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -66,7 +67,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var logoutButton: Button
 
     private val ctx get() = requireContext()
-    private val userRepository = UserRepository()
+    private val userRepository = UserRepositoryImpl()
 
     // Spinner data
     private val genderOptions = arrayOf("Select", "Male", "Female", "Other", "Prefer not to say")
