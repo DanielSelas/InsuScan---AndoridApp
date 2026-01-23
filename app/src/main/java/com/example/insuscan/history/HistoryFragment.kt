@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.util.Log
 
 class HistoryFragment : Fragment(R.layout.fragment_history) {
 
@@ -111,6 +112,8 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             }
 
             val apiDateString = DateTimeHelper.formatForApi(selection)
+            Log.d("HistoryFilter", "Date picker selected: $selection ms -> API date: $apiDateString")
+
             val uiFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
             val displayDate = uiFormat.format(Date(selection))
 
@@ -118,7 +121,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             btnClearFilter.isVisible = true
 
             viewModel.setDateFilter(apiDateString)
-            adapter.refresh()
+//            adapter.refresh()
 
         }
 
@@ -134,6 +137,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         btnClearFilter.isVisible = false
 
         viewModel.setDateFilter(null)
+        Log.d("HistoryFilter", "Filter cleared")
     }
 
     private fun observeData() {
