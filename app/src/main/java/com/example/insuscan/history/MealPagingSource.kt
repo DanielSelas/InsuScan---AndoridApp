@@ -1,5 +1,6 @@
 package com.example.insuscan.history
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.insuscan.network.dto.MealDto
@@ -14,6 +15,7 @@ class MealPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MealDto> {
         val pageNumber = params.key ?: 0
         val pageSize = params.loadSize
+        Log.d("HistoryFilter", "PagingSource load() - filterDate: $filterDate, page: $pageNumber, size: $pageSize")
 
         return try {
             // Determine which repository method to call based on filterDate
