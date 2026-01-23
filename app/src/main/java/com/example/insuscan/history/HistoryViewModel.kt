@@ -23,6 +23,7 @@ import com.example.insuscan.utils.DoseFormatter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import android.util.Log
 
 class HistoryViewModel(
     private val repository: MealRepository,
@@ -33,12 +34,16 @@ class HistoryViewModel(
     private val _dateFilter = MutableStateFlow<String?>(null)
 
     fun setDateFilter(date: String?) {
+        Log.d("HistoryFilter", "ViewModel setDateFilter called with: $date")
+
         _dateFilter.value = date
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val historyFlow: Flow<PagingData<HistoryUiModel>> = _dateFilter.flatMapLatest { date ->
         // Re-create the Pager whenever the date changes
+        Log.d("HistoryFilter", "flatMapLatest triggered with date: $date")
+
         Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false)
         ) {
