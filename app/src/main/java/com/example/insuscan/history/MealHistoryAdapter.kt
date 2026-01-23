@@ -6,17 +6,17 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
-import com.example.insuscan.meal.Meal
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHolder>(UI_MODEL_COMPARATOR) {
 
-    private val expandedPositions = mutableSetOf<String>() // Using String ID for stability
+    private val expandedPositions = mutableSetOf<String>()
 
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
@@ -40,7 +40,7 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
         val item = getItem(position)
         if (holder is MealViewHolder && item is HistoryUiModel.MealItem) {
             val isExpanded = expandedPositions.contains(item.meal.serverId ?: "")
-            holder.bind(item.meal, isExpanded)
+            holder.bind(item, isExpanded)
         } else if (holder is HeaderViewHolder && item is HistoryUiModel.Header) {
             holder.bind(item.date)
         }
@@ -75,18 +75,23 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
         private val calcExercise: TextView = itemView.findViewById(R.id.tv_calc_exercise)
         private val calcFinal: TextView = itemView.findViewById(R.id.tv_calc_final)
 
-        fun bind(meal: Meal, isExpanded: Boolean) {
+        fun bind(item: HistoryUiModel.MealItem, isExpanded: Boolean) {
+            val meal = item.meal
+
+            // Simple binding directly from UI Model
             titleText.text = meal.title
-            detailsText.text = "${meal.carbs.toInt()}g carbs  |  ${formatDose(meal.insulinDose)} units"
+            detailsText.text = item.summaryDetailsText
             timeText.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date(meal.timestamp))
 
-            sickIndicator.visibility = if (meal.wasSickMode) View.VISIBLE else View.GONE
-            stressIndicator.visibility = if (meal.wasStressMode) View.VISIBLE else View.GONE
+            sickIndicator.isVisible = meal.wasSickMode
+            stressIndicator.isVisible = meal.wasStressMode
 
             expandIcon.rotation = if (isExpanded) 180f else 0f
-            expandedLayout.visibility = if (isExpanded) View.VISIBLE else View.GONE
+            expandedLayout.isVisible = isExpanded
 
-            if (isExpanded) bindExpandedContent(meal)
+            if (isExpanded) {
+                bindExpandedContent(item)
+            }
 
             headerLayout.setOnClickListener {
                 val mealId = meal.serverId ?: return@setOnClickListener
@@ -99,41 +104,25 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
             }
         }
 
-        private fun bindExpandedContent(meal: Meal) {
-            val foodItemsStr = meal.foodItems?.joinToString("\n") { item ->
-                "• ${item.name} (${item.weightGrams?.toInt() ?: 0}g) - ${item.carbsGrams?.toInt() ?: 0}g carbs"
-            } ?: "• ${meal.title}"
+        private fun bindExpandedContent(item: HistoryUiModel.MealItem) {
+            // No logic here, just assignment
+            foodItemsText.text = item.formattedFoodList
 
-            foodItemsText.text = foodItemsStr
+            glucoseValue.text = item.glucoseText
+            glucoseLayout.isVisible = item.isGlucoseVisible
 
-            if (meal.glucoseLevel != null) {
-                glucoseLayout.visibility = View.VISIBLE
-                glucoseValue.text = "${meal.glucoseLevel} mg/dL"
-            } else {
-                glucoseLayout.visibility = View.GONE
-            }
+            activityValue.text = item.activityText
+            activityLayout.isVisible = item.isActivityVisible
 
-            if (meal.activityLevel != null && meal.activityLevel != "normal") {
-                activityLayout.visibility = View.VISIBLE
-                activityValue.text = meal.activityLevel
-            } else {
-                activityLayout.visibility = View.GONE
-            }
+            calcCarbDose.text = item.carbDoseText
 
-            calcCarbDose.text = "Carb dose: ${formatDose(meal.carbDose)}u"
+            calcCorrection.text = item.correctionDoseText
+            calcCorrection.isVisible = item.isCorrectionVisible
 
-            calcCorrection.visibility = if (meal.correctionDose != null && meal.correctionDose != 0f) View.VISIBLE else View.GONE
-            calcCorrection.text = "Correction: ${formatDose(meal.correctionDose)}u"
+            calcExercise.text = item.exerciseDoseText
+            calcExercise.isVisible = item.isExerciseVisible
 
-            calcExercise.visibility = if (meal.exerciseAdjustment != null && meal.exerciseAdjustment != 0f) View.VISIBLE else View.GONE
-            calcExercise.text = "Exercise adj: ${formatDose(meal.exerciseAdjustment)}u"
-
-            calcFinal.text = "Final dose: ${formatDose(meal.insulinDose)}u"
-        }
-
-        private fun formatDose(dose: Float?): String {
-            if (dose == null) return "—"
-            return if (dose == dose.toInt().toFloat()) dose.toInt().toString() else String.format("%.1f", dose)
+            calcFinal.text = item.finalDoseText
         }
     }
 

@@ -18,6 +18,7 @@ import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.network.repository.FoodSearchRepository
+import com.example.insuscan.network.repository.FoodSearchRepositoryImpl
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -41,7 +42,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     private lateinit var searchAdapter: FoodSearchAdapter
 
     // Data
-    private val searchRepository = FoodSearchRepository()
+    private val searchRepository = FoodSearchRepositoryImpl()
     private var searchJob: Job? = null
     private val editableItems = mutableListOf<EditableFoodItem>()
 
