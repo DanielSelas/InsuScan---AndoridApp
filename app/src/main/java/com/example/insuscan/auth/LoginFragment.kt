@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.network.repository.UserRepository
+import com.example.insuscan.network.repository.UserRepositoryImpl
 import com.example.insuscan.profile.UserProfileManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
@@ -40,7 +41,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private lateinit var progressBar: ProgressBar
     private lateinit var loadingOverlay: View
 
-    private val userRepository = UserRepository()
+    private val userRepository = UserRepositoryImpl()
 
     // true = Sign In mode, false = Sign Up mode
     private var isLoginMode = true

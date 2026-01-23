@@ -2,24 +2,14 @@ package com.example.insuscan
 
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import androidx.navigation.ui.NavigationUI
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.utils.ToastHelper
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
-import com.example.insuscan.auth.AuthManager
-import com.example.insuscan.profile.UserProfileManager
-import com.example.insuscan.network.repository.UserRepository
-import android.util.Log
 class MainActivity : AppCompatActivity() {
     private lateinit var bottomNav: BottomNavigationView
     private lateinit var navController: NavController
@@ -27,6 +17,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        // Handle edge-to-edge display
         val rootLayout = findViewById<View>(android.R.id.content)
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(rootLayout) { v, insets ->
             val systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
@@ -35,10 +27,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         initializeViews()
-
         setupBottomNavigationListener()
 
-        prefetchProfile()
+        // Removed prefetchProfile() call to avoid double-fetch race condition with LoginFragment
     }
 
     private fun initializeViews() {
@@ -100,25 +91,4 @@ class MainActivity : AppCompatActivity() {
         // Also update bottom navigation selection so the Scan tab is highlighted
         bottomNav.selectedItemId = R.id.scanFragment
     }
-    private fun prefetchProfile() {
-        if (AuthManager.isLoggedIn()) {
-            lifecycleScope.launch {
-                val email = UserProfileManager.getUserEmail(this@MainActivity)
-                if (email != null) {
-                    try {
-                        val repo = UserRepository()
-                        repo.getUser(email).onSuccess { userDto ->
-                            UserProfileManager.syncFromServer(applicationContext, userDto)
-                            Log.d("InsuScan", "Startup sync: Profile updated from server")
-                        }.onFailure {
-                            Log.w("InsuScan", "Startup sync failed: ${it.message}")
-                        }
-                    } catch (e: Exception) {
-                        Log.e("InsuScan", "Startup sync error", e)
-                    }
-                }
-            }
-        }
-    }
-
 }
