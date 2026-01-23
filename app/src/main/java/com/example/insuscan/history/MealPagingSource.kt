@@ -7,7 +7,8 @@ import com.example.insuscan.network.repository.MealRepository
 
 class MealPagingSource(
     private val repository: MealRepository,
-    private val userEmail: String
+    private val userEmail: String,
+    private val filterDate: String? // Null = Show all, String "YYYY-MM-DD" = Filter
 ) : PagingSource<Int, MealDto>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MealDto> {
@@ -15,7 +16,12 @@ class MealPagingSource(
         val pageSize = params.loadSize
 
         return try {
-            val result = repository.getUserMeals(userEmail, pageNumber, pageSize)
+            // Determine which repository method to call based on filterDate
+            val result = if (filterDate != null) {
+                repository.getMealsByDate(userEmail, filterDate, pageNumber, pageSize)
+            } else {
+                repository.getUserMeals(userEmail, pageNumber, pageSize)
+            }
 
             if (result.isSuccess) {
                 val meals = result.getOrNull() ?: emptyList()

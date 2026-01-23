@@ -20,6 +20,9 @@ import com.example.insuscan.utils.DateTimeHelper
 import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.network.repository.MealRepositoryImpl
 import com.example.insuscan.utils.DoseFormatter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class HistoryViewModel(
     private val repository: MealRepository,
@@ -27,41 +30,36 @@ class HistoryViewModel(
 ) : ViewModel() {
 
     private val userEmail = UserProfileManager.getUserEmail(context) ?: ""
+    private val _dateFilter = MutableStateFlow<String?>(null)
 
-    val historyFlow: Flow<PagingData<HistoryUiModel>> = Pager(
-        config = PagingConfig(pageSize = 20, enablePlaceholders = false)
-    ) {
-        MealPagingSource(repository, userEmail)
-    }.flow
+    fun setDateFilter(date: String?) {
+        _dateFilter.value = date
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val historyFlow: Flow<PagingData<HistoryUiModel>> = _dateFilter.flatMapLatest { date ->
+        // Re-create the Pager whenever the date changes
+        Pager(
+            config = PagingConfig(pageSize = 20, enablePlaceholders = false)
+        ) {
+            MealPagingSource(repository, userEmail, date)
+        }.flow
+    }
         .map { pagingData ->
-            // Convert DTO to Domain Meal, then to UI Model
             pagingData.map { dto ->
                 val meal = mapDtoToMeal(dto)
                 HistoryUiModel.MealItem(meal)
             }
         }
         .map { pagingData ->
-            // Insert Date Headers
             pagingData.insertSeparators { before, after ->
-                if (after == null) {
-                    // End of list
-                    return@insertSeparators null
-                }
-
+                if (after == null) return@insertSeparators null
                 val afterDate = DateTimeHelper.formatDate(after.meal.timestamp)
 
-                if (before == null) {
-                    // Beginning of list
-                    return@insertSeparators HistoryUiModel.Header(afterDate)
-                }
+                if (before == null) return@insertSeparators HistoryUiModel.Header(afterDate)
 
                 val beforeDate = DateTimeHelper.formatDate(before.meal.timestamp)
-
-                if (beforeDate != afterDate) {
-                    HistoryUiModel.Header(afterDate)
-                } else {
-                    null
-                }
+                if (beforeDate != afterDate) HistoryUiModel.Header(afterDate) else null
             }
         }
         .cachedIn(viewModelScope)
