@@ -1,5 +1,6 @@
 package com.example.insuscan.network.repository
 
+import android.util.Log
 import com.example.insuscan.network.ApiConfig
 import com.example.insuscan.network.RetrofitClient
 import com.example.insuscan.network.dto.CreateMealRequest
@@ -49,6 +50,8 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
         page: Int,
         size: Int
     ): Result<List<MealDto>> {
+        Log.d("HistoryFilter", "API Request - email: $email, from: $date, to: $date, page: $page, size: $size")
+
         val res = api.getMealsByDate(
             systemId = ApiConfig.SYSTEM_ID,
             email = email,
@@ -57,6 +60,7 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
             page = page,
             size = size
         )
+        Log.d("HistoryFilter", "API Response - code: ${res.code()}, body size: ${res.body()?.size ?: "null"}")
 
         return if (res.isSuccessful) Result.success(res.body().orEmpty())
         else Result.failure(Exception("HTTP ${res.code()}"))
