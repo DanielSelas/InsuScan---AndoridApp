@@ -83,6 +83,16 @@ interface InsuScanApi {
         @Path("mealId") mealId: String
     ): Response<Unit>
 
+    @GET("meals/user/{systemId}/{email}/by-date")
+    suspend fun getMealsByDate(
+        @Path("systemId") systemId: String,
+        @Path("email") email: String,
+        @Query("from") fromDate: String, // yyyy-MM-dd
+        @Query("to") toDate: String,     // yyyy-MM-dd
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10
+    ): Response<List<MealDto>>
+
     // ===== Vision Analysis =====
 
     @Multipart

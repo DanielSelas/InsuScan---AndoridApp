@@ -12,4 +12,6 @@ interface MealRepository {
     suspend fun confirmMeal(mealId: String, actualDose: Float? = null): Result<MealDto>
     suspend fun completeMeal(mealId: String): Result<MealDto>
     suspend fun deleteMeal(mealId: String): Result<Unit>
+
+    suspend fun getMealsByDate(email: String, date: String, page: Int = 0, size: Int = 10): Result<List<MealDto>>
 }
