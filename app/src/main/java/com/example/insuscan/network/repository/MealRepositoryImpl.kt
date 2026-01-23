@@ -43,4 +43,22 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
     override suspend fun deleteMeal(mealId: String): Result<Unit> = safeApiCallUnit {
         api.deleteMeal(ApiConfig.SYSTEM_ID, mealId)
     }
+    override suspend fun getMealsByDate(
+        email: String,
+        date: String,
+        page: Int,
+        size: Int
+    ): Result<List<MealDto>> {
+        val res = api.getMealsByDate(
+            systemId = ApiConfig.SYSTEM_ID,
+            email = email,
+            fromDate = date,
+            toDate = date,
+            page = page,
+            size = size
+        )
+
+        return if (res.isSuccessful) Result.success(res.body().orEmpty())
+        else Result.failure(Exception("HTTP ${res.code()}"))
+    }
 }
