@@ -15,6 +15,10 @@ import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.insuscan.network.repository.MealRepository
+import com.example.insuscan.network.repository.MealRepositoryImpl
 
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
@@ -53,6 +57,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private lateinit var plateDimensionsText: TextView
     private lateinit var confidenceText: TextView
     private lateinit var referenceStatusText: TextView
+    private val mealRepository = MealRepositoryImpl()
 
     // Bottom button
     private lateinit var logButton: Button
@@ -471,10 +476,40 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             wasStressMode = pm.isStressModeEnabled(ctx)
         )
 
-        MealSessionManager.saveCurrentMealWithDose(updatedMeal)
-        ToastHelper.showShort(ctx, "Meal saved to history")
-        selectHistoryTab()
+        // 1. Update the session (Transient only)
+        MealSessionManager.updateCurrentMeal(updatedMeal)
+
+        // 2. Save to Server (Source of Truth)
+        val mealId = updatedMeal.serverId
+        if (mealId != null) {
+            logButton.isEnabled = false // Prevent double click
+
+            lifecycleScope.launch {
+                try {
+                    // Send confirmation to server
+                    val result = mealRepository.confirmMeal(mealId, updatedMeal.insulinDose)
+
+                    if (result.isSuccess) {
+                        ToastHelper.showShort(ctx, "Meal saved to history")
+                        // Clear session so we don't go back to it
+                        MealSessionManager.clearSession()
+                        selectHistoryTab()
+                    } else {
+                        ToastHelper.showShort(ctx, "Failed to save: ${result.exceptionOrNull()?.message}")
+                        logButton.isEnabled = true
+                    }
+                } catch (e: Exception) {
+                    ToastHelper.showShort(ctx, "Error: ${e.message}")
+                    logButton.isEnabled = true
+                }
+            }
+        } else {
+            // Fallback if no server ID (e.g. offline mode or mock)
+            ToastHelper.showShort(ctx, "Meal logged (Local Mode)")
+            selectHistoryTab()
+        }
     }
+
     private fun selectHistoryTab() {
         val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
         bottomNav.selectedItemId = R.id.historyFragment

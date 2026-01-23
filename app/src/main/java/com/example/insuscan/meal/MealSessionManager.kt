@@ -4,28 +4,20 @@ object MealSessionManager {
     var currentMeal: Meal? = null
         private set
 
-    private val historyInternal = mutableListOf<Meal>()
-
     fun setCurrentMeal(meal: Meal) {
         currentMeal = meal
     }
 
-    // Updated: accepts full meal object with all details
-    fun saveCurrentMealWithDose(meal: Meal) {
-        historyInternal.add(0, meal)
-        currentMeal = null  // clear after saving
-    }
-
-    // Legacy support: just add dose to current meal
-    fun saveCurrentMealWithDose(dose: Float) {
+    fun updateCurrentMealDose(dose: Float) {
         val meal = currentMeal ?: return
-        val mealWithDose = meal.copy(insulinDose = dose)
-        historyInternal.add(0, mealWithDose)
+        currentMeal = meal.copy(insulinDose = dose)
     }
 
-    fun getHistory(): List<Meal> = historyInternal.toList()
+    fun updateCurrentMeal(meal: Meal) {
+        currentMeal = meal
+    }
 
-    fun clearHistory() {
-        historyInternal.clear()
+    fun clearSession() {
+        currentMeal = null
     }
 }

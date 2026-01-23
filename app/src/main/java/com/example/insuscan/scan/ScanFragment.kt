@@ -35,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.provider.MediaStore
+import com.example.insuscan.network.repository.ScanRepositoryImpl
 
 // ScanFragment - food scan screen with camera preview and portion analysis
 class ScanFragment : Fragment(R.layout.fragment_scan) {
@@ -59,7 +60,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private var portionEstimator: PortionEstimator? = null
 
     // Add as class member
-    private val scanRepository = ScanRepository()
+    private val scanRepository = ScanRepositoryImpl()
 
     // Camera permission flow
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -234,29 +235,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
     }
 
-    // Real version - use on physical device
-//    private fun validateAndProcessImage(imageFile: File) {
-//        val validationResult = ImageValidator.validateCapturedImage(imageFile)
-//
-//        when (validationResult) {
-//            is ValidationResult.Valid -> {
-//                // Run portion estimation on the captured image
-//                analyzePortionAndContinue(imageFile)
-//            }
-//            is ValidationResult.Invalid -> {
-//                showLoading(false)
-//                ToastHelper.showLong(
-//                    requireContext(),
-//                    "Image quality issues:\n${validationResult.getFormattedMessage()}"
-//                )
-//            }
-//            is ValidationResult.Error -> {
-//                showLoading(false)
-//                ToastHelper.showShort(requireContext(), validationResult.message)
-//            }
-//        }
-//    }
-
     // Dev mode version - skips validation for emulator
     private fun validateAndProcessImage(imageFile: File) {
         val devMode = true
@@ -289,8 +267,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-
-    // Replace the analyzePortionAndContinue function:
     private fun analyzePortionAndContinue(imageFile: File) {
         val bitmap = android.graphics.BitmapFactory.decodeFile(imageFile.absolutePath)
 
@@ -316,13 +292,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
 
             result.onSuccess { mealDto ->
-                Log.d(TAG, "Server returned meal: ${mealDto.mealId}")
-
-                // Convert server response to local Meal object
-                val meal = convertMealDtoToMeal(mealDto, portionResult)
-                MealSessionManager.setCurrentMeal(meal)
-                showLoading(false)
-                navigateToSummary()
+                handleScanSuccess(mealDto, portionResult)
 
             }.onFailure { error ->
                 Log.e(TAG, "Server scan failed: ${error.message}")
@@ -368,6 +338,16 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
     }
 
+    private fun handleScanSuccess(mealDto: MealDto, portionResult: PortionResult?) {
+        Log.d(TAG, "Scan successful: ${mealDto.foodItems?.size} items")
+
+        val meal = convertMealDtoToMeal(mealDto, portionResult)
+        MealSessionManager.setCurrentMeal(meal)
+
+        showLoading(false)
+        navigateToSummary()
+    }
+
     // Fallback when server is unavailable
     private fun createFallbackMeal(portionResult: PortionResult?): Meal {
         return when (portionResult) {
@@ -385,33 +365,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
             else -> Meal(title = "Unknown meal", carbs = 30f)
         }
-    }
-
-    private fun createMealFromAnalysis(result: PortionResult.Success): Meal {
-        val estimatedCarbs = estimateCarbsFromPortion(result.estimatedWeightGrams)
-
-        return Meal(
-            title = "Detected meal",
-            carbs = estimatedCarbs,
-            portionWeightGrams = result.estimatedWeightGrams,
-            portionVolumeCm3 = result.volumeCm3,
-            plateDiameterCm = result.plateDiameterCm,
-            plateDepthCm = result.depthCm,
-            analysisConfidence = result.confidence,
-            referenceObjectDetected = result.referenceObjectDetected
-        )
-    }
-
-    private fun estimateCarbsFromPortion(weightGrams: Float): Float {
-        val avgCarbDensity = 0.2f
-        return weightGrams * avgCarbDensity
-    }
-
-    private fun createMockMealFromImage(): Meal {
-        return Meal(
-            title = "Chicken and rice",
-            carbs = 48f
-        )
     }
 
     private fun navigateToSummary() {
@@ -456,12 +409,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                         showLoading(false)
 
                         result.onSuccess { mealDto ->
-                            Log.d(TAG, "Scan successful: ${mealDto.foodItems?.size} items")
-
-                            val meal = convertMealDtoToMeal(mealDto, null)
-
-                            MealSessionManager.setCurrentMeal(meal)
-                            navigateToSummary()
+                            handleScanSuccess(mealDto, null)
                         }.onFailure { error ->
                             Log.e(TAG, "Scan failed: ${error.message}")
                             ToastHelper.showShort(requireContext(), "Scan failed: ${error.message}")
