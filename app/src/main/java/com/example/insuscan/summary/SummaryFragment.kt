@@ -19,7 +19,12 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.example.insuscan.network.repository.MealRepository
 import com.example.insuscan.network.repository.MealRepositoryImpl
-
+import android.app.Dialog
+import android.graphics.BitmapFactory
+import android.view.Window
+import android.widget.ImageButton
+import android.widget.ImageView
+import java.io.File
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     // Food detection views
@@ -37,6 +42,10 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private lateinit var rbNormal: RadioButton
     private lateinit var rbLight: RadioButton
     private lateinit var rbIntense: RadioButton
+
+    // Image views
+    private lateinit var imageCard: CardView
+    private lateinit var mealImageView: ImageView
 
     // Dose calculation views
     private lateinit var carbDoseText: TextView
@@ -79,6 +88,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         setupGlucoseUnit()
         updateFoodDisplay()
         updateAnalysisResults()
+        displayMealImage()
         initializeListeners()
         calculateDose() // initial calculation
     }
@@ -132,6 +142,10 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         // Bottom
         logButton = view.findViewById(R.id.btn_log_meal)
+
+        // Image card
+        imageCard = view.findViewById(R.id.card_image)
+        mealImageView = view.findViewById(R.id.iv_meal_image)
     }
 
     private fun setupGlucoseUnit() {
@@ -408,6 +422,61 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         referenceStatusText.text = refStatus
     }
 
+    private fun displayMealImage() {
+        val meal = MealSessionManager.currentMeal
+        val imagePath = meal?.imagePath
+
+        if (imagePath.isNullOrEmpty()) {
+            imageCard.visibility = View.GONE
+            return
+        }
+
+        val imageFile = File(imagePath)
+        if (!imageFile.exists()) {
+            imageCard.visibility = View.GONE
+            return
+        }
+
+        // Load and display the image
+        val bitmap = BitmapFactory.decodeFile(imagePath)
+        if (bitmap != null) {
+            mealImageView.setImageBitmap(bitmap)
+            imageCard.visibility = View.VISIBLE
+
+            // Click to show fullscreen
+            mealImageView.setOnClickListener {
+                showFullscreenImage(imagePath)
+            }
+        } else {
+            imageCard.visibility = View.GONE
+        }
+    }
+
+    private fun showFullscreenImage(imagePath: String) {
+        val dialog = Dialog(ctx, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_image_fullscreen)
+
+        val imageView = dialog.findViewById<ImageView>(R.id.iv_fullscreen_image)
+        val closeBtn = dialog.findViewById<ImageButton>(R.id.btn_close)
+
+        // Load image
+        val bitmap = BitmapFactory.decodeFile(imagePath)
+        imageView.setImageBitmap(bitmap)
+
+        // Close on button click
+        closeBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        // Close on image tap
+        imageView.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
     private fun hasAnalysisData(meal: Meal): Boolean {
         return meal.portionWeightGrams != null ||
                 meal.plateDiameterCm != null ||
@@ -545,6 +614,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         setupGlucoseUnit()
         updateFoodDisplay()
         updateAnalysisResults()
+        displayMealImage()
         updateActivityLabels()
         calculateDose()
     }

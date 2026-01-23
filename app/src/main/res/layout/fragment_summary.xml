@@ -20,6 +20,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
+        android:scrollbars="none"
         app:layout_constraintTop_toBottomOf="@id/top_bar"
         app:layout_constraintBottom_toTopOf="@id/btn_log_meal"
         app:layout_constraintStart_toStartOf="parent"
@@ -29,15 +30,62 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:clipToPadding="false">
+
+            <!-- ============== SCANNED IMAGE CARD ============== -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:visibility="gone"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Image container with rounded corners -->
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="180dp">
+
+                        <ImageView
+                            android:id="@+id/iv_meal_image"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:contentDescription="Scanned meal" />
+
+                        <!-- Tap to enlarge hint -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="bottom|end"
+                            android:layout_margin="8dp"
+                            android:background="#80000000"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="4dp"
+                            android:text="Tap to enlarge"
+                            android:textColor="@android:color/white"
+                            android:textSize="11sp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <!-- ============== DETECTED FOOD CARD ============== -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
@@ -46,41 +94,75 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="🍽️ Detected Food"
-                        android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="#666666" />
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="🍽️  Detected Food"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="#424242" />
+
+                        <Button
+                            android:id="@+id/btn_edit_meal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:paddingHorizontal="12dp"
+                            android:text="Edit"
+                            android:textSize="13sp"
+                            android:textAllCaps="false"
+                            style="@style/Widget.Material3.Button.TextButton" />
+
+                    </LinearLayout>
 
                     <TextView
                         android:id="@+id/tv_meal_items"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Detected items will appear here"
-                        android:textSize="16sp"
-                        android:layout_marginTop="8dp" />
-
-                    <TextView
-                        android:id="@+id/tv_total_carbs"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Total carbs: -- g"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
-                        android:textColor="#1976D2"
-                        android:layout_marginTop="12dp" />
-
-                    <!-- Edit button -->
-                    <Button
-                        android:id="@+id/btn_edit_meal"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="✏️ Edit Items"
-                        android:textAllCaps="false"
+                        android:textSize="15sp"
+                        android:textColor="#616161"
                         android:layout_marginTop="8dp"
-                        style="@style/Widget.Material3.Button.TextButton" />
+                        android:lineSpacingExtra="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#E0E0E0"
+                        android:layout_marginVertical="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Total Carbs"
+                            android:textSize="16sp"
+                            android:textColor="#424242" />
+
+                        <TextView
+                            android:id="@+id/tv_total_carbs"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-- g"
+                            android:textSize="20sp"
+                            android:textStyle="bold"
+                            android:textColor="#1976D2" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -90,8 +172,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
@@ -103,25 +185,34 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🩸 Current Glucose (optional)"
-                        android:textSize="14sp"
+                        android:text="🩸  Current Glucose"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="#666666" />
+                        android:textColor="#424242" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Optional - enter for correction dose"
+                        android:textSize="12sp"
+                        android:textColor="#9E9E9E"
+                        android:layout_marginTop="2dp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginTop="8dp">
+                        android:layout_marginTop="12dp">
 
                         <EditText
                             android:id="@+id/et_current_glucose"
                             android:layout_width="100dp"
-                            android:layout_height="wrap_content"
+                            android:layout_height="48dp"
                             android:hint="120"
                             android:inputType="number"
                             android:textAlignment="center"
+                            android:textSize="18sp"
                             android:background="@drawable/edit_text_background" />
 
                         <TextView
@@ -129,27 +220,24 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="mg/dL"
-                            android:textSize="16sp"
-                            android:layout_marginStart="8dp" />
+                            android:textSize="15sp"
+                            android:textColor="#616161"
+                            android:layout_marginStart="12dp" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
 
                         <TextView
                             android:id="@+id/tv_glucose_status"
-                            android:layout_width="0dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
                             android:text=""
-                            android:textSize="13sp"
-                            android:textAlignment="textEnd"
-                            android:layout_marginStart="8dp" />
-                    </LinearLayout>
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Enter to include correction dose"
-                        android:textSize="12sp"
-                        android:textColor="#999999"
-                        android:layout_marginTop="4dp" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -159,8 +247,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
@@ -172,39 +260,47 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🏃 Activity Level (this meal)"
-                        android:textSize="14sp"
+                        android:text="🏃  Activity Level"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="#666666" />
+                        android:textColor="#424242" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Adjust dose based on recent exercise"
+                        android:textSize="12sp"
+                        android:textColor="#9E9E9E"
+                        android:layout_marginTop="2dp" />
 
                     <RadioGroup
                         android:id="@+id/rg_activity_level"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="8dp">
+                        android:layout_marginTop="12dp">
 
                         <RadioButton
                             android:id="@+id/rb_activity_normal"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="44dp"
                             android:text="Normal (no adjustment)"
-                            android:checked="true"
-                            android:paddingVertical="4dp" />
+                            android:textSize="15sp"
+                            android:checked="true" />
 
                         <RadioButton
                             android:id="@+id/rb_activity_light"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="44dp"
                             android:text="After light exercise"
-                            android:paddingVertical="4dp" />
+                            android:textSize="15sp" />
 
                         <RadioButton
                             android:id="@+id/rb_activity_intense"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
+                            android:layout_height="44dp"
                             android:text="After intense exercise"
-                            android:paddingVertical="4dp" />
+                            android:textSize="15sp" />
 
                     </RadioGroup>
 
@@ -213,12 +309,11 @@
 
             <!-- ============== DOSE CALCULATION CARD ============== -->
             <androidx.cardview.widget.CardView
-                android:id="@+id/card_dose_calculation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="#E3F2FD">
 
                 <LinearLayout
@@ -230,176 +325,201 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="💉 Insulin Calculation"
-                        android:textSize="14sp"
+                        android:text="💉  Dose Calculation"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="#1565C0" />
+                        android:textColor="#424242" />
 
-                    <!-- Carb dose -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:orientation="vertical"
                         android:layout_marginTop="12dp">
 
-                        <TextView
-                            android:layout_width="0dp"
+                        <!-- Carb dose row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Carb dose"
-                            android:textSize="15sp" />
+                            android:orientation="horizontal"
+                            android:paddingVertical="6dp">
 
-                        <TextView
-                            android:id="@+id/tv_carb_dose"
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Carb dose"
+                                android:textSize="15sp"
+                                android:textColor="#424242" />
+
+                            <TextView
+                                android:id="@+id/tv_carb_dose"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0.0 u"
+                                android:textSize="15sp"
+                                android:textColor="#424242" />
+
+                        </LinearLayout>
+
+                        <!-- Correction dose row -->
+                        <LinearLayout
+                            android:id="@+id/layout_correction_dose"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="0.0 u"
-                            android:textSize="15sp" />
-                    </LinearLayout>
+                            android:orientation="horizontal"
+                            android:paddingVertical="6dp"
+                            android:visibility="gone">
 
-                    <!-- Correction dose -->
-                    <LinearLayout
-                        android:id="@+id/layout_correction_dose"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="4dp"
-                        android:visibility="gone">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Correction"
+                                android:textSize="15sp"
+                                android:textColor="#424242" />
 
-                        <TextView
-                            android:id="@+id/tv_correction_label"
-                            android:layout_width="0dp"
+                            <TextView
+                                android:id="@+id/tv_correction_dose"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="+0.0 u"
+                                android:textSize="15sp"
+                                android:textColor="#F57C00" />
+
+                        </LinearLayout>
+
+                        <!-- Sick adjustment row -->
+                        <LinearLayout
+                            android:id="@+id/layout_sick_adjustment"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Correction"
-                            android:textSize="15sp" />
+                            android:orientation="horizontal"
+                            android:paddingVertical="6dp"
+                            android:visibility="gone">
 
-                        <TextView
-                            android:id="@+id/tv_correction_dose"
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:id="@+id/tv_sick_label"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="🤒 Sick mode"
+                                android:textSize="15sp"
+                                android:textColor="#424242" />
+
+                            <TextView
+                                android:id="@+id/tv_sick_adjustment"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="+0.0 u"
+                                android:textSize="15sp"
+                                android:textColor="#F57C00" />
+
+                        </LinearLayout>
+
+                        <!-- Stress adjustment row -->
+                        <LinearLayout
+                            android:id="@+id/layout_stress_adjustment"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="+0.0 u"
-                            android:textSize="15sp" />
-                    </LinearLayout>
+                            android:orientation="horizontal"
+                            android:paddingVertical="6dp"
+                            android:visibility="gone">
 
-                    <!-- Sick day adjustment -->
-                    <LinearLayout
-                        android:id="@+id/layout_sick_adjustment"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="4dp"
-                        android:visibility="gone">
+                            <TextView
+                                android:id="@+id/tv_stress_label"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="😰 Stress"
+                                android:textSize="15sp"
+                                android:textColor="#424242" />
 
-                        <TextView
-                            android:id="@+id/tv_sick_label"
-                            android:layout_width="0dp"
+                            <TextView
+                                android:id="@+id/tv_stress_adjustment"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="+0.0 u"
+                                android:textSize="15sp"
+                                android:textColor="#F57C00" />
+
+                        </LinearLayout>
+
+                        <!-- Exercise adjustment row -->
+                        <LinearLayout
+                            android:id="@+id/layout_exercise_adjustment"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="🤒 Sick day"
-                            android:textSize="15sp" />
+                            android:orientation="horizontal"
+                            android:paddingVertical="6dp"
+                            android:visibility="gone">
 
-                        <TextView
-                            android:id="@+id/tv_sick_adjustment"
-                            android:layout_width="wrap_content"
+                            <TextView
+                                android:id="@+id/tv_exercise_label"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="🏃 Exercise"
+                                android:textSize="15sp"
+                                android:textColor="#424242" />
+
+                            <TextView
+                                android:id="@+id/tv_exercise_adjustment"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="-0.0 u"
+                                android:textSize="15sp"
+                                android:textColor="#4CAF50" />
+
+                        </LinearLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:background="#90CAF9"
+                            android:layout_marginVertical="12dp" />
+
+                        <!-- Final dose row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="+0.0 u"
-                            android:textSize="15sp" />
-                    </LinearLayout>
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
 
-                    <!-- Stress adjustment -->
-                    <LinearLayout
-                        android:id="@+id/layout_stress_adjustment"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="4dp"
-                        android:visibility="gone">
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Recommended Dose"
+                                android:textSize="17sp"
+                                android:textStyle="bold"
+                                android:textColor="#1565C0" />
 
-                        <TextView
-                            android:id="@+id/tv_stress_label"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="😰 Stress"
-                            android:textSize="15sp" />
+                            <TextView
+                                android:id="@+id/tv_final_dose"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0.0 u"
+                                android:textSize="24sp"
+                                android:textStyle="bold"
+                                android:textColor="#1565C0" />
 
-                        <TextView
-                            android:id="@+id/tv_stress_adjustment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="+0.0 u"
-                            android:textSize="15sp" />
-                    </LinearLayout>
+                        </LinearLayout>
 
-                    <!-- Exercise adjustment -->
-                    <LinearLayout
-                        android:id="@+id/layout_exercise_adjustment"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="4dp"
-                        android:visibility="gone">
-
-                        <TextView
-                            android:id="@+id/tv_exercise_label"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="🏃 Exercise"
-                            android:textSize="15sp" />
-
-                        <TextView
-                            android:id="@+id/tv_exercise_adjustment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="-0.0 u"
-                            android:textSize="15sp" />
-                    </LinearLayout>
-
-                    <!-- Divider -->
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#90CAF9"
-                        android:layout_marginVertical="12dp" />
-
-                    <!-- Final dose -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Recommended dose"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="#1565C0" />
-
-                        <TextView
-                            android:id="@+id/tv_final_dose"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="0.0 u"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="#1565C0" />
                     </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ============== ANALYSIS RESULTS (collapsible) ============== -->
+            <!-- ============== ANALYSIS RESULTS CARD ============== -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_analysis_results"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
+                android:visibility="gone"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
@@ -411,24 +531,26 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="📊 Portion Analysis"
-                        android:textSize="14sp"
+                        android:text="📊  Portion Analysis"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="#666666" />
+                        android:textColor="#424242" />
 
                     <LinearLayout
                         android:id="@+id/layout_analysis_results"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="8dp">
+                        android:layout_marginTop="12dp">
 
                         <TextView
                             android:id="@+id/tv_portion_weight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Estimated weight: --"
-                            android:textSize="14sp" />
+                            android:textSize="14sp"
+                            android:textColor="#616161"
+                            android:paddingVertical="2dp" />
 
                         <TextView
                             android:id="@+id/tv_plate_dimensions"
@@ -436,7 +558,8 @@
                             android:layout_height="wrap_content"
                             android:text="Plate: --"
                             android:textSize="14sp"
-                            android:layout_marginTop="4dp" />
+                            android:textColor="#616161"
+                            android:paddingVertical="2dp" />
 
                         <TextView
                             android:id="@+id/tv_analysis_confidence"
@@ -444,7 +567,8 @@
                             android:layout_height="wrap_content"
                             android:text="Confidence: --"
                             android:textSize="14sp"
-                            android:layout_marginTop="4dp" />
+                            android:textColor="#616161"
+                            android:paddingVertical="2dp" />
 
                         <TextView
                             android:id="@+id/tv_reference_status"
@@ -452,26 +576,29 @@
                             android:layout_height="wrap_content"
                             android:text="Reference object: --"
                             android:textSize="14sp"
-                            android:layout_marginTop="4dp" />
+                            android:textColor="#616161"
+                            android:paddingVertical="2dp" />
 
                     </LinearLayout>
+
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- Save button - fixed at bottom -->
+    <!-- Save button -->
     <Button
         android:id="@+id/btn_log_meal"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="✓ Confirm &amp; Save"
+        android:layout_height="56dp"
+        android:text="✓  Confirm &amp; Save"
         android:textSize="16sp"
         android:textAllCaps="false"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        app:cornerRadius="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

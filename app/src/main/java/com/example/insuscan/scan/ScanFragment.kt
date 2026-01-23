@@ -51,6 +51,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private lateinit var loadingOverlay: FrameLayout
     private lateinit var galleryButton: Button
 
+    private var capturedImagePath: String? = null
 
     // Camera
     private lateinit var cameraManager: CameraManager
@@ -269,6 +270,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     private fun analyzePortionAndContinue(imageFile: File) {
         val bitmap = android.graphics.BitmapFactory.decodeFile(imageFile.absolutePath)
+        capturedImagePath = imageFile.absolutePath
 
         if (bitmap == null) {
             Log.e(TAG, "Failed to decode image file")
@@ -341,7 +343,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private fun handleScanSuccess(mealDto: MealDto, portionResult: PortionResult?) {
         Log.d(TAG, "Scan successful: ${mealDto.foodItems?.size} items")
 
-        val meal = convertMealDtoToMeal(mealDto, portionResult)
+        val meal = convertMealDtoToMeal(mealDto, portionResult).copy(imagePath = capturedImagePath)
         MealSessionManager.setCurrentMeal(meal)
 
         showLoading(false)
@@ -360,10 +362,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                     plateDiameterCm = portionResult.plateDiameterCm,
                     plateDepthCm = portionResult.depthCm,
                     analysisConfidence = portionResult.confidence,
-                    referenceObjectDetected = portionResult.referenceObjectDetected
+                    referenceObjectDetected = portionResult.referenceObjectDetected,
+                    imagePath = capturedImagePath
                 )
             }
-            else -> Meal(title = "Unknown meal", carbs = 30f)
+            else -> Meal(title = "Unknown meal", carbs = 30f, imagePath = capturedImagePath)
         }
     }
 
@@ -396,6 +399,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 ToastHelper.showShort(requireContext(), "Failed to load image")
                 return
             }
+            // Save gallery image to cache for summary screen
+            val cacheFile = File(requireContext().cacheDir, "gallery_${System.currentTimeMillis()}.jpg")
+            cacheFile.outputStream().use { out ->
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
+            }
+            capturedImagePath = cacheFile.absolutePath
 
             // Get user email
             val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
