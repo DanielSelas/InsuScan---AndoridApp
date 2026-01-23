@@ -21,6 +21,9 @@ data class Meal(
     // Server IDs for sync
     val serverId: String? = null,
 
+    // Local image path
+    val imagePath: String? = null,
+
     // Context flags (existing)
     val wasSickMode: Boolean = false,
     val wasStressMode: Boolean = false,
