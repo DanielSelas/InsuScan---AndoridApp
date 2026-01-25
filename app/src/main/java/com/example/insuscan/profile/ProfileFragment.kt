@@ -21,6 +21,18 @@ import com.example.insuscan.network.repository.UserRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import android.Manifest
+import android.app.AlertDialog
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Environment
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import com.google.firebase.storage.FirebaseStorage
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
@@ -68,6 +80,33 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private val ctx get() = requireContext()
     private val userRepository = UserRepositoryImpl()
+
+    // Photo picker
+    private lateinit var editPhotoButton: ImageView
+    private var photoUri: Uri? = null
+
+    // Gallery picker launcher
+    private val pickImageLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { uploadAndSavePhoto(it) }
+    }
+
+    // Camera launcher
+    private val takePictureLauncher = registerForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            photoUri?.let { uploadAndSavePhoto(it) }
+        }
+    }
+
+    // Camera permission launcher
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) openCamera() else ToastHelper.showShort(ctx, "Camera permission denied")
+    }
 
     // Spinner data
     private val genderOptions = arrayOf("Select", "Male", "Female", "Other", "Prefer not to say")
@@ -132,6 +171,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         // Buttons
         saveButton = view.findViewById(R.id.btn_save_profile)
         logoutButton = view.findViewById(R.id.btn_logout)
+        editPhotoButton = view.findViewById(R.id.iv_edit_photo)
+
     }
 
     private fun setupTopBar(view: View) {
@@ -208,6 +249,9 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+        // Profile photo click - show options dialog
+        profilePhoto.setOnClickListener { showPhotoOptionsDialog() }
+        editPhotoButton.setOnClickListener { showPhotoOptionsDialog() }
     }
 
     private fun showDatePicker() {
@@ -235,13 +279,19 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             user.displayName?.let { nameEditText.setText(it) }
         }
 
-        // Photo
-        user.photoUrl?.let { uri ->
-            Glide.with(this)
-                .load(uri)
-                .circleCrop()
-                .placeholder(R.drawable.ic_person)
-                .into(profilePhoto)
+        // Photo - use saved URL first, fallback to Google
+        val savedUrl = UserProfileManager.getProfilePhotoUrl(ctx)
+        if (!savedUrl.isNullOrBlank()) {
+            loadProfilePhoto(savedUrl)
+        } else {
+            user.photoUrl?.let { uri ->
+                Glide.with(this)
+                    .load(uri)
+                    .circleCrop()
+                    .placeholder(R.drawable.ic_person)
+                    .into(profilePhoto)
+                profilePhoto.setPadding(0, 0, 0, 0)
+            }
         }
     }
 
@@ -301,6 +351,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         // Preferences
         setSpinnerByValue(glucoseUnitsSpinner, glucoseUnitOptions, pm.getGlucoseUnits(ctx))
+
+        // Load profile photo
+        val savedPhotoUrl = pm.getProfilePhotoUrl(ctx)
+        loadProfilePhoto(savedPhotoUrl)
     }
 
     private fun setSpinnerSelection(spinner: Spinner, options: Array<String>, value: String) {
@@ -425,7 +479,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     userId = null,
                     username = nameEditText.text.toString().trim().ifEmpty { null },
                     role = null,
-                    avatar = null,
+                    avatar = UserProfileManager.getProfilePhotoUrl(ctx),
 
                     // Medical
                     insulinCarbRatio = icrEditText.text.toString().trim().let {
@@ -480,6 +534,89 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
     }
 
+    private fun showPhotoOptionsDialog() {
+        val options = arrayOf("Take Photo", "Choose from Gallery", "Remove Photo")
+        AlertDialog.Builder(ctx)
+            .setTitle("Profile Photo")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> checkCameraPermissionAndOpen()
+                    1 -> pickImageLauncher.launch("image/*")
+                    2 -> removeProfilePhoto()
+                }
+            }
+            .show()
+    }
+
+    private fun checkCameraPermissionAndOpen() {
+        when {
+            ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA)
+                    == PackageManager.PERMISSION_GRANTED -> openCamera()
+            else -> cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun openCamera() {
+        val photoFile = createImageFile()
+        photoUri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.provider", photoFile)
+        takePictureLauncher.launch(photoUri)
+    }
+
+    private fun createImageFile(): File {
+        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(System.currentTimeMillis())
+        val storageDir = ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("PROFILE_${timestamp}_", ".jpg", storageDir)
+    }
+
+    private fun uploadAndSavePhoto(uri: Uri) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val storageRef = FirebaseStorage.getInstance().reference
+            .child("profile_photos/$userId.jpg")
+
+        ToastHelper.showShort(ctx, "Uploading photo...")
+
+        storageRef.putFile(uri)
+            .addOnSuccessListener {
+                storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
+                    val url = downloadUrl.toString()
+
+                    // 1. Save locally and update UI immediately
+                    UserProfileManager.saveProfilePhotoUrl(ctx, url)
+                    loadProfilePhoto(url)
+
+                    // 2. Sync with server immediately to persist the new URL remotely
+                    syncToServer()
+
+                    ToastHelper.showShort(ctx, "Photo updated and saved!")
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("ProfileFragment", "Upload failed: ${e.message}")
+                ToastHelper.showShort(ctx, "Upload failed")
+            }
+    }
+
+    private fun loadProfilePhoto(url: String?) {
+        if (url.isNullOrBlank()) {
+            profilePhoto.setImageResource(R.drawable.ic_person)
+            profilePhoto.setPadding(32, 32, 32, 32)
+            return
+        }
+
+        Glide.with(this)
+            .load(url)
+            .circleCrop()
+            .placeholder(R.drawable.ic_person)
+            .into(profilePhoto)
+        profilePhoto.setPadding(0, 0, 0, 0)
+    }
+
+    private fun removeProfilePhoto() {
+        UserProfileManager.saveProfilePhotoUrl(ctx, "")
+        profilePhoto.setImageResource(R.drawable.ic_person)
+        profilePhoto.setPadding(32, 32, 32, 32)
+        ToastHelper.showShort(ctx, "Photo removed")
+    }
     private fun logout() {
         UserProfileManager.clearAllData(ctx)
         AuthManager.signOut()
