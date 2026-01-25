@@ -9,8 +9,10 @@ import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import com.example.insuscan.MainActivity
 import com.example.insuscan.R
+import com.example.insuscan.network.repository.UserRepositoryImpl
 import com.example.insuscan.profile.UserProfileManager
-
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var startScanButton: Button
@@ -24,7 +26,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var sickWarningCard: CardView
     private lateinit var sickWarningText: TextView
     private lateinit var activeModesText: TextView
-
+    private val userRepository = UserRepositoryImpl()
     private val ctx get() = requireContext()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -34,6 +36,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         renderGreeting()
         loadTemporaryModes()
         initializeListeners()
+        fetchUserProfile()
     }
 
     override fun onResume() {
@@ -55,6 +58,33 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         sickWarningCard = view.findViewById(R.id.card_sick_warning)
         sickWarningText = view.findViewById(R.id.tv_sick_warning)
         activeModesText = view.findViewById(R.id.tv_active_modes)
+    }
+
+    private fun fetchUserProfile() {
+        val email = UserProfileManager.getUserEmail(ctx) ?: return
+        val name = UserProfileManager.getUserName(ctx) ?: DEFAULT_NAME
+
+        lifecycleScope.launch {
+            try {
+                val result = userRepository.getUser(email)
+
+                if (result.isSuccess) {
+                    val userDto = result.getOrNull()
+                    if (userDto != null) {
+                        UserProfileManager.syncFromServer(ctx, userDto)
+                        renderGreeting()
+                    }
+                } else {
+                    try {
+                        userRepository.register(email, name)
+                    } catch (e: Exception) {
+                        // Ignore
+                    }
+                }
+            } catch (e: Exception) {
+                // Ignore
+            }
+        }
     }
 
     private fun renderGreeting() {

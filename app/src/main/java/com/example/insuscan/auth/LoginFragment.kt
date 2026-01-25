@@ -353,53 +353,12 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     // --- Success handling ---
 
     private fun onLoginSuccess(email: String, displayName: String) {
-        // Save basic info locally
         UserProfileManager.saveUserEmail(requireContext(), email)
         UserProfileManager.saveUserName(requireContext(), displayName)
 
-        showLoading(true)
-
-        lifecycleScope.launch {
-            try {
-                // Try to fetch full profile from server
-                val result = userRepository.getUser(email)
-
-                if (result.isSuccess) {
-                    val userDto = result.getOrNull()
-                    if (userDto != null) {
-                        UserProfileManager.syncFromServer(requireContext(), userDto)
-                        Toast.makeText(requireContext(), "Profile synced successfully", Toast.LENGTH_SHORT).show()
-                    }
-                    showLoading(false)
-                    navigateToHome()
-                } else {
-                    // User not found on server, proceed to create
-                    createUserInServerDB(email, displayName)
-                }
-            } catch (e: Exception) {
-                // Network error or offline - proceed to home with local data
-                showLoading(false)
-                navigateToHome()
-            }
-        }
+        navigateToHome()
     }
 
-    private fun createUserInServerDB(email: String, name: String) {
-        lifecycleScope.launch {
-            try {
-                // Check if user exists, if not create
-                val result = userRepository.getUser(email)
-                if (result.isFailure) {
-                    userRepository.register(email, name)
-                }
-            } catch (e: Exception) {
-                // Ignore - user can still use app
-            } finally {
-                showLoading(false)
-                navigateToHome()
-            }
-        }
-    }
 
     private fun navigateToHome() {
         findNavController().navigate(R.id.action_loginFragment_to_homeFragment)

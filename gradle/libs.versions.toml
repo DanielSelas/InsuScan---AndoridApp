@@ -3,6 +3,8 @@ agp = "8.9.0"
 androidxNavigationFragmentKtx = "2.9.6"
 androidxNavigationUiKtx = "2.9.6"
 firebaseBom = "34.7.0"
+firebaseStorageKtx = "20.3.0"
+glide = "4.16.0"
 gson = "2.11.0"
 kotlin = "2.0.21"
 coreKtx = "1.10.1"
@@ -40,6 +42,8 @@ androidx-navigation-ui-ktx-v296 = { module = "androidx.navigation:navigation-ui-
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 firebase-auth-ktx = { module = "com.google.firebase:firebase-auth-ktx", version = "23.2.1" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-storage-ktx = { module = "com.google.firebase:firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
+glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

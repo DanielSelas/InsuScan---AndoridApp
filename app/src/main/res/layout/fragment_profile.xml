@@ -46,15 +46,32 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <!-- Profile photo -->
-                    <ImageView
-                        android:id="@+id/iv_profile_photo"
+                    <!-- Profile photo with edit button -->
+                    <FrameLayout
                         android:layout_width="72dp"
-                        android:layout_height="72dp"
-                        android:src="@drawable/ic_person"
-                        android:background="@drawable/circle_background"
-                        android:padding="16dp"
-                        android:scaleType="centerCrop" />
+                        android:layout_height="72dp">
+
+                        <ImageView
+                            android:id="@+id/iv_profile_photo"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            android:src="@drawable/ic_person"
+                            android:background="@drawable/circle_background"
+                            android:padding="16dp"
+                            android:scaleType="centerCrop" />
+
+                        <!-- Camera icon overlay -->
+                        <ImageView
+                            android:id="@+id/iv_edit_photo"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:layout_gravity="bottom|end"
+                            android:src="@drawable/ic_camera"
+                            android:background="@drawable/circle_background_primary"
+                            android:padding="4dp"
+                            android:elevation="4dp" />
+
+                    </FrameLayout>
 
                     <LinearLayout
                         android:layout_width="0dp"
