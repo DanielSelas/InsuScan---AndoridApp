@@ -333,6 +333,7 @@ object UserProfileManager {
         user.gender?.let { saveUserGender(context, it) }
         user.pregnant?.let { saveIsPregnant(context, it) }
         user.dueDate?.let { saveDueDate(context, it) }
+        user.avatar?.let { saveProfilePhotoUrl(context, it) }
 
         // Medical info
         user.insulinCarbRatio?.let { saveInsulinCarbRatio(context, it) }
