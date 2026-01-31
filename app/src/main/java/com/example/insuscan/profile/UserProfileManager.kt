@@ -314,8 +314,9 @@ object UserProfileManager {
 //    }
 
     fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) {
-        // 1. Keep current email to prevent data loss during wipe
+        // 1. Keep current email AND photo to prevent data loss during wipe
         val currentEmail = getUserEmail(context)
+        val currentPhotoUrl = getProfilePhotoUrl(context)
 
         // 2. Clear ALL local preferences to remove data from previous users
         prefs(context).edit().clear().apply()
@@ -333,7 +334,12 @@ object UserProfileManager {
         user.gender?.let { saveUserGender(context, it) }
         user.pregnant?.let { saveIsPregnant(context, it) }
         user.dueDate?.let { saveDueDate(context, it) }
-        user.avatar?.let { saveProfilePhotoUrl(context, it) }
+
+        // Logic: Use Server URL if exists, otherwise keep Local URL (e.g. from Google Sign-In)
+        val finalPhotoUrl = user.avatar ?: currentPhotoUrl
+        if (finalPhotoUrl != null) {
+            saveProfilePhotoUrl(context, finalPhotoUrl)
+        }
 
         // Medical info
         user.insulinCarbRatio?.let { saveInsulinCarbRatio(context, it) }
