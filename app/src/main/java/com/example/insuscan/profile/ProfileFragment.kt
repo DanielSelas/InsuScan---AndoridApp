@@ -375,12 +375,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         val icrValue = icrEditText.text.toString().trim()
         val isf = isfEditText.text.toString().trim()
         val target = targetGlucoseEditText.text.toString().trim()
-
-        if (icrValue.isEmpty() || isf.isEmpty() || target.isEmpty()) {
-            ToastHelper.showShort(ctx, "Please fill all insulin parameters")
-            return
-        }
-
+        
         // Format to 1:X
         val fullIcrString = "1:$icrValue"
 
