@@ -2,13 +2,17 @@ package com.example.insuscan.scan
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -25,6 +29,7 @@ import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import java.io.File
+import com.example.insuscan.network.exception.ScanException
 
 import androidx.lifecycle.lifecycleScope
 import com.example.insuscan.meal.FoodItem
@@ -35,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.provider.MediaStore
+import com.bumptech.glide.Glide
 import com.example.insuscan.network.repository.ScanRepositoryImpl
 
 // ScanFragment - food scan screen with camera preview and portion analysis
@@ -46,12 +52,18 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     // Views
     private lateinit var cameraPreview: PreviewView
+    private lateinit var capturedImageView: ImageView
     private lateinit var captureButton: Button
     private lateinit var qualityStatusText: TextView
     private lateinit var loadingOverlay: FrameLayout
+    private lateinit var loadingMessage: TextView
     private lateinit var galleryButton: Button
+    private lateinit var subtitleText: TextView
 
     private var capturedImagePath: String? = null
+
+    // State: are we showing the captured image or live camera?
+    private var isShowingCapturedImage = false
 
     // Camera
     private lateinit var cameraManager: CameraManager
@@ -100,20 +112,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     private fun findViews(view: View) {
         cameraPreview = view.findViewById(R.id.camera_preview)
+        capturedImageView = view.findViewById(R.id.iv_captured_image)
         captureButton = view.findViewById(R.id.btn_capture)
         qualityStatusText = view.findViewById(R.id.tv_quality_status)
         loadingOverlay = view.findViewById(R.id.loading_overlay)
+        loadingMessage = view.findViewById(R.id.tv_loading_message)
         galleryButton = view.findViewById(R.id.btn_gallery)
-
+        subtitleText = view.findViewById(R.id.tv_scan_subtitle)
     }
-
-    // Real version - use this on physical device
-//    private fun initializeCameraManager() {
-//        cameraManager = CameraManager(requireContext())
-//        cameraManager.onImageQualityUpdate = { qualityResult ->
-//            updateQualityStatus(qualityResult)
-//        }
-//    }
 
     // Dev mode version - forces good quality for emulator testing
     private fun initializeCameraManager() {
@@ -148,7 +154,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             Log.d(TAG, "Portion estimator init - ARCore: $arStatus, OpenCV: $cvStatus")
 
             if (!it.isReady) {
-                // OpenCV failed but we can continue with fallback values
                 Log.w(TAG, "Analysis module not fully ready, using fallbacks")
             }
         }
@@ -156,10 +161,16 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     private fun initializeListeners() {
         captureButton.setOnClickListener {
-            if (isImageQualityOk) {
-                onCaptureClicked()
+            if (isShowingCapturedImage) {
+                // User wants to retake - go back to camera mode
+                switchToCameraMode()
             } else {
-                ToastHelper.showShort(requireContext(), "Please wait until image quality is OK")
+                // User wants to capture
+                if (isImageQualityOk) {
+                    onCaptureClicked()
+                } else {
+                    ToastHelper.showShort(requireContext(), "Please wait until image quality is OK")
+                }
             }
         }
         galleryButton.setOnClickListener {
@@ -204,6 +215,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     // Updates UI based on live quality checks
     private fun updateQualityStatus(qualityResult: ImageQualityResult) {
+        // Only update if we're in camera mode
+        if (isShowingCapturedImage) return
+
         isImageQualityOk = qualityResult.isValid
 
         qualityStatusText.text = qualityResult.getValidationMessage()
@@ -220,13 +234,18 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     }
 
     private fun onCaptureClicked() {
-        showLoading(true)
+        showLoading(true, "Capturing image...")
 
         val outputDir = requireContext().cacheDir
 
         cameraManager.captureImage(
             outputDirectory = outputDir,
             onImageCaptured = { imageFile ->
+                // Show captured image immediately
+                capturedImagePath = imageFile.absolutePath
+                switchToCapturedImageMode(imageFile)
+
+                // Then process it
                 validateAndProcessImage(imageFile)
             },
             onError = { errorMessage ->
@@ -236,12 +255,61 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
     }
 
+    // Switch UI to show the captured image instead of camera
+    private fun switchToCapturedImageMode(imageFile: File) {
+        isShowingCapturedImage = true
+
+        // Load and display the captured image
+        Glide.with(this)
+            .load(imageFile)
+            .into(capturedImageView)
+
+        // Toggle visibility
+        cameraPreview.visibility = View.GONE
+        capturedImageView.visibility = View.VISIBLE
+
+        // Update button text
+        captureButton.text = "Retake"
+        captureButton.isEnabled = true
+        captureButton.alpha = 1f
+
+        // Update subtitle
+        subtitleText.text = "Analyzing your meal..."
+
+        // Update status bar
+        qualityStatusText.text = "Image captured"
+        qualityStatusText.setBackgroundColor(
+            ContextCompat.getColor(requireContext(), android.R.color.holo_blue_light)
+        )
+    }
+
+    // Switch UI back to camera mode
+    private fun switchToCameraMode() {
+        isShowingCapturedImage = false
+        capturedImagePath = null
+
+        // Toggle visibility
+        capturedImageView.visibility = View.GONE
+        cameraPreview.visibility = View.VISIBLE
+
+        // Update button text
+        captureButton.text = "Capture"
+
+        // Update subtitle
+        subtitleText.text = "Place your plate and insulin pen in the frame, then tap Capture"
+
+        // Reset status
+        qualityStatusText.text = "Ready to capture"
+        qualityStatusText.setBackgroundColor(
+            ContextCompat.getColor(requireContext(), android.R.color.holo_green_light)
+        )
+    }
+
     // Dev mode version - skips validation for emulator
     private fun validateAndProcessImage(imageFile: File) {
         val devMode = true
 
         if (devMode) {
-            // Skip validation, go straight to analysis
             analyzePortionAndContinue(imageFile)
             return
         }
@@ -269,7 +337,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     }
 
     private fun analyzePortionAndContinue(imageFile: File) {
-        val bitmap = android.graphics.BitmapFactory.decodeFile(imageFile.absolutePath)
+        val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
         capturedImagePath = imageFile.absolutePath
 
         if (bitmap == null) {
@@ -278,6 +346,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             ToastHelper.showShort(requireContext(), "Failed to process image")
             return
         }
+
+        showLoading(true, "Analyzing your meal...")
 
         // Get user email
         val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
@@ -297,12 +367,31 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 handleScanSuccess(mealDto, portionResult)
 
             }.onFailure { error ->
-                Log.e(TAG, "Server scan failed: ${error.message}")
-                // Fallback to local mock data
-                val meal = createFallbackMeal(portionResult)
-                MealSessionManager.setCurrentMeal(meal)
+                Log.e(TAG, "Scan failed: ${error.message}")
                 showLoading(false)
-                navigateToSummary()
+                handleScanError(error)
+            }
+        }
+    }
+
+    // Handles different scan errors with appropriate UI feedback
+    private fun handleScanError(error: Throwable) {
+        when (error) {
+            is ScanException.NoFoodDetected -> {
+                showNoFoodDetectedDialog()
+            }
+            is ScanException.NetworkError -> {
+                showScanFailedDialog("No internet connection. Please check your network and try again.")
+            }
+            is ScanException.ServerError -> {
+                showScanFailedDialog("Server error. Please try again later.")
+            }
+            is ScanException.Unauthorized -> {
+                ToastHelper.showLong(requireContext(), "Session expired. Please log in again.")
+                // Optionally navigate to login
+            }
+            else -> {
+                showScanFailedDialog("Something went wrong. Please try again.")
             }
         }
     }
@@ -326,7 +415,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             profileComplete = dto.profileComplete ?: false,
             insulinMessage = dto.insulinMessage,
             missingProfileFields = dto.missingProfileFields ?: emptyList(),
-            // ----------------------------------------
+            serverId = dto.mealId?.id,
 
             foodItems = dto.foodItems?.map { item ->
                 FoodItem(
@@ -341,7 +430,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     }
 
     private fun handleScanSuccess(mealDto: MealDto, portionResult: PortionResult?) {
-        Log.d(TAG, "Scan successful: ${mealDto.foodItems?.size} items")
+        Log.d(TAG, "Scan response: status=${mealDto.status}, items=${mealDto.foodItems?.size}")
+
+        // Check if server returned a failed scan (no food detected)
+        if (mealDto.status == "FAILED" || mealDto.foodItems.isNullOrEmpty()) {
+            showLoading(false)
+            showNoFoodDetectedDialog()
+            return
+        }
 
         val meal = convertMealDtoToMeal(mealDto, portionResult).copy(imagePath = capturedImagePath)
         MealSessionManager.setCurrentMeal(meal)
@@ -350,33 +446,70 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         navigateToSummary()
     }
 
-    // Fallback when server is unavailable
-    private fun createFallbackMeal(portionResult: PortionResult?): Meal {
-        return when (portionResult) {
-            is PortionResult.Success -> {
-                Meal(
-                    title = "Detected meal",
-                    carbs = portionResult.estimatedWeightGrams * 0.2f, // rough estimate
-                    portionWeightGrams = portionResult.estimatedWeightGrams,
-                    portionVolumeCm3 = portionResult.volumeCm3,
-                    plateDiameterCm = portionResult.plateDiameterCm,
-                    plateDepthCm = portionResult.depthCm,
-                    analysisConfidence = portionResult.confidence,
-                    referenceObjectDetected = portionResult.referenceObjectDetected,
-                    imagePath = capturedImagePath
-                )
+    // Show dialog when no food is detected - clearer than a toast
+    private fun showNoFoodDetectedDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("No Food Detected")
+            .setMessage("We couldn't identify any food items in this image.\n\nTry taking a clearer photo with good lighting, or add items manually.")
+            .setPositiveButton("Try Again") { dialog, _ ->
+                dialog.dismiss()
+                switchToCameraMode()
             }
-            else -> Meal(title = "Unknown meal", carbs = 30f, imagePath = capturedImagePath)
-        }
+            .setNegativeButton("Add Manually") { dialog, _ ->
+                dialog.dismiss()
+                // Create empty meal and go to manual entry
+                val emptyMeal = Meal(
+                    title = "Manual Entry",
+                    carbs = 0f,
+                    imagePath = capturedImagePath,
+                    foodItems = emptyList(),
+                    profileComplete = true
+                )
+                MealSessionManager.setCurrentMeal(emptyMeal)
+                findNavController().navigate(R.id.action_scanFragment_to_manualEntryFragment)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    // Show dialog when scan fails (server error, network issue, etc.)
+    private fun showScanFailedDialog(message: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Scan Failed")
+            .setMessage(message)
+            .setPositiveButton("Try Again") { dialog, _ ->
+                dialog.dismiss()
+                switchToCameraMode()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+                switchToCameraMode()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    // Fallback when server is unavailable - no fake nutritional values
+    private fun createFallbackMeal(portionResult: PortionResult?): Meal {
+        return Meal(
+            title = "Analysis failed",
+            carbs = 0f,
+            imagePath = capturedImagePath,
+            foodItems = emptyList(),
+            portionWeightGrams = (portionResult as? PortionResult.Success)?.estimatedWeightGrams,
+            analysisConfidence = (portionResult as? PortionResult.Success)?.confidence
+        )
     }
 
     private fun navigateToSummary() {
         findNavController().navigate(R.id.summaryFragment)
     }
 
-    private fun showLoading(show: Boolean) {
+    private fun showLoading(show: Boolean, message: String = "Processing image...") {
         loadingOverlay.visibility = if (show) View.VISIBLE else View.GONE
+        loadingMessage.text = message
         captureButton.isEnabled = !show
+        galleryButton.isEnabled = !show
     }
 
     override fun onDestroyView() {
@@ -387,11 +520,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     }
 
     private fun processGalleryImage(uri: android.net.Uri) {
-        showLoading(true)
+        showLoading(true, "Loading image...")
 
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
-            val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
             inputStream?.close()
 
             if (bitmap == null) {
@@ -399,12 +532,18 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 ToastHelper.showShort(requireContext(), "Failed to load image")
                 return
             }
+
             // Save gallery image to cache for summary screen
             val cacheFile = File(requireContext().cacheDir, "gallery_${System.currentTimeMillis()}.jpg")
             cacheFile.outputStream().use { out ->
                 bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
             }
             capturedImagePath = cacheFile.absolutePath
+
+            // Show the selected image
+            switchToCapturedImageMode(cacheFile)
+
+            showLoading(true, "Analyzing your meal...")
 
             // Get user email
             val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
@@ -415,20 +554,19 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                     val result = scanRepository.scanImage(bitmap, email, null, null)
 
                     withContext(Dispatchers.Main) {
-                        showLoading(false)
-
                         result.onSuccess { mealDto ->
                             handleScanSuccess(mealDto, null)
                         }.onFailure { error ->
                             Log.e(TAG, "Scan failed: ${error.message}")
-                            ToastHelper.showShort(requireContext(), "Scan failed: ${error.message}")
+                            showLoading(false)
+                            handleScanError(error)
                         }
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         showLoading(false)
                         Log.e(TAG, "Error: ${e.message}")
-                        ToastHelper.showShort(requireContext(), "Error: ${e.message}")
+                        showScanFailedDialog("Error: ${e.message}")
                     }
                 }
             }

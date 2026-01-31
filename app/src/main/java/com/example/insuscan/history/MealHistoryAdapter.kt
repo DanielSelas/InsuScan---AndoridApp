@@ -79,7 +79,7 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
             val meal = item.meal
 
             // Simple binding directly from UI Model
-            titleText.text = meal.title
+            titleText.text = item.displayTitle
             detailsText.text = item.summaryDetailsText
             timeText.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date(meal.timestamp))
 

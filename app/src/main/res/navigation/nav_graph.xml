@@ -28,6 +28,10 @@
         <action
             android:id="@+id/action_scanFragment_to_summaryFragment"
             app:destination="@id/summaryFragment" />
+
+        <action
+            android:id="@+id/action_scanFragment_to_manualEntryFragment"
+            app:destination="@id/manualEntryFragment" />
     </fragment>
 
     <fragment
