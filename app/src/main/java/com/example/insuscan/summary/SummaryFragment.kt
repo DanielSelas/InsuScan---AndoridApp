@@ -17,6 +17,8 @@ import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.lifecycle.lifecycleScope
+import androidx.constraintlayout.widget.Group
+import com.example.insuscan.MainActivity
 import kotlinx.coroutines.launch
 import com.example.insuscan.network.repository.MealRepository
 import com.example.insuscan.network.repository.MealRepositoryImpl
@@ -75,6 +77,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private val ctx get() = requireContext()
 
+    // Empty State
+    private lateinit var contentGroup: Group
+    private lateinit var emptyStateLayout: LinearLayout
+    private lateinit var scanNowButton: Button
+
     // Calculation results (stored for saving)
     private var lastCalculatedDose: Float = 0f
 
@@ -100,8 +107,21 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         updateAnalysisResults()
         displayMealImage()
         initializeListeners()
-        calculateDose() // initial calculation
+        updateEmptyStateVisibility()
+        if (MealSessionManager.currentMeal != null) {
+            calculateDose() // initial calculation
+        }
+    }
 
+    private fun updateEmptyStateVisibility() {
+        val hasMeal = MealSessionManager.currentMeal != null
+        if (hasMeal) {
+            contentGroup.visibility = View.VISIBLE
+            emptyStateLayout.visibility = View.GONE
+        } else {
+            contentGroup.visibility = View.GONE
+            emptyStateLayout.visibility = View.VISIBLE
+        }
     }
 
     private fun initializeTopBar(rootView: View) {
@@ -155,8 +175,14 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         logButton = view.findViewById(R.id.btn_log_meal)
 
         // Image card
+        // Image card
         imageCard = view.findViewById(R.id.card_image)
         mealImageView = view.findViewById(R.id.iv_meal_image)
+
+        // Empty State
+        contentGroup = view.findViewById(R.id.group_content)
+        emptyStateLayout = view.findViewById(R.id.layout_empty_state)
+        scanNowButton = view.findViewById(R.id.btn_scan_now)
     }
 
     private fun setupGlucoseUnit() {
@@ -189,7 +215,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         }
 
         // Update activity labels with percentages
+        // Update activity labels with percentages
         updateActivityLabels()
+
+        scanNowButton.setOnClickListener {
+            (requireActivity() as? MainActivity)?.selectScanTab()
+        }
     }
 
     private fun updateActivityLabels() {
@@ -650,6 +681,10 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     override fun onResume() {
         super.onResume()
+
+        updateEmptyStateVisibility()
+        if (MealSessionManager.currentMeal == null) return
+
         checkAndRefreshProfileStatus()
 
         setupGlucoseUnit()
