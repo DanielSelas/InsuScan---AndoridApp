@@ -78,7 +78,25 @@ sealed class HistoryUiModel {
 
     data class MealItem(val meal: Meal) : HistoryUiModel() {
 
-        // Logic moved from Adapter to Model
+        // Title: "Banana, Lemon • 81g" or "Banana, Lemon +2 • 120g"
+        val displayTitle: String
+            get() {
+                val items = meal.foodItems
+                val carbsText = "${meal.carbs.toInt()}g"
+
+                if (items.isNullOrEmpty()) {
+                    return "${meal.title} • $carbsText"
+                }
+
+                val names = items.map { it.name }
+                val foodsText = when {
+                    names.size <= 3 -> names.joinToString(", ")
+                    else -> "${names.take(2).joinToString(", ")} +${names.size - 2}"
+                }
+
+                return "$foodsText • $carbsText"
+            }
+
         val formattedFoodList: String
             get() = meal.foodItems?.joinToString("\n") { item ->
                 "• ${item.name} (${item.weightGrams?.toInt() ?: 0}g) - ${item.carbsGrams?.toInt() ?: 0}g carbs"

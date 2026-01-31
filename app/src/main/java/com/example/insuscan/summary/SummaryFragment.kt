@@ -1,5 +1,6 @@
 package com.example.insuscan.summary
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -24,6 +25,7 @@ import android.graphics.BitmapFactory
 import android.view.Window
 import android.widget.ImageButton
 import android.widget.ImageView
+import com.bumptech.glide.Glide
 import java.io.File
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
@@ -78,6 +80,14 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     companion object {
         private const val MSG_SET_RATIO = "Please set insulin to carb ratio in Profile first"
+
+        // Validation result for save operation
+        private sealed class SaveValidation {
+            object Valid : SaveValidation()
+            object NoMealData : SaveValidation()
+            object NoFoodDetected : SaveValidation()
+            object ProfileIncomplete : SaveValidation()
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -91,6 +101,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         displayMealImage()
         initializeListeners()
         calculateDose() // initial calculation
+
     }
 
     private fun initializeTopBar(rootView: View) {
@@ -235,12 +246,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val meal = MealSessionManager.currentMeal
 
         if (meal == null) {
-            mealItemsText.text = "No food detected"
+            mealItemsText.text = "No meal data"
             totalCarbsText.text = "Total carbs: -- g"
             return
         }
 
-        // Display food items
+        // Check if we have actual food detection results
         val items = meal.foodItems
         if (!items.isNullOrEmpty()) {
             val itemsText = items.joinToString("\n") { item ->
@@ -249,11 +260,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
                 "• $name (${carbs}g carbs)"
             }
             mealItemsText.text = itemsText
+            totalCarbsText.text = "Total carbs: ${meal.carbs.toInt()} g"
         } else {
-            mealItemsText.text = meal.title
+            // No food detected - show clear message
+            mealItemsText.text = "No food detected in image"
+            totalCarbsText.text = "Total carbs: 0 g"
         }
-
-        totalCarbsText.text = "Total carbs: ${meal.carbs.toInt()} g"
     }
 
     private fun calculateDose() {
@@ -438,17 +450,14 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         }
 
         // Load and display the image
-        val bitmap = BitmapFactory.decodeFile(imagePath)
-        if (bitmap != null) {
-            mealImageView.setImageBitmap(bitmap)
-            imageCard.visibility = View.VISIBLE
+        Glide.with(this)
+            .load(imageFile)
+            .into(mealImageView)
 
-            // Click to show fullscreen
-            mealImageView.setOnClickListener {
-                showFullscreenImage(imagePath)
-            }
-        } else {
-            imageCard.visibility = View.GONE
+        imageCard.visibility = View.VISIBLE
+
+        mealImageView.setOnClickListener {
+            showFullscreenImage(imagePath)
         }
     }
 
@@ -460,16 +469,15 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val imageView = dialog.findViewById<ImageView>(R.id.iv_fullscreen_image)
         val closeBtn = dialog.findViewById<ImageButton>(R.id.btn_close)
 
-        // Load image
-        val bitmap = BitmapFactory.decodeFile(imagePath)
-        imageView.setImageBitmap(bitmap)
+        // Glide handles EXIF orientation automatically
+        Glide.with(this)
+            .load(File(imagePath))
+            .into(imageView)
 
-        // Close on button click
         closeBtn.setOnClickListener {
             dialog.dismiss()
         }
 
-        // Close on image tap
         imageView.setOnClickListener {
             dialog.dismiss()
         }
@@ -485,97 +493,130 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private fun saveMeal() {
         val meal = MealSessionManager.currentMeal
-        if (meal == null) {
-            ToastHelper.showShort(ctx, "No meal data to save")
-            return
+
+        when (val validation = validateBeforeSave(meal)) {
+            is SaveValidation.Valid -> performSave(meal!!)
+            is SaveValidation.NoMealData -> showError("No meal data to save")
+            is SaveValidation.NoFoodDetected -> showError("No food detected. Use 'Edit' to add items manually.")
+            is SaveValidation.ProfileIncomplete -> showIncompleteProfileDialog(meal!!)
         }
+    }
 
-        if (meal.carbs <= 0f) {
-            ToastHelper.showShort(ctx, "No carbs detected. Please edit the meal first.")
-            return
+    private fun validateBeforeSave(meal: Meal?): SaveValidation {
+        return when {
+            meal == null -> SaveValidation.NoMealData
+            meal.carbs <= 0f && meal.foodItems.isNullOrEmpty() -> SaveValidation.NoFoodDetected
+            !meal.profileComplete -> SaveValidation.ProfileIncomplete
+            else -> SaveValidation.Valid
         }
+    }
 
-        // Get glucose value if entered
-        val glucoseValue = glucoseEditText.text.toString().toIntOrNull()
-        val glucoseUnits = UserProfileManager.getGlucoseUnits(ctx)
+    private fun showError(message: String) {
+        ToastHelper.showShort(ctx, message)
+    }
 
-        // Get activity level
-        val activityLevel = when (activityRadioGroup.checkedRadioButtonId) {
-            R.id.rb_activity_light -> "light"
-            R.id.rb_activity_intense -> "intense"
-            else -> "normal"
+    private fun showIncompleteProfileDialog(meal: Meal) {
+        AlertDialog.Builder(ctx)
+            .setTitle("Insulin Not Calculated")
+            .setMessage("Your medical profile is incomplete, so no insulin dose was calculated.\n\nDo you want to complete your profile now, or save the meal without insulin data?")
+            .setPositiveButton("Complete Profile") { _, _ ->
+                findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
+            }
+            .setNegativeButton("Save Anyway") { _, _ ->
+                performSave(meal)
+            }
+            .setNeutralButton("Cancel", null)
+            .show()
+    }
+
+    private fun performSave(meal: Meal) {
+        val updatedMeal = buildUpdatedMeal(meal)
+        MealSessionManager.updateCurrentMeal(updatedMeal)
+
+        val mealId = updatedMeal.serverId
+        if (mealId != null) {
+            saveToServer(mealId, updatedMeal.insulinDose)
+        } else {
+            showError("Meal logged (Local Mode)")
+            selectHistoryTab()
         }
+    }
 
-        // Get calculation breakdown
+    private fun buildUpdatedMeal(meal: Meal): Meal {
         val pm = UserProfileManager
+        val glucoseValue = glucoseEditText.text.toString().toIntOrNull()
+        val glucoseUnits = pm.getGlucoseUnits(ctx)
+        val activityLevel = getSelectedActivityLevel()
         val unitsPerGram = pm.getUnitsPerGram(ctx)
-        val carbDose = if (unitsPerGram != null) meal.carbs * unitsPerGram else null
 
-        var correctionDose: Float? = null
-        if (glucoseValue != null && unitsPerGram != null) {
-            val target = pm.getTargetGlucose(ctx) ?: 100
-            val isf = pm.getCorrectionFactor(ctx) ?: 50f
-            val glucoseInMgDl = if (glucoseUnits == "mmol/L") glucoseValue * 18 else glucoseValue
-            if (glucoseInMgDl > target) {
-                correctionDose = (glucoseInMgDl - target) / isf
-            }
-        }
-
-        // Calculate exercise adjustment
-        var exerciseAdj: Float? = null
-        if (activityLevel != "normal" && carbDose != null) {
-            val adjPercent = when (activityLevel) {
-                "light" -> pm.getLightExerciseAdjustment(ctx)
-                "intense" -> pm.getIntenseExerciseAdjustment(ctx)
-                else -> 0
-            }
-            exerciseAdj = -(carbDose * adjPercent / 100f)
-        }
-
-        // Create updated meal with all details
-        val updatedMeal = meal.copy(
+        return meal.copy(
             insulinDose = lastCalculatedDose,
             glucoseLevel = glucoseValue,
             glucoseUnits = glucoseUnits,
             activityLevel = activityLevel,
-            carbDose = carbDose,
-            correctionDose = correctionDose,
-            exerciseAdjustment = exerciseAdj,
+            carbDose = unitsPerGram?.let { meal.carbs * it },
+            correctionDose = calculateCorrectionDose(glucoseValue, glucoseUnits, unitsPerGram),
+            exerciseAdjustment = calculateExerciseAdjustment(activityLevel, unitsPerGram, meal.carbs),
             wasSickMode = pm.isSickModeEnabled(ctx),
             wasStressMode = pm.isStressModeEnabled(ctx)
         )
+    }
 
-        // 1. Update the session (Transient only)
-        MealSessionManager.updateCurrentMeal(updatedMeal)
+    private fun getSelectedActivityLevel(): String {
+        return when (activityRadioGroup.checkedRadioButtonId) {
+            R.id.rb_activity_light -> "light"
+            R.id.rb_activity_intense -> "intense"
+            else -> "normal"
+        }
+    }
 
-        // 2. Save to Server (Source of Truth)
-        val mealId = updatedMeal.serverId
-        if (mealId != null) {
-            logButton.isEnabled = false // Prevent double click
+    private fun calculateCorrectionDose(glucose: Int?, units: String, unitsPerGram: Float?): Float? {
+        if (glucose == null || unitsPerGram == null) return null
 
-            lifecycleScope.launch {
-                try {
-                    // Send confirmation to server
-                    val result = mealRepository.confirmMeal(mealId, updatedMeal.insulinDose)
+        val pm = UserProfileManager
+        val target = pm.getTargetGlucose(ctx) ?: 100
+        val isf = pm.getCorrectionFactor(ctx) ?: 50f
+        val glucoseInMgDl = if (units == "mmol/L") glucose * 18 else glucose
 
-                    if (result.isSuccess) {
-                        ToastHelper.showShort(ctx, "Meal saved to history")
-                        // Clear session so we don't go back to it
-                        MealSessionManager.clearSession()
-                        selectHistoryTab()
-                    } else {
-                        ToastHelper.showShort(ctx, "Failed to save: ${result.exceptionOrNull()?.message}")
-                        logButton.isEnabled = true
-                    }
-                } catch (e: Exception) {
-                    ToastHelper.showShort(ctx, "Error: ${e.message}")
-                    logButton.isEnabled = true
-                }
+        return if (glucoseInMgDl > target) (glucoseInMgDl - target) / isf else null
+    }
+
+    private fun calculateExerciseAdjustment(activityLevel: String, unitsPerGram: Float?, carbs: Float): Float? {
+        if (activityLevel == "normal" || unitsPerGram == null) return null
+
+        val pm = UserProfileManager
+        val carbDose = carbs * unitsPerGram
+        val adjPercent = when (activityLevel) {
+            "light" -> pm.getLightExerciseAdjustment(ctx)
+            "intense" -> pm.getIntenseExerciseAdjustment(ctx)
+            else -> 0
+        }
+
+        return -(carbDose * adjPercent / 100f)
+    }
+
+    private fun saveToServer(mealId: String, dose: Float?) {
+        logButton.isEnabled = false
+
+        lifecycleScope.launch {
+            try {
+                val result = mealRepository.confirmMeal(mealId, dose)
+                handleSaveResult(result)
+            } catch (e: Exception) {
+                showError("Error: ${e.message}")
+                logButton.isEnabled = true
             }
-        } else {
-            // Fallback if no server ID (e.g. offline mode or mock)
-            ToastHelper.showShort(ctx, "Meal logged (Local Mode)")
+        }
+    }
+
+    private fun handleSaveResult(result: Result<*>) {
+        if (result.isSuccess) {
+            ToastHelper.showShort(ctx, "Meal saved to history")
+            MealSessionManager.clearSession()
             selectHistoryTab()
+        } else {
+            showError("Failed to save: ${result.exceptionOrNull()?.message}")
+            logButton.isEnabled = true
         }
     }
 
