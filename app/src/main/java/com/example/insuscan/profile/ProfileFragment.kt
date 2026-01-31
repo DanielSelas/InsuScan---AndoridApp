@@ -354,6 +354,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         // Load profile photo
         val savedPhotoUrl = pm.getProfilePhotoUrl(ctx)
+        android.util.Log.e("ProfileFragment", "Loading Profile. Saved Photo URL: $savedPhotoUrl")
         loadProfilePhoto(savedPhotoUrl)
     }
 
