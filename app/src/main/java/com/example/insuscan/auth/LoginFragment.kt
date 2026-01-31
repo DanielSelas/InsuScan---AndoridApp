@@ -65,14 +65,16 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         }
                         val displayName = AuthManager.currentUser()?.displayName
                             ?: email.substringBefore("@")
-                        onLoginSuccess(email, displayName)
+                        val photoUrl = AuthManager.currentUser()?.photoUrl?.toString()
+                        onLoginSuccess(email, displayName, photoUrl)
                     } else {
                         showError("Google sign-in failed: $error")
                     }
                 }
             }
         } catch (e: ApiException) {
-            showError("Google sign-in failed: ${e.message}")
+            android.util.Log.e("LoginFragment", "Google Sign-In failed code=${e.statusCode}", e)
+            showError("Google sign-in failed: ${e.statusCode} ${com.google.android.gms.common.api.CommonStatusCodes.getStatusCodeString(e.statusCode)}")
         }
     }
 
@@ -89,7 +91,8 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             // Use the stored name or a default
             val storedName = UserProfileManager.getUserName(requireContext()) ?: "User"
             // Call onLoginSuccess to perform Sync + Reset before navigating
-            onLoginSuccess(existingEmail, storedName)
+            val storedPhoto = UserProfileManager.getProfilePhotoUrl(requireContext())
+            onLoginSuccess(existingEmail, storedName, storedPhoto)
             return
         }
 
@@ -194,7 +197,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             if (success) {
                 val displayName = AuthManager.currentUser()?.displayName
                     ?: email.substringBefore("@")
-                onLoginSuccess(email, displayName)
+                onLoginSuccess(email, displayName, null)
             } else {
                 showError(mapFirebaseError(error))
             }
@@ -215,7 +218,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         AuthManager.registerWithEmail(email, password) { success, error ->
             if (success) {
                 val displayName = email.substringBefore("@")
-                onLoginSuccess(email, displayName)
+                onLoginSuccess(email, displayName, null)
             } else {
                 showLoading(false)
                 showError(mapFirebaseError(error))
@@ -352,9 +355,15 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     // --- Success handling ---
 
-    private fun onLoginSuccess(email: String, displayName: String) {
+    private fun onLoginSuccess(email: String, displayName: String, photoUrl: String?) {
+        android.util.Log.e("LoginFragment", "Login Success! PhotoURL: $photoUrl")
         UserProfileManager.saveUserEmail(requireContext(), email)
         UserProfileManager.saveUserName(requireContext(), displayName)
+        if (photoUrl != null) {
+            UserProfileManager.saveProfilePhotoUrl(requireContext(), photoUrl)
+        } else {
+            android.util.Log.e("LoginFragment", "PhotoURL is NULL from Google/Auth!")
+        }
 
         navigateToHome()
     }
