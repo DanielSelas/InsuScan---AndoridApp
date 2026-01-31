@@ -77,6 +77,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     // Views - Buttons
     private lateinit var saveButton: Button
     private lateinit var logoutButton: Button
+    private lateinit var loadingOverlay: FrameLayout
 
     private val ctx get() = requireContext()
     private val userRepository = UserRepositoryImpl()
@@ -171,6 +172,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         // Buttons
         saveButton = view.findViewById(R.id.btn_save_profile)
         logoutButton = view.findViewById(R.id.btn_logout)
+        loadingOverlay = view.findViewById(R.id.loading_overlay)
         editPhotoButton = view.findViewById(R.id.iv_edit_photo)
 
     }
@@ -375,6 +377,35 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         val icrValue = icrEditText.text.toString().trim()
         val isf = isfEditText.text.toString().trim()
         val target = targetGlucoseEditText.text.toString().trim()
+
+        // Validation: Block 0 values
+        var hasError = false
+
+        // Check ICR (cannot be 0)
+        val icrNum = icrValue.toFloatOrNull()
+        if (icrNum != null && icrNum == 0f) {
+            icrEditText.error = "Value cannot be 0"
+            hasError = true
+        }
+
+        // Check ISF (cannot be 0)
+        val isfNum = isf.toFloatOrNull()
+        if (isfNum != null && isfNum == 0f) {
+            isfEditText.error = "Value cannot be 0"
+            hasError = true
+        }
+
+        // Check Target Glucose (cannot be 0)
+        val targetNum = target.toIntOrNull()
+        if (targetNum != null && targetNum == 0) {
+            targetGlucoseEditText.error = "Value cannot be 0"
+            hasError = true
+        }
+
+        if (hasError) {
+            ToastHelper.showShort(ctx, "Please fix invalid values")
+            return
+        }
         
         // Format to 1:X
         val fullIcrString = "1:$icrValue"
@@ -426,11 +457,27 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         // Save email
         FirebaseAuth.getInstance().currentUser?.email?.let { pm.saveUserEmail(ctx, it) }
 
-        ToastHelper.showShort(ctx, "Profile saved locally")
+        ToastHelper.showShort(ctx, "Saving profile...")
 
-        syncToServer()
+        // Launch coroutine to sync to server while blocking UI
+        viewLifecycleOwner.lifecycleScope.launch {
+            loadingOverlay.visibility = View.VISIBLE
+            saveButton.isEnabled = false
+            
+            val result = executeServerSync()
+            
+            loadingOverlay.visibility = View.GONE
+            saveButton.isEnabled = true
 
-        findNavController().popBackStack()
+            if (result.isSuccess) {
+                ToastHelper.showShort(ctx, "Profile saved and synced!")
+                findNavController().popBackStack()
+            } else {
+                ToastHelper.showShort(ctx, "Saved locally. Sync failed: ${result.exceptionOrNull()?.message}")
+                // Still pop backstack as local save was successful
+                findNavController().popBackStack()
+            }
+        }
     }
 
     private fun fetchServerProfile() {
@@ -450,83 +497,84 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun syncToServer() {
-        val email = UserProfileManager.getUserEmail(ctx) ?: return
-
         viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                // 1. Determine dose rounding
-                val doseRoundingValue = if (doseRoundingSpinner.selectedItemPosition == 0) "0.5" else "1"
+            val result = executeServerSync()
+             if (result.isSuccess) {
+                 android.util.Log.d("ProfileFragment", "Background sync success!")
+             } else {
+                 android.util.Log.e("ProfileFragment", "Background sync failed")
+             }
+        }
+    }
 
-                // 2. Determine active insulin time (integer)
-                val diaValue = activeInsulinTimeText.text.toString().replace("h", "").trim().toIntOrNull()
+    private suspend fun executeServerSync(): Result<UserDto> {
+        val email = UserProfileManager.getUserEmail(ctx) 
+            ?: return Result.failure(Exception("No email found"))
 
-                // 3. FIX: Map Syringe UI selection to Server Enum Name
-                // UI Options: ["0.3ml (30u)", "0.5ml (50u)", "1ml (100u)"]
-                // Server Enums: SYRINGE_30_UNIT, SYRINGE_50_UNIT, SYRINGE_100_UNIT
-                val selectedSyringeIndex = syringeSizeSpinner.selectedItemPosition
-                val syringeEnumValue = when (selectedSyringeIndex) {
-                    0 -> "SYRINGE_30_UNIT"  // 0.3ml
-                    1 -> "SYRINGE_50_UNIT"  // 0.5ml
-                    else -> "SYRINGE_100_UNIT" // 1ml
-                }
+        return try {
+            // 1. Determine dose rounding
+            val doseRoundingValue = if (doseRoundingSpinner.selectedItemPosition == 0) "0.5" else "1"
 
-                // Build UserDto with ALL fields
-                val userDto = UserDto(
-                    userId = null,
-                    username = nameEditText.text.toString().trim().ifEmpty { null },
-                    role = null,
-                    avatar = UserProfileManager.getProfilePhotoUrl(ctx),
+            // 2. Determine active insulin time (integer)
+            val diaValue = activeInsulinTimeText.text.toString().replace("h", "").trim().toIntOrNull()
 
-                    // Medical
-                    insulinCarbRatio = icrEditText.text.toString().trim().let {
-                        if (it.isEmpty()) null else "1:$it"
-                    },
-                    correctionFactor = isfEditText.text.toString().toFloatOrNull(),
-                    targetGlucose = targetGlucoseEditText.text.toString().toIntOrNull(),
-
-                    // Syringe - SEND ENUM NAME, NOT UI STRING
-                    syringeType = syringeEnumValue,
-                    customSyringeLength = null,
-
-                    // Personal
-                    age = ageEditText.text.toString().toIntOrNull(),
-                    gender = genderOptions.getOrNull(genderSpinner.selectedItemPosition).takeIf { it != "Select" },
-                    pregnant = pregnantSwitch.isChecked,
-                    dueDate = dueDateTextView.text.toString().takeIf { it != "Select date" },
-
-                    // Medical Extended
-                    diabetesType = diabetesOptions.getOrNull(diabetesTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
-                    insulinType = insulinOptions.getOrNull(insulinTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
-                    activeInsulinTime = diaValue,
-
-                    // Dose Settings
-                    doseRounding = doseRoundingValue,
-
-                    // Adjustments
-                    sickDayAdjustment = sickAdjustmentEditText.text.toString().toIntOrNull(),
-                    stressAdjustment = stressAdjustmentEditText.text.toString().toIntOrNull(),
-                    lightExerciseAdjustment = lightExerciseEditText.text.toString().toIntOrNull(),
-                    intenseExerciseAdjustment = intenseExerciseEditText.text.toString().toIntOrNull(),
-
-                    // Preferences
-                    glucoseUnits = glucoseUnitOptions.getOrNull(glucoseUnitsSpinner.selectedItemPosition),
-
-                    createdTimestamp = null,
-                    updatedTimestamp = null
-                )
-
-                val result = userRepository.updateUser(email, userDto)
-
-                result.onSuccess {
-                    ToastHelper.showShort(ctx, "Synced to server ✓")
-                    android.util.Log.d("ProfileFragment", "Sync success!")
-                }.onFailure { e ->
-                    android.util.Log.e("ProfileFragment", "Sync failed: ${e.message}")
-                    ToastHelper.showShort(ctx, "Sync failed: ${e.message}")
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("ProfileFragment", "Sync error: ${e.message}")
+            // 3. FIX: Map Syringe UI selection to Server Enum Name
+            val selectedSyringeIndex = syringeSizeSpinner.selectedItemPosition
+            val syringeEnumValue = when (selectedSyringeIndex) {
+                0 -> "SYRINGE_30_UNIT"  // 0.3ml
+                1 -> "SYRINGE_50_UNIT"  // 0.5ml
+                else -> "SYRINGE_100_UNIT" // 1ml
             }
+
+            // Build UserDto with ALL fields
+            val userDto = UserDto(
+                userId = null,
+                username = nameEditText.text.toString().trim().ifEmpty { null },
+                role = null,
+                avatar = UserProfileManager.getProfilePhotoUrl(ctx),
+
+                // Medical
+                insulinCarbRatio = icrEditText.text.toString().trim().let {
+                    if (it.isEmpty()) null else "1:$it"
+                },
+                correctionFactor = isfEditText.text.toString().toFloatOrNull(),
+                targetGlucose = targetGlucoseEditText.text.toString().toIntOrNull(),
+
+                // Syringe - SEND ENUM NAME, NOT UI STRING
+                syringeType = syringeEnumValue,
+                customSyringeLength = null,
+
+                // Personal
+                age = ageEditText.text.toString().toIntOrNull(),
+                gender = genderOptions.getOrNull(genderSpinner.selectedItemPosition).takeIf { it != "Select" },
+                pregnant = pregnantSwitch.isChecked,
+                dueDate = dueDateTextView.text.toString().takeIf { it != "Select date" },
+
+                // Medical Extended
+                diabetesType = diabetesOptions.getOrNull(diabetesTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
+                insulinType = insulinOptions.getOrNull(insulinTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
+                activeInsulinTime = diaValue,
+
+                // Dose Settings
+                doseRounding = doseRoundingValue,
+
+                // Adjustments
+                sickDayAdjustment = sickAdjustmentEditText.text.toString().toIntOrNull(),
+                stressAdjustment = stressAdjustmentEditText.text.toString().toIntOrNull(),
+                lightExerciseAdjustment = lightExerciseEditText.text.toString().toIntOrNull(),
+                intenseExerciseAdjustment = intenseExerciseEditText.text.toString().toIntOrNull(),
+
+                // Preferences
+                glucoseUnits = glucoseUnitOptions.getOrNull(glucoseUnitsSpinner.selectedItemPosition),
+
+                createdTimestamp = null,
+                updatedTimestamp = null
+            )
+
+            val result = userRepository.updateUser(email, userDto)
+            result
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

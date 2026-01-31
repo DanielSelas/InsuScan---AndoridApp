@@ -57,11 +57,7 @@ class MainActivity : AppCompatActivity() {
         bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.summaryFragment -> {
-                    if (!hasMeal()) {
-                        ToastHelper.showShort(this, "Scan a meal first to view summary")
-                        return@setOnItemSelectedListener false
-                    }
-                    // Navigate directly instead of using NavigationUI
+// Navigate directly instead of using NavigationUI
                     navController.navigate(item.itemId)
                     true
                 }
