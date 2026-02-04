@@ -23,6 +23,7 @@ import com.example.insuscan.utils.DoseFormatter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 import android.util.Log
 
 class HistoryViewModel(
@@ -30,8 +31,29 @@ class HistoryViewModel(
     private val context: Context
 ) : ViewModel() {
 
-    private val userEmail = UserProfileManager.getUserEmail(context) ?: ""
+    private val userEmail = com.example.insuscan.auth.AuthManager.getUserEmail() ?: UserProfileManager.getUserEmail(context) ?: ""
     private val _dateFilter = MutableStateFlow<String?>(null)
+    
+    // Separate flow for the "Top Card"
+    private val _latestMeal = MutableStateFlow<Meal?>(null)
+    val latestMeal: kotlinx.coroutines.flow.StateFlow<Meal?> = _latestMeal
+
+    init {
+        refreshLatestMeal()
+    }
+
+    fun refreshLatestMeal() {
+        viewModelScope.launch {
+            if (userEmail.isNotEmpty()) {
+                val result = repository.getLatestMeal(userEmail)
+                result.onSuccess { dto ->
+                     if (dto != null) {
+                         _latestMeal.value = mapDtoToMeal(dto)
+                     }
+                }
+            }
+        }
+    }
 
     fun setDateFilter(date: String?) {
         Log.d("HistoryFilter", "ViewModel setDateFilter called with: $date")
@@ -59,11 +81,11 @@ class HistoryViewModel(
         .map { pagingData ->
             pagingData.insertSeparators { before, after ->
                 if (after == null) return@insertSeparators null
-                val afterDate = DateTimeHelper.formatDate(after.meal.timestamp)
+                val afterDate = DateTimeHelper.formatHeaderDate(after.meal.timestamp)
 
                 if (before == null) return@insertSeparators HistoryUiModel.Header(afterDate)
 
-                val beforeDate = DateTimeHelper.formatDate(before.meal.timestamp)
+                val beforeDate = DateTimeHelper.formatHeaderDate(before.meal.timestamp)
                 if (beforeDate != afterDate) HistoryUiModel.Header(afterDate) else null
             }
         }

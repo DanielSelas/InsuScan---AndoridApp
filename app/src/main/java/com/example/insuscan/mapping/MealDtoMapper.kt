@@ -1,7 +1,7 @@
 package com.example.insuscan.mapping
 
 import com.example.insuscan.meal.Meal
-import com.example.insuscan.network.dto.MealDto
+import com.example.insuscan.network.dto.*
 import com.example.insuscan.utils.DateTimeHelper
 
 object MealDtoMapper : Mapper<MealDto, Meal> {
@@ -38,6 +38,43 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             // Context flags
             wasSickMode = from.wasSickMode == true,
             wasStressMode = from.wasStressMode == true
+        )
+    }
+
+    fun mapToDto(meal: Meal): MealDto {
+        return MealDto(
+            mealId = if (meal.serverId != null) MealIdDto("", meal.serverId) else null, // System ID handled by backend/interceptor
+            userId = null, // Backend handles user context
+            imageUrl = meal.imagePath, // Or URL if available
+            foodItems = meal.foodItems?.map { FoodItemDtoMapper.mapToDto(it) },
+            totalCarbs = meal.carbs,
+            estimatedWeight = meal.portionWeightGrams,
+            plateVolumeCm3 = meal.portionVolumeCm3,
+            plateDiameterCm = meal.plateDiameterCm,
+            plateDepthCm = meal.plateDepthCm,
+            analysisConfidence = meal.analysisConfidence,
+            referenceDetected = meal.referenceObjectDetected,
+            insulinCalculation = InsulinCalculationDto(
+                totalCarbs = meal.carbs,
+                carbDose = meal.carbDose,
+                correctionDose = meal.correctionDose,
+                recommendedDose = meal.insulinDose,
+                insulinCarbRatio = null, // Backend recalculates/stores
+                currentGlucose = meal.glucoseLevel,
+                targetGlucose = null,
+                correctionFactor = null
+            ),
+            profileComplete = meal.profileComplete,
+            missingProfileFields = meal.missingProfileFields,
+            insulinMessage = meal.insulinMessage,
+            wasSickMode = meal.wasSickMode,
+            wasStressMode = meal.wasStressMode,
+            recommendedDose = meal.insulinDose,
+            actualDose = meal.insulinDose, // Assuming confirmed dose
+            status = "CONFIRMED",
+            scannedTimestamp = DateTimeHelper.formatForApi(meal.timestamp),
+            confirmedTimestamp = null,
+            completedTimestamp = null
         )
     }
 }

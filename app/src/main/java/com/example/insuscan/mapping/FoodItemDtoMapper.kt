@@ -14,4 +14,15 @@ object FoodItemDtoMapper : Mapper<FoodItemDto, FoodItem> {
             confidence = from.confidence
         )
     }
+
+
+    fun mapToDto(from: FoodItem): FoodItemDto {
+        return FoodItemDto(
+            name = from.name,
+            nameHebrew = from.nameHebrew,
+            estimatedWeightGrams = from.weightGrams,
+            carbsGrams = from.carbsGrams,
+            confidence = from.confidence
+        )
+    }
 }

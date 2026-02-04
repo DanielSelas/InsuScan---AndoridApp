@@ -5,8 +5,10 @@ import com.example.insuscan.network.dto.MealDto
 
 interface MealRepository {
     suspend fun createMeal(userEmail: String, imageUrl: String): Result<MealDto>
+    suspend fun saveScannedMeal(email: String, meal: MealDto): Result<MealDto>
     suspend fun getMeal(mealId: String): Result<MealDto>
     suspend fun getUserMeals(email: String, page: Int = 0, size: Int = 10): Result<List<MealDto>>
+    suspend fun getLatestMeal(email: String): Result<MealDto?>
     suspend fun getRecentMeals(email: String, count: Int = 5): Result<List<MealDto>>
     suspend fun updateFoodItems(mealId: String, items: List<FoodItemDto>): Result<MealDto>
     suspend fun confirmMeal(mealId: String, actualDose: Float? = null): Result<MealDto>

@@ -631,9 +631,40 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         lifecycleScope.launch {
             try {
-                val result = mealRepository.confirmMeal(mealId, dose)
+                // OLD: confirmMeal(mealId, dose) - relies on server state
+                // NEW: saveScannedMeal(mealDto) - sends full state
+
+                val currentMeal = MealSessionManager.currentMeal ?: return@launch
+                // Ensure the meal object has the latest dose/glucose from the UI (already done in performSave, but good to be sure)
+                // performSave passes 'meal' (which is 'updatedMeal') to this function? 
+                // Wait, performSave calls logic to update MealSessionManager, so currentMeal is updated.
+                // But performSave calls saveToServer(mealId, dose). It doesn't pass the meal object.
+                // I should probably use MealSessionManager.currentMeal since it was just updated.
+
+                // Need mapper
+                val mealDto = com.example.insuscan.mapping.MealDtoMapper.mapToDto(currentMeal)
+                
+                val userEmail = com.example.insuscan.auth.AuthManager.getUserEmail()
+                android.util.Log.d("DEBUG_SAVE", "Attempting save for email: $userEmail")
+                
+                if (userEmail == null) {
+                    showError("Error: User not logged in (Email is null)")
+                    logButton.isEnabled = true
+                    return@launch
+                }
+
+                android.util.Log.d("DEBUG_SAVE", "Calling repository.saveScannedMeal...")
+                val result = mealRepository.saveScannedMeal(userEmail, mealDto)
+                
+                if (result.isSuccess) {
+                     android.util.Log.d("DEBUG_SAVE", "Repository returned Success!")
+                } else {
+                     android.util.Log.e("DEBUG_SAVE", "Repository returned Failure: ${result.exceptionOrNull()?.message}")
+                }
+
                 handleSaveResult(result)
             } catch (e: Exception) {
+                android.util.Log.e("DEBUG_SAVE", "Exception in saveToServer: ${e.message}", e)
                 showError("Error: ${e.message}")
                 logButton.isEnabled = true
             }
