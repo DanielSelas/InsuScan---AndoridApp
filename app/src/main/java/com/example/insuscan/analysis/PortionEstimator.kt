@@ -47,14 +47,45 @@ class PortionEstimator(private val context: Context) {
         referenceDetector.setSyringeLength(lengthCm)
     }
 
+    // Refresh settings from profile before scanning
+    private fun refreshSettings() {
+        // Get custom length from profile (e.g. 15cm fork)
+        val customLength = com.example.insuscan.profile.UserProfileManager.getCustomSyringeLength(context)
+        configureSyringe(customLength)
+    }
+
     fun estimatePortion(bitmap: Bitmap): PortionResult {
         if (!isInitialized) {
             Log.w(TAG, "PortionEstimator not initialized")
             return PortionResult.Error("System not initialized")
         }
+        
+        // 0. Update settings
+        refreshSettings()
 
-        // Step 1: Detect reference object (syringe)
-        val detectionResult = referenceDetector.detectReferenceObject(bitmap)
+        // Step 1: Detect Plate (We do this FIRST now, to help find the reference object)
+        val plateResult = plateDetector.detectPlate(bitmap)
+        val plateBounds = if (plateResult.isFound) plateResult.bounds else null
+        
+        if (plateBounds != null) {
+             Log.d(TAG, "Plate detected at: ${plateBounds.toShortString()}")
+        }
+
+        // Determine Detection Mode based on User Profile
+        // "Syringe" or "Pen" -> Strict Mode (Physics-based rejection)
+        // "Other", "Fork", "Knife" -> Flexible Mode (Proximity & Shape)
+        val syringeType = com.example.insuscan.profile.UserProfileManager.getSyringeSize(context).lowercase()
+        val detectionMode = if (syringeType.contains("syringe") || syringeType.contains("pen")) {
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
+        } else {
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+        }
+        
+        Log.d(TAG, "Using Detection Mode: $detectionMode (Type: $syringeType)")
+
+        // Step 2: Detect reference object (Using Plate location as bias)
+        // "Smart Cutlery": Finds object closest to plate
+        val detectionResult = referenceDetector.detectReferenceObject(bitmap, plateBounds, detectionMode)
 
         val pixelToCmRatio = when (detectionResult) {
             is DetectionResult.Found -> {
@@ -67,17 +98,17 @@ class PortionEstimator(private val context: Context) {
             }
         }
 
-        // Step 2: Detect container type and estimate depth
+        // Step 3: Detect container type and estimate depth
         val containerType = depthEstimator.detectContainerType(bitmap)
         val depthResult = depthEstimator.estimateDepth(bitmap, containerType)
 
-        // Step 3: Calculate plate dimensions using REAL detected size
-        val plateDimensions = calculatePlateDimensions(bitmap, pixelToCmRatio)
+        // Step 4: Calculate accurate plate dimensions (using now-known ratio)
+        val plateDimensions = calculatePlateDimensions(bitmap, plateResult, pixelToCmRatio)
 
-        // Step 4: Calculate volume using SPHERICAL CAP (more accurate for piles of food)
+        // Step 5: Calculate volume using SPHERICAL CAP (more accurate for piles of food)
         val volumeCm3 = calculateVolume(plateDimensions, depthResult.depthCm)
 
-        // Step 5: Estimate weight
+        // Step 6: Estimate weight
         val weightGrams = volumeCm3 * DEFAULT_FOOD_DENSITY * DEFAULT_FILL_PERCENTAGE
 
         Log.d(TAG, "Portion estimate: ${weightGrams}g (volume: ${volumeCm3}cm³)")
@@ -94,9 +125,7 @@ class PortionEstimator(private val context: Context) {
     }
 
     // Calculate plate dimensions from image
-    private fun calculatePlateDimensions(bitmap: Bitmap, pixelToCmRatio: Float): PlateDimensions {
-        // Try to detect the actual plate in the full image
-        val plateResult = plateDetector.detectPlate(bitmap)
+    private fun calculatePlateDimensions(bitmap: Bitmap, plateResult: PlateDetectionResult, pixelToCmRatio: Float): PlateDimensions {
         
         val plateWidthPixels = if (plateResult.isFound && plateResult.bounds != null) {
             Log.d(TAG, "Using actual detected plate width: ${plateResult.bounds.width()}px")
@@ -109,11 +138,11 @@ class PortionEstimator(private val context: Context) {
         }
         
         val diameterCm = plateWidthPixels * pixelToCmRatio
-
-        // Clamp to realistic values (Side plate 15cm to Large Dinner Plate 30cm)
+        
+        // ... rest of logic
         val adjustedDiameter = diameterCm.coerceIn(12f, 32f)
 
-        return PlateDimensions(
+         return PlateDimensions(
             diameterCm = adjustedDiameter,
             radiusCm = adjustedDiameter / 2
         )

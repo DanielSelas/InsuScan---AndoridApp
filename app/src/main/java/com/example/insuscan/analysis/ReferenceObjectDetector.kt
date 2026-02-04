@@ -22,10 +22,10 @@ class ReferenceObjectDetector(private val context: Context) {
         const val DEFAULT_SYRINGE_WIDTH_CM = 1.2f
 
         // Detection thresholds
-        private const val MIN_CONTOUR_AREA = 500.0 // Lowered to allow pen to be smaller in frame
-        private const val MAX_CONTOUR_AREA = 50000.0
-        private const val MIN_ASPECT_RATIO = 5.0   // syringe is long and thin
-        private const val MAX_ASPECT_RATIO = 15.0
+        private const val MIN_CONTOUR_AREA = 500.0 
+        private const val MAX_CONTOUR_AREA = 300000.0 // Increased to support large cutlery/knives close up
+        private const val MIN_ASPECT_RATIO = 5.0
+        private const val MAX_ASPECT_RATIO = 50.0 // Increased to support chopsticks
     }
 
     private var isOpenCvInitialized = false
@@ -61,10 +61,25 @@ class ReferenceObjectDetector(private val context: Context) {
      * Detect reference object (syringe) in the image
      * Returns detection result with position and pixel-to-cm ratio
      */
-    fun detectReferenceObject(bitmap: Bitmap): DetectionResult {
+    enum class DetectionMode {
+        STRICT,   // Expects a Syringe/Pen: High solidity, no gaps, specific ratio
+        FLEXIBLE  // Expects Cutlery/Other: Relaxed solidity (allows forks), prioritizes location
+    }
+
+    /**
+     * Detect reference object (syringe/cutlery) in the image
+     * Returns detection result with position and pixel-to-cm ratio
+     * @param plateBounds Optional bounding box of the detected plate to prioritize objects near it
+     * @param mode Detection mode (Strict/Flexible)
+     */
+    fun detectReferenceObject(
+        bitmap: Bitmap, 
+        plateBounds: android.graphics.Rect? = null,
+        mode: DetectionMode = DetectionMode.STRICT
+    ): DetectionResult {
         if (!isOpenCvInitialized) {
             Log.w(TAG, "OpenCV not initialized, using fallback")
-            return DetectionResult.NotFound("OpenCV not initialized")
+            return DetectionResult.NotFound("OpenCV not initialized", "")
         }
 
         return try {
@@ -95,8 +110,10 @@ class ReferenceObjectDetector(private val context: Context) {
                 Imgproc.CHAIN_APPROX_SIMPLE
             )
 
-            // Find syringe-like contour
-            val syringeContour = findSyringeContour(contours, mat)
+            // Find best reference object based on Mode
+            val debugStats = DebugStats()
+            // Pass 'gray' instead of 'mat' because getRectSubPix only supports 1 or 3 channels, and mat is RGBA (4 channels)
+            val referenceObject = findBestReferenceObject(contours, gray, plateBounds, mode, debugStats)
 
             // Clean up
             mat.release()
@@ -106,108 +123,157 @@ class ReferenceObjectDetector(private val context: Context) {
             hierarchy.release()
             contours.forEach { it.release() }
 
-            if (syringeContour != null) {
-                syringeContour
+            if (referenceObject != null) {
+                // Attach debug info to Found result (requires updating Found data class)
+                referenceObject 
             } else {
-                DetectionResult.NotFound("Syringe not detected in image")
+                DetectionResult.NotFound("Reference object not detected", debugStats.toString())
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Error detecting reference object", e)
-            DetectionResult.NotFound("Detection error: ${e.message}")
+            DetectionResult.NotFound("Detection error: ${e.message}", "")
         }
     }
 
-    // Find contour that matches syringe shape using advanced geometric constraints
-    private fun findSyringeContour(contours: List<MatOfPoint>, originalImage: Mat): DetectionResult.Found? {
-        var bestMatch: DetectionResult.Found? = null
-        var maxConfidence = 0f
+    private class DebugStats {
+        var totalContours = 0
+        var tooSmall = 0
+        var tooLarge = 0
+        var badRatio = 0
+        var badSolidity = 0
+        var badParallel = 0
+        var wrongSide = 0
+        var candidates = 0
+
+        override fun toString(): String {
+            return "Total:$totalContours, Small:$tooSmall, Large:$tooLarge, Ratio:$badRatio, Side:$wrongSide, OK:$candidates"
+        }
+    }
+
+    // Find best candidate for reference object
+    private fun findBestReferenceObject(
+        contours: List<MatOfPoint>, 
+        originalImage: Mat, 
+        plateBounds: android.graphics.Rect?,
+        mode: DetectionMode,
+        stats: DebugStats
+    ): DetectionResult.Found? {
+        
+        val candidates = mutableListOf<DetectionResult.Found>()
+
+        val plateCenter = plateBounds?.let { 
+            Point(it.centerX().toDouble(), it.centerY().toDouble()) 
+        }
+        
+        stats.totalContours = contours.size
 
         for (contour in contours) {
             val area = Imgproc.contourArea(contour)
 
-            // 1. Initial Area Filter
-            if (area < MIN_CONTOUR_AREA || area > MAX_CONTOUR_AREA) {
-                // Log.v(TAG, "Rejected area: $area") // Too verbose
-                continue
-            }
+            if (area < MIN_CONTOUR_AREA) { stats.tooSmall++; continue }
+            if (area > MAX_CONTOUR_AREA) { stats.tooLarge++; continue }
 
-            // 2. Geometric Analysis using Rotated Rectangle (MinAreaRect)
             val contour2f = MatOfPoint2f(*contour.toArray())
             val rotatedRect = Imgproc.minAreaRect(contour2f)
             
             val width = rotatedRect.size.width
             val height = rotatedRect.size.height
-            
             val length = maxOf(width, height)
             val thickness = minOf(width, height)
 
             if (thickness == 0.0) continue
-
             val aspectRatio = length / thickness
 
-            // Location-Based Logic (User Suggestion: "Ref object always on right")
-            // We relax thresholds if the object is on the right side of the screen
-            val centerX = rotatedRect.center.x
-            val imageWidth = originalImage.cols()
-            val normalizedX = centerX / imageWidth
+            // --- Mode Specific Thresholds ---
+            val minRatio = if (mode == DetectionMode.STRICT) 4.0 else 2.0 
             
-            val isOnRightSide = normalizedX > 0.5
-            
-            // Dynamic Thresholds based on location
-            val minRatio = if (isOnRightSide) 3.5 else 4.0
-            val minRect = if (isOnRightSide) 0.6 else 0.7
-
-            // 3. Aspect Ratio Check
+            // 1. Aspect Ratio Check
             if (aspectRatio < minRatio || aspectRatio > MAX_ASPECT_RATIO) {
+                stats.badRatio++
                 continue
             }
 
-            // 4. Rectangularity Check
-            val rectArea = width * height
-            val rectangularity = area / rectArea
-            if (rectangularity < minRect) {
-                continue
-            }
-
-            // 5. Straight Edge Verification
-            val roi = getRoI(originalImage, rotatedRect)
-            val parallelScore = calculateParallelLineScore(roi)
+            // 2. Structural Checks (Strict Only)
+            var confidence = 1.0f
             
-            // Relaxed Logic: If shape is very good OR (It's pretty good AND on right side)
-            // If on right side, we accept almost any rectangular shape with correct ratio
-            val usesStrongShapeFallback = if (isOnRightSide) {
-                // Right side: Just needs to be rectangular-ish
-                rectangularity > 0.65 
-            } else {
-                // Left side: Needs to be VERY rectangular to ignore lines
-                aspectRatio > 6.0 && rectangularity > 0.75
-            }
+            if (mode == DetectionMode.STRICT) {
+                // Strict: Must be rectangular and straight (Pen/Syringe)
+                val rectArea = width * height
+                val rectangularity = area / rectArea
+                if (rectangularity < 0.8) { stats.badSolidity++; continue }
 
-            if (parallelScore < 0.2 && !usesStrongShapeFallback) {
-                continue
-            }
-
-            // Calculate confidence
-            val confidence = calculateConfidence(aspectRatio, rectangularity, parallelScore)
-
-            if (confidence > maxConfidence) {
-                maxConfidence = confidence
-                val pixelToCmRatio = (syringeLengthCm / length).toFloat() // Scale factor based on real length
+                val roi = getRoI(originalImage, rotatedRect)
+                val parallelScore = calculateParallelLineScore(roi)
+                if (parallelScore < 0.3) { stats.badParallel++; continue }
                 
-                Log.d(TAG, "Syringe detected: L=${length.toInt()}px, Ratio=$aspectRatio, Conf=$confidence")
-
-                bestMatch = DetectionResult.Found(
-                    boundingBox = rotatedRect.boundingRect(), // Convert rotated back to standard rect for UI drawing if needed
-                    center = rotatedRect.center,
-                    angle = rotatedRect.angle,
-                    lengthPixels = length,
-                    pixelToCmRatio = pixelToCmRatio,
-                    confidence = confidence
-                )
+                confidence = calculateConfidence(aspectRatio, rectangularity, parallelScore)
+            } else {
+                // Flexible: We ACCEPT anything elongated near the plate.
+                // We trust the Aspect Ratio check ( > 2.0 ) is enough to filter out food blobs.
+                // No rectangularity or parallel check.
+                confidence = 0.8f // Default confidence for Flexible
             }
+
+            // Success! Create candidate
+            val pixelToCmRatio = (syringeLengthCm / length).toFloat()
+            
+            candidates.add(DetectionResult.Found(
+                boundingBox = rotatedRect.boundingRect(),
+                center = rotatedRect.center,
+                angle = rotatedRect.angle,
+                lengthPixels = length,
+                pixelToCmRatio = pixelToCmRatio,
+                confidence = confidence,
+                debugInfo = "" // Placeholder, filled later
+            ))
         }
-        return bestMatch
+        
+        stats.candidates = candidates.size
+        
+        if (candidates.isEmpty()) return null
+        
+        // --- Selection Logic ---
+        val bestCandidate = if (mode == DetectionMode.FLEXIBLE) {
+            
+            if (plateCenter != null) {
+                 // 1. Prioritize Valid Candidates on the RIGHT of the plate
+                 val rightSideCandidates = candidates.filter { it.center.x > plateCenter.x }
+                 
+                 if (rightSideCandidates.isNotEmpty()) {
+                     // Pick closest to plate among those on the right
+                     rightSideCandidates.minByOrNull { candidate ->
+                        val dx = candidate.center.x - plateCenter.x
+                        val dy = candidate.center.y - plateCenter.y
+                        kotlin.math.sqrt(dx * dx + dy * dy)
+                     }
+                 } else {
+                     stats.wrongSide = candidates.size // All candidates were on the wrong side
+                     // Fallback: Closest to plate (even if on Left/Top/Bottom) - maybe user didn't follow guide
+                     candidates.minByOrNull { candidate ->
+                        val dx = candidate.center.x - plateCenter.x
+                        val dy = candidate.center.y - plateCenter.y
+                        kotlin.math.sqrt(dx * dx + dy * dy)
+                     }
+                 }
+            } else {
+                // No Plate detected? Determine "Right" using image width
+                val imageWidth = originalImage.cols().toDouble()
+                val rightSideCandidates = candidates.filter { it.center.x > (imageWidth * 0.5) }
+                
+                if (rightSideCandidates.isNotEmpty()) {
+                    rightSideCandidates.maxByOrNull { it.confidence }
+                } else {
+                    stats.wrongSide = candidates.size
+                    candidates.maxByOrNull { it.confidence }
+                }
+            }
+        } else {
+            // Strict OR Fallback (if no Flexible candidates found on right/anywhere)
+            candidates.maxByOrNull { it.confidence }
+        }
+
+        return bestCandidate?.copy(debugInfo = stats.toString())
     }
 
     /**
@@ -290,10 +356,12 @@ sealed class DetectionResult {
         val angle: Double,
         val lengthPixels: Double,
         val pixelToCmRatio: Float,  // cm per pixel
-        val confidence: Float       // 0.0 to 1.0
+        val confidence: Float,       // 0.0 to 1.0
+        val debugInfo: String
     ) : DetectionResult()
 
     data class NotFound(
-        val reason: String
+        val reason: String,
+        val debugInfo: String
     ) : DetectionResult()
 }

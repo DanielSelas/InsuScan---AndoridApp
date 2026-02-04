@@ -18,7 +18,9 @@ object UserProfileManager {
     private const val KEY_INSULIN_TYPE = "insulin_type"
     private const val KEY_ACTIVE_INSULIN_TIME = "active_insulin_time"
     private const val KEY_SYRINGE_SIZE = "syringe_size"
+    private const val KEY_CUSTOM_SYRINGE_LENGTH = "custom_syringe_length" // New: Store custom length (e.g. 15.0 for fork)
     private const val KEY_DOSE_ROUNDING = "dose_rounding"
+
     private const val KEY_GLUCOSE_UNITS = "glucose_units"
     private const val KEY_SICK_DAY_ADJUSTMENT = "sick_day_adjustment"
     private const val KEY_STRESS_ADJUSTMENT = "stress_adjustment"
@@ -203,6 +205,16 @@ object UserProfileManager {
         return prefs(context).getString(KEY_SYRINGE_SIZE, "0.5ml") ?: "0.5ml"
     }
 
+    // New: Custom Length
+    fun saveCustomSyringeLength(context: Context, length: Float) {
+        prefs(context).edit().putFloat(KEY_CUSTOM_SYRINGE_LENGTH, length).apply()
+    }
+
+    fun getCustomSyringeLength(context: Context): Float {
+        // Default to Standard Pen (12.0cm) if not set
+        return prefs(context).getFloat(KEY_CUSTOM_SYRINGE_LENGTH, 12.0f)
+    }
+
     fun saveDoseRounding(context: Context, rounding: Float) {
         prefs(context).edit().putFloat(KEY_DOSE_ROUNDING, rounding).apply()
     }
@@ -350,6 +362,7 @@ object UserProfileManager {
 
         // Syringe settings
         user.syringeType?.let { saveSyringeSize(context, it) }
+        user.customSyringeLength?.let { saveCustomSyringeLength(context, it) }
 
         // Dose settings
         user.doseRounding?.toFloatOrNull()?.let { saveDoseRounding(context, it) }
