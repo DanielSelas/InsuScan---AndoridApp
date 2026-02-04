@@ -20,7 +20,10 @@ class PlateDetector {
     /**
      * Detects if a plate is present in the image.
      */
-    fun detectPlate(bitmap: Bitmap): Boolean {
+    /**
+     * Detects if a plate is present in the image and returns its bounds.
+     */
+    fun detectPlate(bitmap: Bitmap): PlateDetectionResult {
         return try {
             val mat = Mat()
             Utils.bitmapToMat(bitmap, mat)
@@ -41,7 +44,7 @@ class PlateDetector {
             val hierarchy = Mat()
             Imgproc.findContours(thresh, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
 
-            var plateFound = false
+            var bestResult = PlateDetectionResult(false, null, 0f)
             val imageArea = (mat.width() * mat.height()).toDouble()
 
             for (contour in contours) {
@@ -52,30 +55,19 @@ class PlateDetector {
                     continue
                 }
 
-                // Check convexity / roundness
-                val contour2f = MatOfPoint2f(*contour.toArray())
-                val approx = MatOfPoint2f()
-                val peri = Imgproc.arcLength(contour2f, true)
-                Imgproc.approxPolyDP(contour2f, approx, 0.02 * peri, true)
-
-                // Plates are circular/oval
-                // 1. Convex Hull check
-                val hull = MatOfInt()
-                Imgproc.convexHull(contour, hull)
-                val hullArea = calculateHullArea(contour, hull)
-                val solidity = area / hullArea
-
-                // Solidity > 0.9 means it's a solid convex shape (like circle/oval), not weird jaggy shape
-                if (solidity > 0.9) {
-                     // 2. Circularity check (4*pi*area / perimeter^2)
-                     val circularity = (4 * Math.PI * area) / (peri * peri)
-                     
-                     // Improve tolerance for ovals (perspective view)
-                     if (circularity > 0.6) {
-                         plateFound = true
-                         Log.d(TAG, "Plate detected! Area=${(area/imageArea)*100}%, Circ=$circularity")
-                         break
-                     }
+                val peri = Imgproc.arcLength(MatOfPoint2f(*contour.toArray()), true)
+                // Circularity check (4*pi*area / perimeter^2)
+                val circularity = (4 * Math.PI * area) / (peri * peri)
+                
+                // Improve tolerance for ovals (perspective view)
+                if (circularity > 0.6) {
+                    val rect = Imgproc.boundingRect(contour)
+                    // Convert OpenCV Rect to Android Rect
+                    val androidRect = android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
+                    
+                    bestResult = PlateDetectionResult(true, androidRect, circularity.toFloat())
+                    Log.d(TAG, "Plate detected! Area=${(area/imageArea)*100}%, Circ=$circularity")
+                    break
                 }
             }
 
@@ -86,15 +78,15 @@ class PlateDetector {
             hierarchy.release()
             contours.forEach { it.release() }
 
-            plateFound
+            bestResult
 
         } catch (e: Exception) {
             Log.e(TAG, "Error detecting plate", e)
-            false
+            PlateDetectionResult(false, null, 0f)
         }
     }
     
-    // Helper to calculate hull area (OpenCV java doesn't have easy helper for this)
+    // Helper to calculate hull area (OpenCV java doesn't have easy helper for this) - Unused now but kept safe
     private fun calculateHullArea(contour: MatOfPoint, hullIds: MatOfInt): Double {
         val hierarchy = Mat()
         val contourPoints = contour.toList()
@@ -104,3 +96,9 @@ class PlateDetector {
         return Imgproc.contourArea(hullContour)
     }
 }
+
+data class PlateDetectionResult(
+    val isFound: Boolean,
+    val bounds: android.graphics.Rect?, // The bounding box of the plate
+    val confidence: Float
+)

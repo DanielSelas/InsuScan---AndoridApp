@@ -13,15 +13,17 @@ class PortionEstimator(private val context: Context) {
     companion object {
         private const val TAG = "PortionEstimator"
 
-        // Average food density (g/cm³) - varies by food type
-        private const val DEFAULT_FOOD_DENSITY = 0.8f
+        // Average food density (g/cm³) - Adjusted for Cooked Rice/Carbs (was 0.8)
+        private const val DEFAULT_FOOD_DENSITY = 0.65f
 
-        // Plate fill percentage (how full is the plate typically)
-        private const val DEFAULT_FILL_PERCENTAGE = 0.7f
+        // Plate fill percentage - Removed (set to 1.0) in favor of geometric accuracy
+        private const val DEFAULT_FILL_PERCENTAGE = 1.0f
     }
 
     private val depthEstimator = DepthEstimator(context)
     private val referenceDetector = ReferenceObjectDetector(context)
+    // Add PlateDetector to get accurate size
+    private val plateDetector = PlateDetector()
 
     private var isInitialized = false
 
@@ -29,7 +31,6 @@ class PortionEstimator(private val context: Context) {
     fun initialize(): InitializationResult {
         val arCoreStatus = depthEstimator.checkArCoreAvailability()
         val openCvReady = referenceDetector.initialize()
-
         isInitialized = openCvReady // OpenCV is required, ARCore is optional
 
         Log.d(TAG, "Initialization - ARCore: $arCoreStatus, OpenCV: $openCvReady")
@@ -41,15 +42,10 @@ class PortionEstimator(private val context: Context) {
         )
     }
 
-
-    //  Set syringe length from user profile
+    // Configure Syringe
     fun configureSyringe(lengthCm: Float) {
         referenceDetector.setSyringeLength(lengthCm)
     }
-
-
-    // Estimate portion size from image
-    // Returns estimated weight in grams
 
     fun estimatePortion(bitmap: Bitmap): PortionResult {
         if (!isInitialized) {
@@ -67,7 +63,6 @@ class PortionEstimator(private val context: Context) {
             }
             is DetectionResult.NotFound -> {
                 Log.w(TAG, "Reference object not found: ${detectionResult.reason}")
-                // Use fallback ratio based on typical phone camera
                 estimateFallbackRatio(bitmap)
             }
         }
@@ -76,10 +71,10 @@ class PortionEstimator(private val context: Context) {
         val containerType = depthEstimator.detectContainerType(bitmap)
         val depthResult = depthEstimator.estimateDepth(bitmap, containerType)
 
-        // Step 3: Calculate plate dimensions
+        // Step 3: Calculate plate dimensions using REAL detected size
         val plateDimensions = calculatePlateDimensions(bitmap, pixelToCmRatio)
 
-        // Step 4: Calculate volume
+        // Step 4: Calculate volume using SPHERICAL CAP (more accurate for piles of food)
         val volumeCm3 = calculateVolume(plateDimensions, depthResult.depthCm)
 
         // Step 5: Estimate weight
@@ -100,60 +95,67 @@ class PortionEstimator(private val context: Context) {
 
     // Calculate plate dimensions from image
     private fun calculatePlateDimensions(bitmap: Bitmap, pixelToCmRatio: Float): PlateDimensions {
-        // Estimate plate takes up ~60% of image width typically
-        val plateWidthPixels = bitmap.width * 0.6f
+        // Try to detect the actual plate in the full image
+        val plateResult = plateDetector.detectPlate(bitmap)
+        
+        val plateWidthPixels = if (plateResult.isFound && plateResult.bounds != null) {
+            Log.d(TAG, "Using actual detected plate width: ${plateResult.bounds.width()}px")
+            plateResult.bounds.width().toFloat()
+        } else {
+            // Fallback: Assume plate takes up ~45% of image width (safer average than 60%)
+            // Reduced to 45% because we advised user to zoom out
+            Log.d(TAG, "Plate not found for sizing, using fallback 45%")
+            bitmap.width * 0.45f
+        }
+        
         val diameterCm = plateWidthPixels * pixelToCmRatio
 
-        // Typical plate diameter range: 20-30 cm
-        val adjustedDiameter = diameterCm.coerceIn(15f, 35f)
+        // Clamp to realistic values (Side plate 15cm to Large Dinner Plate 30cm)
+        val adjustedDiameter = diameterCm.coerceIn(12f, 32f)
 
         return PlateDimensions(
             diameterCm = adjustedDiameter,
             radiusCm = adjustedDiameter / 2
         )
     }
-
-
+    
     // Calculate food volume based on plate dimensions and depth
     private fun calculateVolume(dimensions: PlateDimensions, depthCm: Float): Float {
-        // Simplified: treat as cylinder
-        // V = π * r² * h
         val radius = dimensions.radiusCm
-        val volume = Math.PI.toFloat() * radius * radius * depthCm
+        
+        // Single Portion Limit:
+        // Even if the plate is Huge (e.g. 32cm), a single serving of food rarely exceeds 12cm width (Radius 6cm).
+        // This is critical for small portions (like 70g) on large plates.
+        val effectiveRadius = radius.coerceAtMost(6.0f)
 
-        return volume
+        // Cone/Mound Formula for food piles (V = ~1/3 * Base * Height)
+        val cylinderVolume = Math.PI * effectiveRadius * effectiveRadius * depthCm
+        val adjustedVolume = cylinderVolume * 0.35 
+        
+        Log.d(TAG, "CALC_DEBUG: RawRadius=${radius}cm, EffRadius=${effectiveRadius}cm, Depth=${depthCm}cm") 
+        Log.d(TAG, "CALC_DEBUG: Vol=${adjustedVolume.toInt()}cm3 (Mass ~${adjustedVolume * DEFAULT_FOOD_DENSITY}g)")
+        
+        return adjustedVolume.toFloat()
     }
 
-    // Fallback ratio when syringe not detected
-    // Based on typical smartphone camera and shooting distance
     private fun estimateFallbackRatio(bitmap: Bitmap): Float {
-        // Assume typical shooting distance of 30cm and phone camera FOV
-        // This gives roughly 0.02 cm per pixel for 1080p image
         val baseRatio = 0.02f
-
-        // Adjust for image resolution
         val resolutionFactor = 1920f / bitmap.width
-
         return baseRatio * resolutionFactor
     }
 
-    // Calculate overall confidence based on detection results
     private fun calculateOverallConfidence(
         detection: DetectionResult,
         depth: DepthResult
     ): Float {
         val detectionConfidence = when (detection) {
             is DetectionResult.Found -> detection.confidence
-            is DetectionResult.NotFound -> 0.3f // low confidence without reference
+            is DetectionResult.NotFound -> 0.3f 
         }
-
         val depthConfidence = depth.confidence
-
-        // Weighted average
         return (detectionConfidence * 0.6f + depthConfidence * 0.4f)
     }
 
-    // Release resources
     fun release() {
         depthEstimator.release()
         Log.d(TAG, "PortionEstimator released")

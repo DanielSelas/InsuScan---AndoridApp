@@ -8,6 +8,7 @@ interface ScanRepository {
         bitmap: Bitmap,
         email: String,
         estimatedWeight: Float? = null,
+        volumeCm3: Float? = null,
         confidence: Float? = null
     ): Result<MealDto>
 }

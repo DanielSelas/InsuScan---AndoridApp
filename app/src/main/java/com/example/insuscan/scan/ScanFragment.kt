@@ -433,12 +433,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         // Local portion analysis (optional - for extra data)
         val portionResult = portionEstimator?.estimatePortion(bitmap)
         val estimatedWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
+        val volumeCm3 = (portionResult as? PortionResult.Success)?.volumeCm3
         val confidence = (portionResult as? PortionResult.Success)?.confidence
 
         // Send to server
         viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                scanRepository.scanImage(bitmap, email, estimatedWeight, confidence)
+                // Pass volume to server for density-based calculation
+                scanRepository.scanImage(bitmap, email, estimatedWeight, volumeCm3, confidence)
             }
 
             result.onSuccess { mealDto ->

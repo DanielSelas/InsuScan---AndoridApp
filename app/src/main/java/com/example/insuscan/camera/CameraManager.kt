@@ -191,7 +191,7 @@ class CameraManager(private val context: Context) {
             val isRefFoundNow = detectionResult is com.example.insuscan.analysis.DetectionResult.Found
             
             // 2. Plate Detection
-            val isPlateFoundNow = plateDetector.detectPlate(bitmap)
+            val isPlateFoundNow = plateDetector.detectPlate(bitmap).isFound
 
             // 3. Stability Logic (Hysteresis / Debounce)
             // "Fast Attack, Slow Decay": Easier to find, harder to lose.
