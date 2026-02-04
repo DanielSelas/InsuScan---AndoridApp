@@ -43,6 +43,9 @@ class CameraManager(private val context: Context) {
 
     // Callback for real-time image quality updates (UI uses this to show status)
     var onImageQualityUpdate: ((ImageQualityResult) -> Unit)? = null
+    
+    // Store last result for UI actions
+    var lastQualityResult: ImageQualityResult? = null
 
     companion object {
         private const val TAG = "CameraManager"
@@ -187,23 +190,33 @@ class CameraManager(private val context: Context) {
             val bitmap = imageProxy.toBitmap() 
             
             // 1. Reference Object Detection
-            val detectionResult = referenceObjectDetector.detectReferenceObject(bitmap)
+            // Determine Mode from Profile (Pen vs Other)
+            val syringeType = com.example.insuscan.profile.UserProfileManager.getSyringeSize(context).lowercase()
+            val mode = if (syringeType.contains("syringe") || syringeType.contains("pen")) {
+                 com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
+            } else {
+                 com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+            }
+            
+            val detectionResult = referenceObjectDetector.detectReferenceObject(bitmap, null, mode)
             val isRefFoundNow = detectionResult is com.example.insuscan.analysis.DetectionResult.Found
+            
+            val debugInfoStr = when (detectionResult) {
+                is com.example.insuscan.analysis.DetectionResult.Found -> detectionResult.debugInfo
+                is com.example.insuscan.analysis.DetectionResult.NotFound -> detectionResult.debugInfo
+            }
             
             // 2. Plate Detection
             val isPlateFoundNow = plateDetector.detectPlate(bitmap).isFound
 
             // 3. Stability Logic (Hysteresis / Debounce)
-            // "Fast Attack, Slow Decay": Easier to find, harder to lose.
-            // Helps preventing the UI from flickering if detection misses 1 frame.
+            // ... (keep existing stability logic) ...
             val MAX_SCORE = 10
-            val THRESHOLD = 3 // Threshold to consider "Found"
+            val THRESHOLD = 3 
 
             if (isRefFoundNow) {
-                 // Found: Boost score significantly (+3) so it locks in quickly (1-2 frames)
                  framesRefFound = (framesRefFound + 3).coerceAtMost(MAX_SCORE)
             } else {
-                 // Lost: Decay slowly (-1) so 1 missed frame doesn't drop status immediately
                  framesRefFound = (framesRefFound - 1).coerceAtLeast(0)
             }
             
@@ -225,8 +238,11 @@ class CameraManager(private val context: Context) {
                 resolution = resolution,
                 isResolutionOk = isResolutionOk,
                 isReferenceObjectFound = isReferenceObjectStable,
-                isPlateFound = isPlateStable
+                isPlateFound = isPlateStable,
+                debugInfo = debugInfoStr
             )
+
+            lastQualityResult = qualityResult
 
             // Notify on main thread (UI updates happen there)
             ContextCompat.getMainExecutor(context).execute {
@@ -282,7 +298,8 @@ data class ImageQualityResult(
     val resolution: Int,
     val isResolutionOk: Boolean,
     val isReferenceObjectFound: Boolean,
-    val isPlateFound: Boolean
+    val isPlateFound: Boolean,
+    val debugInfo: String = "" // Added debug info
 ) {
 
     // Helper to determine the "State" for UI logic
@@ -292,7 +309,7 @@ data class ImageQualityResult(
     fun getValidationMessage(): String {
         return when {
             !isPlateFound -> "Plate not detected. Center the food."
-            !isReferenceObjectFound -> "Insulin Pen not detected."
+            !isReferenceObjectFound -> "Reference Object not detected."
             !isBrightnessOk && brightness < 50f -> "Image is too dark. Add light."
             !isBrightnessOk && brightness > 200f -> "Image is too bright. Reduce light."
             !isSharpnessOk -> "Image is blurry. Hold steady."

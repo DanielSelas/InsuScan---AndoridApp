@@ -59,6 +59,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private lateinit var loadingMessage: TextView
     private lateinit var galleryButton: Button
     private lateinit var subtitleText: TextView
+    private lateinit var tvCoachPill: TextView
 
     private var capturedImagePath: String? = null
 
@@ -139,7 +140,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
             // Add Text Label
             val label = TextView(context).apply {
-                text = "Place\nPen\nHere"
+                text = "Reference\nObject\nZone"
                 setTextColor(android.graphics.Color.WHITE)
                 textSize = 14f
                 gravity = android.view.Gravity.CENTER
@@ -166,15 +167,47 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         loadingMessage = view.findViewById(R.id.tv_loading_message)
         galleryButton = view.findViewById(R.id.btn_gallery)
         subtitleText = view.findViewById(R.id.tv_scan_subtitle)
+        tvCoachPill = view.findViewById(R.id.tv_coach_pill)
     }
 
     // Dev mode version - forces good quality for emulator testing
     private fun initializeCameraManager() {
+        // Camera setup
         cameraManager = CameraManager(requireContext())
+        cameraManager.onImageQualityUpdate = { quality ->
+            // Update legacy quality status (bottom bar)
+            qualityStatusText.text = quality.getValidationMessage()
+            qualityStatusText.setBackgroundColor(
+                if (quality.isValid) android.graphics.Color.parseColor("#C8E6C9") // Green
+                else android.graphics.Color.parseColor("#FFCDD2") // Red
+            )
+            captureButton.isEnabled = quality.isValid || true // Allow capture anyway for now (debug)
 
-        cameraManager.onImageQualityUpdate = { qualityResult ->
-            // Use real analysis result instead of dev mode mock
-            updateQualityStatus(qualityResult)
+            // Update Live Coach Pill (Top Overlay)
+            // Prioritize feedback: Light > Focus > Framing
+            val coachMessage = when {
+                !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
+                !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
+                !quality.isSharpnessOk -> "Hold Steady 📷"
+                !quality.isPlateFound -> "Find Plate 🍽️"
+                !quality.isReferenceObjectFound -> "Place Ref Obj on Right 🖊️"
+                else -> "Perfect! ✅"
+            }
+
+            tvCoachPill.apply {
+                text = coachMessage
+                visibility = View.VISIBLE
+                
+                // Color coding for the pill
+                background.setTint(
+                    if (coachMessage.startsWith("Perfect")) android.graphics.Color.parseColor("#994CAF50") // Green tint
+                    else android.graphics.Color.parseColor("#99000000") // Black tint
+                )
+            }
+        }
+        
+        cameraPreview.post {
+            cameraManager.startCamera(viewLifecycleOwner, cameraPreview)
         }
     }
 
@@ -203,18 +236,23 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 switchToCameraMode()
             } else {
                 // User wants to capture
-                if (isImageQualityOk) {
-                    // Check if it's the "Warning" state (Plate valid, but Pen missing)
-                    val statusText = qualityStatusText.text.toString()
-                    if (statusText.contains("Insulin Pen missing")) {
-                         // Case 3: Show Dialog
-                         showMissingPenDialog()
+                val result = cameraManager.lastQualityResult
+
+                if (result != null) {
+                    if (result.isPlateFound) {
+                        if (result.isReferenceObjectFound) {
+                            // Perfect scenario
+                            onCaptureClicked()
+                        } else {
+                            // Plate found, but Ref Object missing -> Show Dialog
+                            showMissingPenDialog()
+                        }
                     } else {
-                        // Case 4: Perfect
-                        onCaptureClicked()
+                        // Plate not found -> Strict block (User needs to frame food)
+                        ToastHelper.showShort(requireContext(), "Please center the food plate first")
                     }
                 } else {
-                    ToastHelper.showShort(requireContext(), "Please wait until image quality is OK")
+                    ToastHelper.showShort(requireContext(), "Camera initializing...")
                 }
             }
         }
@@ -284,8 +322,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
             // Case 3: Plate Found but No Ref -> Warn (Allow Capture)
             isPlateFound && !isRefFound -> {
-                isImageQualityOk = true // Allow capture
-                qualityStatusText.text = "Insulin Pen missing. Capture anyway?"
+                isImageQualityOk = true // Allow capture (Logic handled in click listener)
+                val debugInfo = cameraManager.lastQualityResult?.debugInfo ?: ""
+                qualityStatusText.text = "Ref Obj Missing. $debugInfo"
                 qualityStatusText.setBackgroundColor(android.graphics.Color.parseColor("#FFD700")) // Use yellow
                 
                 // Allow capture but maybe show a dialog on click

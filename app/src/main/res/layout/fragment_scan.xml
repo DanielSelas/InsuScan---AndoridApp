@@ -41,6 +41,36 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/tv_quality_status" />
 
+    <!-- Target Zone Overlay (Dashed Pen Outline on Right) -->
+    <View
+        android:id="@+id/view_target_zone"
+        android:layout_width="40dp"
+        android:layout_height="200dp"
+        android:background="@drawable/dashed_border_rect"
+        android:alpha="0.3"
+        android:layout_marginEnd="40dp"
+        app:layout_constraintEnd_toEndOf="@id/camera_preview"
+        app:layout_constraintTop_toTopOf="@id/camera_preview"
+        app:layout_constraintBottom_toBottomOf="@id/camera_preview" />
+
+    <!-- Live Coach Pill (Top Center) -->
+    <TextView
+        android:id="@+id/tv_coach_pill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Too Dark 🌑"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/bg_coach_pill"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:layout_marginTop="24dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/camera_preview"
+        app:layout_constraintStart_toStartOf="@id/camera_preview"
+        app:layout_constraintEnd_toEndOf="@id/camera_preview" />
+
     <!-- Captured image preview - hidden by default, shown after capture -->
     <ImageView
         android:id="@+id/iv_captured_image"

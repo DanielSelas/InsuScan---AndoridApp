@@ -61,8 +61,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var isfSubtitle: TextView
     private lateinit var targetSubtitle: TextView
 
-    // Views - Syringe Settings
-    private lateinit var syringeSizeSpinner: Spinner
+    // Views - Reference Object Settings
+    private lateinit var referenceTypeSpinner: Spinner
+    private lateinit var customLengthLayout: LinearLayout
+    private lateinit var customLengthEditText: EditText
     private lateinit var doseRoundingSpinner: Spinner
 
     // Views - Adjustment Factors
@@ -78,34 +80,23 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var saveButton: Button
     private lateinit var logoutButton: Button
     private lateinit var loadingOverlay: FrameLayout
+    private lateinit var editPhotoButton: ImageView
+    private lateinit var topBar: View // Should verify if needed, but keeping consistent
 
     private val ctx get() = requireContext()
     private val userRepository = UserRepositoryImpl()
-
-    // Photo picker
-    private lateinit var editPhotoButton: ImageView
+    
+    // Photo picker vars...
     private var photoUri: Uri? = null
-
-    // Gallery picker launcher
-    private val pickImageLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri ->
+    
+    // Launchers...
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { uploadAndSavePhoto(it) }
     }
-
-    // Camera launcher
-    private val takePictureLauncher = registerForActivityResult(
-        ActivityResultContracts.TakePicture()
-    ) { success ->
-        if (success) {
-            photoUri?.let { uploadAndSavePhoto(it) }
-        }
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) photoUri?.let { uploadAndSavePhoto(it) }
     }
-
-    // Camera permission launcher
-    private val cameraPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { granted ->
+    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) openCamera() else ToastHelper.showShort(ctx, "Camera permission denied")
     }
 
@@ -113,7 +104,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private val genderOptions = arrayOf("Select", "Male", "Female", "Other", "Prefer not to say")
     private val diabetesOptions = arrayOf("Select", "Type 1", "Type 2", "Gestational", "Other")
     private val insulinOptions = arrayOf("Select", "Rapid-acting", "Short-acting", "Other")
-    private val syringeOptions = arrayOf("0.3ml (30u)", "0.5ml (50u)", "1ml (100u)")
+    private val referenceOptions = arrayOf("Insulin Pen (Standard)", "Other Object (Fork/Knife)")
     private val roundingOptions = arrayOf("0.5 units", "1 unit")
     private val glucoseUnitOptions = arrayOf("mg/dL", "mmol/L")
 
@@ -156,8 +147,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         isfSubtitle = view.findViewById(R.id.tv_isf_subtitle)
         targetSubtitle = view.findViewById(R.id.tv_target_subtitle)
 
-        // Syringe Settings
-        syringeSizeSpinner = view.findViewById(R.id.spinner_syringe_size)
+        // Reference Object Settings
+        referenceTypeSpinner = view.findViewById(R.id.spinner_reference_type)
+        customLengthLayout = view.findViewById(R.id.layout_custom_length)
+        customLengthEditText = view.findViewById(R.id.et_custom_length)
         doseRoundingSpinner = view.findViewById(R.id.spinner_dose_rounding)
 
         // Adjustment Factors
@@ -174,7 +167,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         logoutButton = view.findViewById(R.id.btn_logout)
         loadingOverlay = view.findViewById(R.id.loading_overlay)
         editPhotoButton = view.findViewById(R.id.iv_edit_photo)
-
     }
 
     private fun setupTopBar(view: View) {
@@ -186,33 +178,19 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun setupSpinners() {
-        // Gender
         genderSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, genderOptions)
-
-        // Diabetes Type
         diabetesTypeSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, diabetesOptions)
-
-        // Insulin Type
         insulinTypeSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, insulinOptions)
-
-        // Syringe Size
-        syringeSizeSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, syringeOptions)
-
-        // Dose Rounding
+        referenceTypeSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, referenceOptions)
         doseRoundingSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, roundingOptions)
-
-        // Glucose Units
         glucoseUnitsSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, glucoseUnitOptions)
     }
 
     private fun setupListeners() {
-        // Save button
         saveButton.setOnClickListener { saveProfile() }
-
-        // Logout button
         logoutButton.setOnClickListener { logout() }
 
-        // Gender change - show/hide pregnancy
+        // Gender logic
         genderSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val isFemale = genderOptions[position] == "Female"
@@ -221,15 +199,13 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        // Pregnant switch - show/hide due date
+        // Pregnancy logic
         pregnantSwitch.setOnCheckedChangeListener { _, isChecked ->
             dueDateLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-
-        // Due date picker
         dueDateTextView.setOnClickListener { showDatePicker() }
 
-        // Insulin type change - update DIA
+        // Insulin type logic
         insulinTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val dia = when (insulinOptions[position]) {
@@ -241,8 +217,16 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+        
+        // Reference Type change - Show/Hide custom length
+        referenceTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val isOther = referenceOptions[position].contains("Other")
+                customLengthLayout.visibility = if (isOther) View.VISIBLE else View.GONE
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
 
-        // Glucose units change - update subtitles
         glucoseUnitsSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val unit = glucoseUnitOptions[position]
@@ -251,7 +235,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-        // Profile photo click - show options dialog
+        
         profilePhoto.setOnClickListener { showPhotoOptionsDialog() }
         editPhotoButton.setOnClickListener { showPhotoOptionsDialog() }
     }
@@ -340,8 +324,20 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         val diaValue = pm.getActiveInsulinTime(ctx)
         activeInsulinTimeText.text = "${diaValue.toInt()}h"
 
-        // Syringe Settings
-        setSpinnerByValue(syringeSizeSpinner, syringeOptions, pm.getSyringeSize(ctx))
+        // --- Reference Object Logic ---
+        val savedTypeStr = pm.getSyringeSize(ctx) // Now may be "PEN", "OTHER", or legacy "0.5ml"
+        val isOther = savedTypeStr.contains("OTHER", ignoreCase = true)
+        
+        if (isOther) {
+             referenceTypeSpinner.setSelection(1) // Other
+             customLengthLayout.visibility = View.VISIBLE
+             val customLen = pm.getCustomSyringeLength(ctx)
+             customLengthEditText.setText(customLen.toString())
+        } else {
+             referenceTypeSpinner.setSelection(0) // Pen
+             customLengthLayout.visibility = View.GONE
+        }
+
         val rounding = if (pm.getDoseRounding(ctx) == 0.5f) "0.5 units" else "1 unit"
         setSpinnerByValue(doseRoundingSpinner, roundingOptions, rounding)
 
@@ -437,10 +433,16 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         isf.toFloatOrNull()?.let { pm.saveCorrectionFactor(ctx, it) }
         target.toIntOrNull()?.let { pm.saveTargetGlucose(ctx, it) }
 
-        // Save Syringe Settings
-        val syringeSize = syringeOptions[syringeSizeSpinner.selectedItemPosition]
-            .substringBefore(" ").trim()
-        pm.saveSyringeSize(ctx, syringeSize)
+        // --- Save Reference Settings ---
+        // --- Save Reference Settings ---
+        val selectedRef = referenceOptions[referenceTypeSpinner.selectedItemPosition]
+        if (selectedRef.contains("Insulin Pen")) {
+             pm.saveSyringeSize(ctx, "INSULIN_PEN")
+        } else {
+             pm.saveSyringeSize(ctx, "CUSTOM_OBJECT")
+             val len = customLengthEditText.text.toString().toFloatOrNull() ?: 15.0f // Default if empty
+             pm.saveCustomSyringeLength(ctx, len)
+        }
 
         val doseRounding = if (doseRoundingSpinner.selectedItemPosition == 0) 0.5f else 1f
         pm.saveDoseRounding(ctx, doseRounding)
@@ -512,19 +514,21 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             ?: return Result.failure(Exception("No email found"))
 
         return try {
-            // 1. Determine dose rounding
             val doseRoundingValue = if (doseRoundingSpinner.selectedItemPosition == 0) "0.5" else "1"
-
-            // 2. Determine active insulin time (integer)
             val diaValue = activeInsulinTimeText.text.toString().replace("h", "").trim().toIntOrNull()
-
+            
             // 3. FIX: Map Syringe UI selection to Server Enum Name
-            val selectedSyringeIndex = syringeSizeSpinner.selectedItemPosition
-            val syringeEnumValue = when (selectedSyringeIndex) {
-                0 -> "SYRINGE_30_UNIT"  // 0.3ml
-                1 -> "SYRINGE_50_UNIT"  // 0.5ml
-                else -> "SYRINGE_100_UNIT" // 1ml
-            }
+            val selectedSyringeIndex = referenceTypeSpinner.selectedItemPosition // Note: Using referenceTypeSpinner now
+            // Options: 0="Insulin Pen", 1="Other Object" (From referenceOptions)
+            
+            // Map Reference Type
+            val selectedRef = referenceOptions[referenceTypeSpinner.selectedItemPosition]
+            val syringeEnumValue = if (selectedRef.contains("Insulin Pen")) "INSULIN_PEN" else "CUSTOM_OBJECT"
+            
+            // Custom Length
+            val customLen = if (syringeEnumValue == "CUSTOM_OBJECT") {
+                customLengthEditText.text.toString().toFloatOrNull()
+            } else null
 
             // Build UserDto with ALL fields
             val userDto = UserDto(
@@ -542,7 +546,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
                 // Syringe - SEND ENUM NAME, NOT UI STRING
                 syringeType = syringeEnumValue,
-                customSyringeLength = null,
+                customSyringeLength = customLen,
 
                 // Personal
                 age = ageEditText.text.toString().toIntOrNull(),
