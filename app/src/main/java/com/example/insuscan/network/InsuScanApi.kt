@@ -101,6 +101,7 @@ interface InsuScanApi {
         @Part file: MultipartBody.Part,
         @Query("email") email: String,
         @Query("estimatedWeightGrams") estimatedWeightGrams: Float? = null,
+        @Query("volumeCm3") volumeCm3: Float? = null,
         @Query("portionConfidence") portionConfidence: Float? = null
     ): Response<MealDto>
 
