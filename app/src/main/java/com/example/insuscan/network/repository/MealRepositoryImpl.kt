@@ -17,6 +17,15 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
         api.createMeal(request)
     }
 
+    override suspend fun saveScannedMeal(email: String, meal: MealDto): Result<MealDto> = safeApiCall {
+        Log.d("DEBUG_SAVE", "Repo: Sending POST to meals/${ApiConfig.SYSTEM_ID}/$email/save-scanned")
+        api.saveScannedMeal(ApiConfig.SYSTEM_ID, email, meal)
+    }
+
+    override suspend fun getLatestMeal(email: String): Result<MealDto?> {
+        return getUserMeals(email, 0, 1).map { list -> list.firstOrNull() }
+    }
+
     override suspend fun getMeal(mealId: String): Result<MealDto> = safeApiCall {
         api.getMeal(ApiConfig.SYSTEM_ID, mealId)
     }

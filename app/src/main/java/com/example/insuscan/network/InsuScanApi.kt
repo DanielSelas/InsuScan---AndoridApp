@@ -36,6 +36,13 @@ interface InsuScanApi {
     @POST("meals")
     suspend fun createMeal(@Body request: CreateMealRequest): Response<MealDto>
 
+    @POST("meals/{systemId}/{email}/save-scanned")
+    suspend fun saveScannedMeal(
+        @Path("systemId") systemId: String,
+        @Path("email") email: String,
+        @Body meal: MealDto
+    ): Response<MealDto>
+
     @GET("meals/{systemId}/{mealId}")
     suspend fun getMeal(
         @Path("systemId") systemId: String,

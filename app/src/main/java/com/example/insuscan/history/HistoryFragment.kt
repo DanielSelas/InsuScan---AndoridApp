@@ -141,15 +141,54 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     }
 
     private fun observeData() {
+        // Collect History List (Paging)
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.historyFlow.collectLatest { pagingData ->
                 adapter.submitData(pagingData)
             }
         }
+        
+        // Collect Latest Meal (Top Card)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.latestMeal.collectLatest { meal ->
+                updateLatestMealCard(meal)
+            }
+        }
+    }
+
+    private fun updateLatestMealCard(meal: com.example.insuscan.meal.Meal?) {
+        val cardLatest = view?.findViewById<androidx.cardview.widget.CardView>(R.id.card_latest_meal)
+        val tvPreviousLabel = view?.findViewById<android.widget.TextView>(R.id.tv_previous_label)
+        
+        if (meal == null) {
+            cardLatest?.visibility = View.GONE
+            tvPreviousLabel?.visibility = View.GONE
+            return
+        }
+
+        cardLatest?.visibility = View.VISIBLE
+        tvPreviousLabel?.visibility = View.VISIBLE
+
+        val tvTitle = view?.findViewById<android.widget.TextView>(R.id.tv_latest_title)
+        val tvTime = view?.findViewById<android.widget.TextView>(R.id.tv_latest_time)
+        val tvDetails = view?.findViewById<android.widget.TextView>(R.id.tv_latest_details)
+
+        tvTitle?.text = meal.title
+        
+        // Format Time HH:mm
+        tvTime?.text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(meal.timestamp))
+        
+        // Format Details
+        val dose = if (meal.insulinDose != null) "${com.example.insuscan.utils.DoseFormatter.formatDose(meal.insulinDose)} units" else "No Dose"
+        tvDetails?.text = "${meal.carbs.toInt()}g carbs | $dose"
+        
+        // Refresh paging list to ensure consistency? 
+        // adapter.refresh() // Might cause loop if not careful, skip for now
     }
 
     override fun onResume() {
         super.onResume()
         adapter.refresh()
+        viewModel.refreshLatestMeal()
     }
 }
