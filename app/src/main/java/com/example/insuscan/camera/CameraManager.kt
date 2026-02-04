@@ -33,6 +33,13 @@ class CameraManager(private val context: Context) {
     private var imageAnalyzer: ImageAnalysis? = null
     private var cameraProvider: ProcessCameraProvider? = null
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+    
+    private val referenceObjectDetector = com.example.insuscan.analysis.ReferenceObjectDetector(context)
+    private val plateDetector = com.example.insuscan.analysis.PlateDetector()
+
+    // Stability counters (Debounce)
+    private var framesRefFound = 0
+    private var framesPlateFound = 0
 
     // Callback for real-time image quality updates (UI uses this to show status)
     var onImageQualityUpdate: ((ImageQualityResult) -> Unit)? = null
@@ -43,7 +50,9 @@ class CameraManager(private val context: Context) {
         private const val BRIGHTNESS_MIN = 50f
         private const val BRIGHTNESS_MAX = 200f
         private const val SHARPNESS_THRESHOLD = 500f
-        private const val MIN_RESOLUTION = 1920 * 1080
+        // Lowered from 1080p to VGA (640x480) to ensure it works on all devices.
+        // The *Capture* will still be max resolution, this is just for the preview/analysis check.
+        private const val MIN_RESOLUTION = 640 * 480
     }
 
 
@@ -54,6 +63,12 @@ class CameraManager(private val context: Context) {
         onCameraReady: () -> Unit = {},
         onError: (String) -> Unit = {}
     ) {
+        // Initialize OpenCV/Detector
+        if (!referenceObjectDetector.initialize()) {
+            Log.e(TAG, "Failed to initialize ReferenceObjectDetector")
+            // We might want to notify error, but for now we proceed, detection will just fail/return not found
+        }
+        
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
 
         cameraProviderFuture.addListener({
@@ -73,7 +88,10 @@ class CameraManager(private val context: Context) {
                     .build()
 
                 // Image analysis use case (real-time validation)
+                // We request 1280x720 (HD) to have enough detail for the pen detector, 
+                // but CameraX might choose slightly different based on device.
                 imageAnalyzer = ImageAnalysis.Builder()
+                    .setTargetResolution(android.util.Size(1280, 720))
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .also { analysis ->
@@ -146,13 +164,14 @@ class CameraManager(private val context: Context) {
     }
 
 
-    // Analyzes frame quality in real time.
-    // Checks: brightness, sharpness, and resolution.
+    // Analysis loop
     private fun analyzeImageQuality(imageProxy: ImageProxy) {
         try {
+            // existing quality checks...
             val buffer = imageProxy.planes[0].buffer
             val data = ByteArray(buffer.remaining())
             buffer.get(data)
+            buffer.rewind() // Rewind buffer for other readers if any
 
             // Average brightness
             val brightness = calculateBrightness(data)
@@ -164,13 +183,49 @@ class CameraManager(private val context: Context) {
             val resolution = imageProxy.width * imageProxy.height
             val isResolutionOk = resolution >= MIN_RESOLUTION
 
+            // Convert to Bitmap for detectors (heavy operation)
+            val bitmap = imageProxy.toBitmap() 
+            
+            // 1. Reference Object Detection
+            val detectionResult = referenceObjectDetector.detectReferenceObject(bitmap)
+            val isRefFoundNow = detectionResult is com.example.insuscan.analysis.DetectionResult.Found
+            
+            // 2. Plate Detection
+            val isPlateFoundNow = plateDetector.detectPlate(bitmap)
+
+            // 3. Stability Logic (Hysteresis / Debounce)
+            // "Fast Attack, Slow Decay": Easier to find, harder to lose.
+            // Helps preventing the UI from flickering if detection misses 1 frame.
+            val MAX_SCORE = 10
+            val THRESHOLD = 3 // Threshold to consider "Found"
+
+            if (isRefFoundNow) {
+                 // Found: Boost score significantly (+3) so it locks in quickly (1-2 frames)
+                 framesRefFound = (framesRefFound + 3).coerceAtMost(MAX_SCORE)
+            } else {
+                 // Lost: Decay slowly (-1) so 1 missed frame doesn't drop status immediately
+                 framesRefFound = (framesRefFound - 1).coerceAtLeast(0)
+            }
+            
+            if (isPlateFoundNow) {
+                framesPlateFound = (framesPlateFound + 3).coerceAtMost(MAX_SCORE)
+            } else {
+                framesPlateFound = (framesPlateFound - 1).coerceAtLeast(0)
+            }
+
+            // We consider it "Found" if counter >= THRESHOLD
+            val isReferenceObjectStable = framesRefFound >= THRESHOLD
+            val isPlateStable = framesPlateFound >= THRESHOLD
+
             val qualityResult = ImageQualityResult(
                 brightness = brightness,
                 isBrightnessOk = brightness in BRIGHTNESS_MIN..BRIGHTNESS_MAX,
                 sharpness = sharpness,
                 isSharpnessOk = sharpness >= SHARPNESS_THRESHOLD,
                 resolution = resolution,
-                isResolutionOk = isResolutionOk
+                isResolutionOk = isResolutionOk,
+                isReferenceObjectFound = isReferenceObjectStable,
+                isPlateFound = isPlateStable
             )
 
             // Notify on main thread (UI updates happen there)
@@ -225,21 +280,24 @@ data class ImageQualityResult(
     val sharpness: Float,
     val isSharpnessOk: Boolean,
     val resolution: Int,
-    val isResolutionOk: Boolean
+    val isResolutionOk: Boolean,
+    val isReferenceObjectFound: Boolean,
+    val isPlateFound: Boolean
 ) {
 
-    //True if the frame passes all quality checks.
-    val isValid: Boolean
-        get() = isBrightnessOk && isSharpnessOk && isResolutionOk
+    // Helper to determine the "State" for UI logic
+    val isValid: Boolean get() = isBrightnessOk && isSharpnessOk && isResolutionOk && isPlateFound && isReferenceObjectFound
 
     // Returns a user-facing message based on the current quality status.
     fun getValidationMessage(): String {
         return when {
-            !isBrightnessOk && brightness < 50f -> "Image is too dark. Please add more light."
-            !isBrightnessOk && brightness > 200f -> "Image is too bright. Please reduce the lighting."
-            !isSharpnessOk -> "Image is blurry. Please keep the phone steady."
-            !isResolutionOk -> "Image resolution is too low."
-            else -> "Image looks good. Ready to capture."
+            !isPlateFound -> "Plate not detected. Center the food."
+            !isReferenceObjectFound -> "Insulin Pen not detected."
+            !isBrightnessOk && brightness < 50f -> "Image is too dark. Add light."
+            !isBrightnessOk && brightness > 200f -> "Image is too bright. Reduce light."
+            !isSharpnessOk -> "Image is blurry. Hold steady."
+            !isResolutionOk -> "Resolution too low."
+            else -> "Perfect! Ready to capture."
         }
     }
 }

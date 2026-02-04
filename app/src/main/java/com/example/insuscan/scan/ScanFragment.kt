@@ -108,6 +108,53 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         initializePortionEstimator()
         initializeListeners()
         checkCameraPermission()
+        
+        // Add guide overlay for reference object
+        addReferenceObjectOverlay(view)
+    }
+
+    private fun addReferenceObjectOverlay(rootView: View) {
+        val context = requireContext()
+        val container = rootView as? FrameLayout ?: return
+        
+        // Create overlay container
+        val overlay = FrameLayout(context).apply {
+            // Semi-transparent overlay on the right side (20% width)
+            layoutParams = FrameLayout.LayoutParams(
+                (resources.displayMetrics.widthPixels * 0.25).toInt(), 
+                FrameLayout.LayoutParams.MATCH_PARENT
+            ).apply {
+                gravity = android.view.Gravity.END
+            }
+            setBackgroundColor(android.graphics.Color.parseColor("#2000FF00")) // Very faint green tint
+            
+            // Add border/stroke effect (using a simple view for border)
+            val border = View(context).apply {
+                 layoutParams = FrameLayout.LayoutParams(4, FrameLayout.LayoutParams.MATCH_PARENT).apply {
+                     gravity = android.view.Gravity.START
+                 }
+                 setBackgroundColor(android.graphics.Color.parseColor("#80FFFFFF"))
+            }
+            addView(border)
+
+            // Add Text Label
+            val label = TextView(context).apply {
+                text = "Place\nPen\nHere"
+                setTextColor(android.graphics.Color.WHITE)
+                textSize = 14f
+                gravity = android.view.Gravity.CENTER
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.WRAP_CONTENT, 
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = android.view.Gravity.CENTER
+                }
+            }
+            addView(label)
+        }
+        
+        // Add behind the other UI elements but on top of camera
+        container.addView(overlay, 1) // Index 1 to be above camera (0) but below controls
     }
 
     private fun findViews(view: View) {
@@ -126,18 +173,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         cameraManager = CameraManager(requireContext())
 
         cameraManager.onImageQualityUpdate = { qualityResult ->
-            // Dev mode: force good result for emulator testing
-            val devModeResult = ImageQualityResult(
-                brightness = 120f,
-                isBrightnessOk = true,
-                sharpness = 600f,
-                isSharpnessOk = true,
-                resolution = 1920 * 1080,
-                isResolutionOk = true
-            )
-
-            // TODO: Switch to qualityResult on real device
-            updateQualityStatus(devModeResult)
+            // Use real analysis result instead of dev mode mock
+            updateQualityStatus(qualityResult)
         }
     }
 
@@ -167,7 +204,15 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             } else {
                 // User wants to capture
                 if (isImageQualityOk) {
-                    onCaptureClicked()
+                    // Check if it's the "Warning" state (Plate valid, but Pen missing)
+                    val statusText = qualityStatusText.text.toString()
+                    if (statusText.contains("Insulin Pen missing")) {
+                         // Case 3: Show Dialog
+                         showMissingPenDialog()
+                    } else {
+                        // Case 4: Perfect
+                        onCaptureClicked()
+                    }
                 } else {
                     ToastHelper.showShort(requireContext(), "Please wait until image quality is OK")
                 }
@@ -218,19 +263,52 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         // Only update if we're in camera mode
         if (isShowingCapturedImage) return
 
-        isImageQualityOk = qualityResult.isValid
+        // 4-State Logic Requested by User:
+        // 1. No Plate + No Ref -> Block
+        // 2. No Plate + Ref -> Block (We need plate to know where food is)
+        // 3. Plate + No Ref -> Warn (Yellow) but Allow
+        // 4. Plate + Ref -> Success (Green) and Allow
 
-        qualityStatusText.text = qualityResult.getValidationMessage()
+        val isPlateFound = qualityResult.isPlateFound
+        val isRefFound = qualityResult.isReferenceObjectFound
 
-        val backgroundColor = if (qualityResult.isValid) {
-            ContextCompat.getColor(requireContext(), android.R.color.holo_green_light)
-        } else {
-            ContextCompat.getColor(requireContext(), android.R.color.holo_orange_light)
+        // Decide state
+        when {
+            // Case 1 & 2: No Plate -> Block
+            !isPlateFound -> {
+                isImageQualityOk = false
+                qualityStatusText.text = "Plate not detected. Center the food."
+                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.holo_orange_light))
+                captureButton.isEnabled = false
+                captureButton.alpha = 0.5f
+            }
+            // Case 3: Plate Found but No Ref -> Warn (Allow Capture)
+            isPlateFound && !isRefFound -> {
+                isImageQualityOk = true // Allow capture
+                qualityStatusText.text = "Insulin Pen missing. Capture anyway?"
+                qualityStatusText.setBackgroundColor(android.graphics.Color.parseColor("#FFD700")) // Use yellow
+                
+                // Allow capture but maybe show a dialog on click
+                captureButton.isEnabled = true
+                captureButton.alpha = 1f
+            }
+            // Case 4: Both Found -> Success
+            isPlateFound && isRefFound -> {
+                isImageQualityOk = true
+                qualityStatusText.text = "Perfect! Ready to capture."
+                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_light))
+                captureButton.isEnabled = true
+                captureButton.alpha = 1f
+            }
         }
-        qualityStatusText.setBackgroundColor(backgroundColor)
-
-        captureButton.isEnabled = qualityResult.isValid
-        captureButton.alpha = if (qualityResult.isValid) 1f else 0.5f
+        
+        // Handle other quality issues (brightness/blur) as override warnings if critical
+        if (!qualityResult.isBrightnessOk || !qualityResult.isSharpnessOk) {
+             // We generally still allow capture if plate is found, but update text
+             if (isPlateFound) {
+                 qualityStatusText.text = qualityResult.getValidationMessage()
+             }
+        }
     }
 
     private fun onCaptureClicked() {
@@ -519,8 +597,26 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         portionEstimator = null
     }
 
+    private fun showMissingPenDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Reference Object Missing")
+            .setMessage("The insulin pen was not detected.\n\nWithout it, portion size estimation will be less accurate.\n\nDo you want to continue anyway?")
+            .setPositiveButton("Continue") { dialog, _ ->
+                dialog.dismiss()
+                onCaptureClicked()
+            }
+            .setNegativeButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+
+
     private fun processGalleryImage(uri: android.net.Uri) {
         showLoading(true, "Loading image...")
+        // ... rest of existing function
+
 
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
