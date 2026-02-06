@@ -19,6 +19,10 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
 
     override suspend fun saveScannedMeal(email: String, meal: MealDto): Result<MealDto> = safeApiCall {
         Log.d("DEBUG_SAVE", "Repo: Sending POST to meals/${ApiConfig.SYSTEM_ID}/$email/save-scanned")
+        Log.d("DEBUG_SAVE", "DTO totalCarbs: ${meal.totalCarbs}")
+        Log.d("DEBUG_SAVE", "DTO carbDose: ${meal.carbDose}")
+        Log.d("DEBUG_SAVE", "DTO correctionDose: ${meal.correctionDose}")
+        Log.d("DEBUG_SAVE", "DTO insulinCalculation.carbDose: ${meal.insulinCalculation?.carbDose}")
         api.saveScannedMeal(ApiConfig.SYSTEM_ID, email, meal)
     }
 

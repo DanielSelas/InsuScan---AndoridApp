@@ -14,7 +14,7 @@ class FoodItemEditorAdapter(
     private val onItemRemoved: (EditableFoodItem) -> Unit
 ) : RecyclerView.Adapter<FoodItemEditorAdapter.ViewHolder>() {
 
-    private val items = mutableListOf<EditableFoodItem>()
+    internal val items = mutableListOf<EditableFoodItem>()  // Changed to internal for fragment access
 
     fun setItems(newItems: List<EditableFoodItem>) {
         items.clear()
@@ -61,6 +61,7 @@ class FoodItemEditorAdapter(
         private val btnMinus: ImageButton = itemView.findViewById(R.id.btn_minus)
         private val btnPlus: ImageButton = itemView.findViewById(R.id.btn_plus)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btn_delete)
+        private val loadingText: TextView? = itemView.findViewById(R.id.tv_loading)  // Optional loading indicator
 
         fun bind(item: EditableFoodItem) {
             nameText.text = item.name
@@ -102,8 +103,29 @@ class FoodItemEditorAdapter(
         }
 
         private fun updateDisplay(item: EditableFoodItem) {
-            weightText.text = "${item.weightGrams.toInt()}g"
-            carbsText.text = "${item.totalCarbs.toInt()}g carbs"
+            // Show/hide loading state
+            if (item.isLoading) {
+                loadingText?.visibility = View.VISIBLE
+                carbsText.visibility = View.GONE
+                weightSlider.isEnabled = false
+                btnMinus.isEnabled = false
+                btnPlus.isEnabled = false
+            } else {
+                loadingText?.visibility = View.GONE
+                carbsText.visibility = View.VISIBLE
+                weightSlider.isEnabled = true
+                btnMinus.isEnabled = true
+                btnPlus.isEnabled = true
+                
+                // Show carbs info
+                if (item.carbsPer100g != null && item.carbsPer100g!! > 0) {
+                    weightText.text = "${item.weightGrams.toInt()}g"
+                    carbsText.text = "${item.totalCarbs.toInt()}g carbs (${item.carbsPer100g!!.toInt()}g/100g)"
+                } else {
+                    weightText.text = "${item.weightGrams.toInt()}g"
+                    carbsText.text = "⚠️ אין מידע תזונתי"
+                }
+            }
         }
     }
 }

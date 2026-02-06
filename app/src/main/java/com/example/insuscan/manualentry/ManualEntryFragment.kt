@@ -4,9 +4,8 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.widget.AutoCompleteTextView
 import android.widget.Button
-import android.widget.ProgressBar
+import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -17,35 +16,30 @@ import com.example.insuscan.R
 import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
-import com.example.insuscan.network.repository.FoodSearchRepository
 import com.example.insuscan.network.repository.FoodSearchRepositoryImpl
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import android.app.AlertDialog
 import com.google.android.material.textfield.TextInputEditText
 class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
     // Views
-    private lateinit var searchInput: AutoCompleteTextView
-    private lateinit var searchLoading: ProgressBar
+    private lateinit var etFoodName: EditText
+    private lateinit var btnAddFood: Button
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyState: TextView
     private lateinit var totalCarbsText: TextView
     private lateinit var btnSave: Button
-    private lateinit var btnRescan: Button
+   private lateinit var btnRescan: Button
     private lateinit var btnAddCustom: Button
 
     // Adapters
     private lateinit var foodItemAdapter: FoodItemEditorAdapter
-    private lateinit var searchAdapter: FoodSearchAdapter
 
     // Data
     private val searchRepository = FoodSearchRepositoryImpl()
-    private var searchJob: Job? = null
     private val editableItems = mutableListOf<EditableFoodItem>()
 
     private val ctx get() = requireContext()
@@ -71,15 +65,14 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     }
 
     private fun findViews(view: View) {
-        searchInput = view.findViewById(R.id.actv_food_search)
-        searchLoading = view.findViewById(R.id.pb_search_loading)
+        etFoodName = view.findViewById(R.id.et_food_name)
+        btnAddFood = view.findViewById(R.id.btn_add_food)
         recyclerView = view.findViewById(R.id.rv_food_items)
         emptyState = view.findViewById(R.id.tv_empty_state)
         totalCarbsText = view.findViewById(R.id.tv_total_carbs)
         btnSave = view.findViewById(R.id.btn_save)
         btnRescan = view.findViewById(R.id.btn_rescan)
         btnAddCustom = view.findViewById(R.id.btn_add_custom)
-
     }
 
     private fun setupAdapters() {
@@ -95,76 +88,95 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
         recyclerView.layoutManager = LinearLayoutManager(ctx)
         recyclerView.adapter = foodItemAdapter
-
-        // Search results adapter
-        searchAdapter = FoodSearchAdapter(ctx) { result ->
-            addFoodItem(result)
-        }
-        searchInput.setAdapter(searchAdapter)
     }
 
     private fun setupSearch() {
-        // Debounced search as user types
-        searchInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val query = s?.toString()?.trim() ?: ""
-                if (query.length >= 2) {
-                    performSearch(query)
-                }
+        // Direct add flow: user clicks button to add food
+        btnAddFood.setOnClickListener {
+            val foodName = etFoodName.text.toString().trim()
+            if (foodName.isNotEmpty()) {
+                addFoodItemWithLookup(foodName)
+                etFoodName.text?.clear()
+            } else {
+                ToastHelper.showShort(ctx, "אנא הזן שם מזון")
             }
-        })
+        }
 
-        // Handle item selection from dropdown
-        searchInput.setOnItemClickListener { _, _, position, _ ->
-            val selected = searchAdapter.getItem(position)
-            if (selected != null) {
-                addFoodItem(selected)
-                searchInput.setText("")
-            }
+        // Also add on Enter key
+        etFoodName.setOnEditorActionListener { _, _, _ ->
+            btnAddFood.performClick()
+            true
         }
     }
 
-    private fun performSearch(query: String) {
-        // Cancel previous search
-        searchJob?.cancel()
-
-        searchJob = viewLifecycleOwner.lifecycleScope.launch {
-            // Debounce: wait 300ms before searching
-            delay(300)
-
-            searchLoading.visibility = View.VISIBLE
-
-            val result = searchRepository.searchFood(query)
-
-            searchLoading.visibility = View.GONE
-
-            result.onSuccess { results ->
-                searchAdapter.updateResults(results)
-                if (results.isNotEmpty()) {
-                    searchInput.showDropDown()
-                }
-            }.onFailure { e ->
-                // Silent fail - just don't show results
-                // Could add offline fallback here
-            }
-        }
-    }
-
-    private fun addFoodItem(searchResult: FoodSearchResult) {
+    private fun addFoodItemWithLookup(foodName: String) {
+        // 1. Create item with loading state
         val newItem = EditableFoodItem(
-            name = searchResult.name,
-            weightGrams = searchResult.servingSize ?: 100f,
-            carbsPer100g = searchResult.carbsPer100g,
-            usdaFdcId = searchResult.fdcId
+            name = foodName,
+            weightGrams = 100f,
+            carbsPer100g = null,  // Will be filled after USDA response
+            usdaFdcId = null,
+            isLoading = true
         )
 
+        // 2. Add to list immediately
         editableItems.add(newItem)
         foodItemAdapter.addItem(newItem)
         updateEmptyState()
 
-        ToastHelper.showShort(ctx, "Added: ${searchResult.name}")
+        // 3. Fetch USDA data in background
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val result = searchRepository.searchFood(foodName)
+
+                result.onSuccess { results ->
+                    if (results.isNotEmpty()) {
+                        // Use first (best) result
+                        val bestMatch = results.first()
+
+                        // Update item with USDA data
+                        newItem.carbsPer100g = bestMatch.carbsPer100g
+                        newItem.usdaFdcId = bestMatch.fdcId
+                        newItem.isLoading = false
+
+                        // Use serving size if available
+                        if (bestMatch.servingSize != null && bestMatch.servingSize > 0) {
+                            newItem.weightGrams = bestMatch.servingSize
+                        }
+
+                        foodItemAdapter.notifyItemChanged(
+                            foodItemAdapter.items.indexOf(newItem)
+                        )
+                        updateTotalCarbs()
+                    } else {
+                        // No results found
+                        newItem.isLoading = false
+                        newItem.carbsPer100g = 0f
+                        foodItemAdapter.notifyItemChanged(
+                            foodItemAdapter.items.indexOf(newItem)
+                        )
+                        ToastHelper.showShort(ctx, "לא נמצא מידע עבור: $foodName")
+                    }
+                }
+
+                result.onFailure {
+                    // Network error
+                    newItem.isLoading = false
+                    newItem.carbsPer100g = 0f
+                    foodItemAdapter.notifyItemChanged(
+                        foodItemAdapter.items.indexOf(newItem)
+                    )
+                    ToastHelper.showShort(ctx, "שגיאה בחיפוש נתונים")
+                }
+
+            } catch (e: Exception) {
+                newItem.isLoading = false
+                newItem.carbsPer100g = 0f
+                foodItemAdapter.notifyItemChanged(
+                    foodItemAdapter.items.indexOf(newItem)
+                )
+            }
+        }
     }
 
     private fun setupListeners() {
@@ -190,7 +202,8 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
                 name = item.name,
                 weightGrams = item.weightGrams ?: 100f,
                 carbsPer100g = calculateCarbsPer100g(item),
-                usdaFdcId = null
+                usdaFdcId = null,
+                isLoading = false
             )
             editableItems.add(editable)
         }
@@ -200,7 +213,9 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
             val editable = EditableFoodItem(
                 name = currentMeal.title,
                 weightGrams = 100f,
-                carbsPer100g = currentMeal.carbs
+                carbsPer100g = currentMeal.carbs,
+                usdaFdcId = null,
+                isLoading = false
             )
             editableItems.add(editable)
         }
@@ -337,7 +352,8 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
             name = name,
             weightGrams = weight,
             carbsPer100g = carbsPer100g,
-            usdaFdcId = null  // no USDA ID for custom items
+            usdaFdcId = null,  // no USDA ID for custom items
+            isLoading = false  // Custom items don't need loading
         )
 
         editableItems.add(newItem)
