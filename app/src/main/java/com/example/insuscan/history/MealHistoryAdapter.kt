@@ -74,11 +74,13 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
         private val calcCorrection: TextView = itemView.findViewById(R.id.tv_calc_correction)
         private val calcExercise: TextView = itemView.findViewById(R.id.tv_calc_exercise)
         private val calcFinal: TextView = itemView.findViewById(R.id.tv_calc_final)
+        private val confidenceInfo: TextView = itemView.findViewById(R.id.tv_confidence_info)
+
 
         fun bind(item: HistoryUiModel.MealItem, isExpanded: Boolean) {
             val meal = item.meal
 
-            // Simple binding directly from UI Model
+            // simple binding directly from UI Model
             titleText.text = item.displayTitle
             detailsText.text = item.summaryDetailsText
             timeText.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date(meal.timestamp))
@@ -94,7 +96,7 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
             }
 
             headerLayout.setOnClickListener {
-                val mealId = meal.serverId ?: return@setOnClickListener
+                val mealId = meal.serverId ?: meal.timestamp.toString()  // ✅ fallback ל-timestamp
                 if (expandedPositions.contains(mealId)) {
                     expandedPositions.remove(mealId)
                 } else {
@@ -104,26 +106,65 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
             }
         }
 
+        init {
+            // set listeners once, not on every bind
+            sickIndicator.setOnLongClickListener {
+                showIndicatorExplanation(itemView.context)
+                true
+            }
+            stressIndicator.setOnLongClickListener {
+                showIndicatorExplanation(itemView.context)
+                true
+            }
+        }
+
+        private fun showIndicatorExplanation(context: android.content.Context) {
+            androidx.appcompat.app.AlertDialog.Builder(context)
+                .setTitle("Status Indicators")
+                .setMessage("""
+                🤒 Sick Mode
+                Insulin dose was increased because you were sick.
+                
+                😰 Stress Mode
+                Insulin dose was increased because you were stressed.
+                
+                These adjustments are based on your profile settings.
+            """.trimIndent())
+                .setPositiveButton("Got it", null)
+                .show()
+        }
         private fun bindExpandedContent(item: HistoryUiModel.MealItem) {
-            // No logic here, just assignment
             foodItemsText.text = item.formattedFoodList
 
-            glucoseValue.text = item.glucoseText
             glucoseLayout.isVisible = item.isGlucoseVisible
+            if (item.isGlucoseVisible) {
+                glucoseValue.text = item.glucoseText
+            }
 
-            activityValue.text = item.activityText
             activityLayout.isVisible = item.isActivityVisible
+            if (item.isActivityVisible) {
+                activityValue.text = item.activityText
+            }
 
+            // calculation breakdown
             calcCarbDose.text = item.carbDoseText
-
-            calcCorrection.text = item.correctionDoseText
             calcCorrection.isVisible = item.isCorrectionVisible
-
-            calcExercise.text = item.exerciseDoseText
+            if (item.isCorrectionVisible) {
+                calcCorrection.text = item.correctionDoseText
+            }
             calcExercise.isVisible = item.isExerciseVisible
-
+            if (item.isExerciseVisible) {
+                calcExercise.text = item.exerciseDoseText
+            }
             calcFinal.text = item.finalDoseText
+
+            // added: show confidence info
+            confidenceInfo.isVisible = item.hasConfidenceInfo
+            if (item.hasConfidenceInfo) {
+                confidenceInfo.text = item.confidenceText
+            }
         }
+
     }
 
     companion object {

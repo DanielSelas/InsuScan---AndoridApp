@@ -38,7 +38,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
 
     private val viewModel: HistoryViewModel by viewModels {
-        HistoryViewModelFactory(requireContext())
+        HistoryUiModel.HistoryViewModelFactory(requireContext())
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

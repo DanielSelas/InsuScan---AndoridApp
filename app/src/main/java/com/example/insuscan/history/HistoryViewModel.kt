@@ -100,7 +100,7 @@ sealed class HistoryUiModel {
 
     data class MealItem(val meal: Meal) : HistoryUiModel() {
 
-        // Title: "Banana, Lemon • 81g" or "Banana, Lemon +2 • 120g"
+        // title: "Banana, Lemon • 81g" or "Banana, Lemon +2 • 120g"
         val displayTitle: String
             get() {
                 val items = meal.foodItems
@@ -137,10 +137,18 @@ sealed class HistoryUiModel {
             get() = meal.exerciseAdjustment != null && meal.exerciseAdjustment != 0f
 
         val glucoseText: String
-            get() = "${meal.glucoseLevel} mg/dL"
+            get() {
+                val level = meal.glucoseLevel ?: return ""
+                val units = meal.glucoseUnits ?: "mg/dL"
+                return "$level $units"
+            }
 
         val activityText: String
-            get() = meal.activityLevel ?: ""
+            get() = when (meal.activityLevel) {
+                "light" -> "Light exercise"
+                "intense" -> "Intense exercise"
+                else -> meal.activityLevel ?: ""
+            }
 
         val carbDoseText: String
             get() = "Carb dose: ${DoseFormatter.formatDose(meal.carbDose)}u"
@@ -152,12 +160,40 @@ sealed class HistoryUiModel {
             get() = "Exercise adj: ${DoseFormatter.formatDose(meal.exerciseAdjustment)}u"
 
         val finalDoseText: String
-            get() = "Final dose: ${DoseFormatter.formatDose(meal.insulinDose)}u"
+            get() {
+                val recommended = meal.recommendedDose
+                val actual = meal.insulinDose
+
+                return if (recommended != null && actual != null && recommended != actual) {
+                    // show both if different
+                    "Recommended: ${DoseFormatter.formatDose(recommended)}u → Actual: ${DoseFormatter.formatDose(actual)}u"
+                } else {
+                    // show only actual
+                    "Final dose: ${DoseFormatter.formatDose(actual)}u"
+                }
+            }
 
         val summaryDetailsText: String
             get() = "${meal.carbs.toInt()}g carbs  |  ${DoseFormatter.formatDose(meal.insulinDose)} units"
+
+        // added: confidence info
+        val hasConfidenceInfo: Boolean
+            get() = meal.analysisConfidence != null || meal.referenceObjectDetected == true
+
+        val confidenceText: String
+            get() = buildString {
+                meal.analysisConfidence?.let {
+                    val percentage = (it * 100).toInt()
+                    append("Confidence: $percentage%")
+                }
+                if (meal.analysisConfidence != null && meal.referenceObjectDetected == true) {
+                    append("  •  ")
+                }
+                if (meal.referenceObjectDetected == true) {
+                    append("Reference detected ✓")
+                }
+            }
     }
-}
 
 class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -167,4 +203,5 @@ class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
+}
 }
