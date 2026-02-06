@@ -24,6 +24,7 @@ import com.example.insuscan.network.repository.MealRepository
 import com.example.insuscan.network.repository.MealRepositoryImpl
 import android.app.Dialog
 import android.graphics.BitmapFactory
+import android.util.Log
 import android.view.Window
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -580,8 +581,17 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val activityLevel = getSelectedActivityLevel()
         val unitsPerGram = pm.getUnitsPerGram(ctx)
 
+        // ADD LOGS HERE
+        Log.d("DEBUG_SAVE", "=== Building Updated Meal ===")
+        Log.d("DEBUG_SAVE", "Glucose: $glucoseValue $glucoseUnits")
+        Log.d("DEBUG_SAVE", "Activity: $activityLevel")
+        Log.d("DEBUG_SAVE", "Last calculated dose: $lastCalculatedDose")
+        Log.d("DEBUG_SAVE", "Carb dose: ${unitsPerGram?.let { meal.carbs * it }}")
+        Log.d("DEBUG_SAVE", "Exercise adj: ${calculateExerciseAdjustment(activityLevel, unitsPerGram, meal.carbs)}")
+
         return meal.copy(
             insulinDose = lastCalculatedDose,
+            recommendedDose = lastCalculatedDose,
             glucoseLevel = glucoseValue,
             glucoseUnits = glucoseUnits,
             activityLevel = activityLevel,

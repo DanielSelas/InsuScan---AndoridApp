@@ -19,11 +19,14 @@ data class MealDto(
     val profileComplete: Boolean?,
     val missingProfileFields: List<String>?,
     val insulinMessage: String?,
-    // Professional health status fields added for accuracy
     val wasSickMode: Boolean?,
     val wasStressMode: Boolean?,
 
-    // Server-side insulin fields (Spring MealBoundary uses top-level recommendedDose/actualDose)
+    // added: server stores these at top level too
+    val currentGlucose: Int?,
+    val activityLevel: String?,
+    val glucoseUnits: String?,  // "mg/dL" or "mmol/L"
+
     val recommendedDose: Float?,
     val actualDose: Float?,
     val status: String?,
@@ -59,7 +62,13 @@ data class InsulinCalculationDto(
     val insulinCarbRatio: String?,
     val currentGlucose: Int?,
     val targetGlucose: Int?,
-    val correctionFactor: Float?
+    val correctionFactor: Float?,
+
+    // added: adjustment values from server
+    val sickAdjustment: Float?,
+    val stressAdjustment: Float?,
+    val exerciseAdjustment: Float?,
+    val activityLevel: String?  // "normal", "light", "intense"
 )
 
 // For creating new meal

@@ -40,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.provider.MediaStore
+import androidx.activity.result.PickVisualMediaRequest
 import com.bumptech.glide.Glide
 import com.example.insuscan.network.repository.ScanRepositoryImpl
 
@@ -89,7 +90,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     }
 
     private val galleryLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
+        ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         uri?.let { processGalleryImage(it) }
     }
@@ -257,7 +258,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
         }
         galleryButton.setOnClickListener {
-            galleryLauncher.launch("image/*")
+            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
     }
 
