@@ -78,6 +78,16 @@
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="#1976D2" />
+
+            <!-- Loading indicator -->
+            <TextView
+                android:id="@+id/tv_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🔄 מחפש נתונים..."
+                android:textSize="12sp"
+                android:textColor="#FF9800"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Weight adjustment controls -->

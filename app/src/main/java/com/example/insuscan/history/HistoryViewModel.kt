@@ -107,16 +107,14 @@ sealed class HistoryUiModel {
                 val carbsText = "${meal.carbs.toInt()}g"
 
                 if (items.isNullOrEmpty()) {
-                    return "${meal.title} • $carbsText"
+                    return meal.title
                 }
 
                 val names = items.map { it.name }
-                val foodsText = when {
+                return when {
                     names.size <= 3 -> names.joinToString(", ")
                     else -> "${names.take(2).joinToString(", ")} +${names.size - 2}"
                 }
-
-                return "$foodsText • $carbsText"
             }
 
         val formattedFoodList: String
@@ -150,49 +148,70 @@ sealed class HistoryUiModel {
                 else -> meal.activityLevel ?: ""
             }
 
-        val carbDoseText: String
-            get() = "Carb dose: ${DoseFormatter.formatDose(meal.carbDose)}u"
-
-        val correctionDoseText: String
-            get() = "Correction: ${DoseFormatter.formatDose(meal.correctionDose)}u"
-
-        val exerciseDoseText: String
-            get() = "Exercise adj: ${DoseFormatter.formatDose(meal.exerciseAdjustment)}u"
-
-        val finalDoseText: String
+        // Receipt Style Data
+        val carbDoseLabel: String
             get() {
-                val recommended = meal.recommendedDose
-                val actual = meal.insulinDose
-
-                return if (recommended != null && actual != null && recommended != actual) {
-                    // show both if different
-                    "Recommended: ${DoseFormatter.formatDose(recommended)}u → Actual: ${DoseFormatter.formatDose(actual)}u"
+                // Show formula if we have the data
+                return if (meal.carbDose != null) {
+                    "Insulin for Food (${meal.carbs.toInt()}g carbs)"
                 } else {
-                    // show only actual
-                    "Final dose: ${DoseFormatter.formatDose(actual)}u"
+                    "Insulin for Food"
                 }
             }
 
-        val summaryDetailsText: String
-            get() = "${meal.carbs.toInt()}g carbs  |  ${DoseFormatter.formatDose(meal.insulinDose)} units"
-
-        // added: confidence info
-        val hasConfidenceInfo: Boolean
-            get() = meal.analysisConfidence != null || meal.referenceObjectDetected == true
-
-        val confidenceText: String
-            get() = buildString {
-                meal.analysisConfidence?.let {
-                    val percentage = (it * 100).toInt()
-                    append("Confidence: $percentage%")
-                }
-                if (meal.analysisConfidence != null && meal.referenceObjectDetected == true) {
-                    append("  •  ")
-                }
-                if (meal.referenceObjectDetected == true) {
-                    append("Reference detected ✓")
+        val carbDoseValue: String
+            get() {
+                return if (meal.carbDose != null) {
+                    DoseFormatter.formatDoseWithUnit(meal.carbDose)
+                } else {
+                    "Not calculated"
                 }
             }
+        
+        val carbDoseExplanation: String
+            get() = if (meal.carbDose == null) {
+                "Profile data was missing when this meal was saved"
+            } else {
+                ""
+            }
+
+        val correctionDoseValue: String
+            get() {
+                val dose = meal.correctionDose ?: 0f
+                return if (dose > 0) "+${DoseFormatter.formatDoseWithUnit(dose)}"
+                       else DoseFormatter.formatDoseWithUnit(dose)
+            }
+
+        val exerciseDoseValue: String
+            get() = DoseFormatter.formatDoseWithUnit(meal.exerciseAdjustment)
+
+        val sickDoseValue: String
+            get() = "+${DoseFormatter.formatDoseWithUnit(meal.sickAdjustment)}"
+        
+        val stressDoseValue: String
+            get() = "+${DoseFormatter.formatDoseWithUnit(meal.stressAdjustment)}"
+
+        val totalDoseValue: String
+            get() = DoseFormatter.formatDoseWithUnit(meal.insulinDose ?: meal.recommendedDose)
+
+        // Formatted food list for the new view
+        // "Rice (150g) ... 35g carbs"
+        val receiptFoodList: String
+            get() = meal.foodItems?.joinToString("\n") { item ->
+                val name = item.name
+                val weight = item.weightGrams?.toInt() ?: 0
+                val carbs = item.carbsGrams?.toInt() ?: 0
+                "• $name ($weight" + "g) ... $carbs" + "g carbs"
+            } ?: "• ${meal.title}"
+        
+        val isSickVisible: Boolean
+            get() = meal.sickAdjustment != null && meal.sickAdjustment != 0f
+
+        val isStressVisible: Boolean
+            get() = meal.stressAdjustment != null && meal.stressAdjustment != 0f
+            
+        val hasProfileError: Boolean
+             get() = !meal.profileComplete && (meal.insulinDose == null || meal.insulinDose == 0f)
     }
 
 class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.Factory {

@@ -3,7 +3,6 @@ package com.example.insuscan.history
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
@@ -54,49 +53,126 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
     }
 
     inner class MealViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        // Header views
+        // Header
         private val headerLayout: LinearLayout = itemView.findViewById(R.id.layout_header)
         private val titleText: TextView = itemView.findViewById(R.id.tv_meal_title)
-        private val detailsText: TextView = itemView.findViewById(R.id.tv_meal_details)
+        private val carbsText: TextView = itemView.findViewById(R.id.tv_meal_carbs)
         private val timeText: TextView = itemView.findViewById(R.id.tv_meal_time)
-        private val expandIcon: ImageView = itemView.findViewById(R.id.iv_expand_icon)
-        private val sickIndicator: TextView = itemView.findViewById(R.id.tv_sick_indicator)
-        private val stressIndicator: TextView = itemView.findViewById(R.id.tv_stress_indicator)
+        private val headerDoseBadge: TextView = itemView.findViewById(R.id.tv_header_dose)
+        private val sickIndicator: TextView = itemView.findViewById(R.id.tv_indicator_sick)
+        private val stressIndicator: TextView = itemView.findViewById(R.id.tv_indicator_stress)
 
-        // Expanded section views
+        // Expanded
         private val expandedLayout: LinearLayout = itemView.findViewById(R.id.layout_expanded)
-        private val foodItemsText: TextView = itemView.findViewById(R.id.tv_food_items_list)
-        private val glucoseLayout: LinearLayout = itemView.findViewById(R.id.layout_glucose_info)
-        private val glucoseValue: TextView = itemView.findViewById(R.id.tv_glucose_value)
-        private val activityLayout: LinearLayout = itemView.findViewById(R.id.layout_activity_info)
-        private val activityValue: TextView = itemView.findViewById(R.id.tv_activity_value)
-        private val calcCarbDose: TextView = itemView.findViewById(R.id.tv_calc_carb_dose)
-        private val calcCorrection: TextView = itemView.findViewById(R.id.tv_calc_correction)
-        private val calcExercise: TextView = itemView.findViewById(R.id.tv_calc_exercise)
-        private val calcFinal: TextView = itemView.findViewById(R.id.tv_calc_final)
-        private val confidenceInfo: TextView = itemView.findViewById(R.id.tv_confidence_info)
+        
+        // Context Row
+        private val glucoseLayout: LinearLayout = itemView.findViewById(R.id.layout_context_glucose)
+        private val glucoseValue: TextView = itemView.findViewById(R.id.tv_context_glucose)
+        private val activityLayout: LinearLayout = itemView.findViewById(R.id.layout_context_activity)
+        private val activityValue: TextView = itemView.findViewById(R.id.tv_context_activity)
+        private val modesLayout: LinearLayout = itemView.findViewById(R.id.layout_context_modes)
+        private val statusSick: TextView = itemView.findViewById(R.id.tv_status_sick)
+        private val statusStress: TextView = itemView.findViewById(R.id.tv_status_stress)
+        private val profileErrorText: TextView = itemView.findViewById(R.id.tv_profile_error)
+        
+        // Warning Box
+        private val profileWarningLayout: LinearLayout = itemView.findViewById(R.id.layout_profile_warning)
+
+        // Food List
+        private val foodListText: TextView = itemView.findViewById(R.id.tv_food_list_formatted)
+
+        // Receipt Rows
+        private val receiptCarbLabel: TextView = itemView.findViewById(R.id.tv_receipt_carb_label)
+        private val receiptCarbValue: TextView = itemView.findViewById(R.id.tv_receipt_carb_value)
+        
+        private val rowCorrection: View = itemView.findViewById(R.id.row_receipt_correction)
+        private val receiptCorrectionValue: TextView = itemView.findViewById(R.id.tv_receipt_correction_value)
+        
+        private val rowExercise: View = itemView.findViewById(R.id.row_receipt_exercise)
+        private val receiptExerciseValue: TextView = itemView.findViewById(R.id.tv_receipt_exercise_value)
+        
+        private val rowSick: View = itemView.findViewById(R.id.row_receipt_sick)
+        private val receiptSickValue: TextView = itemView.findViewById(R.id.tv_receipt_sick_value)
+        
+        private val rowStress: View = itemView.findViewById(R.id.row_receipt_stress)
+        private val receiptStressValue: TextView = itemView.findViewById(R.id.tv_receipt_stress_value)
+
+        private val receiptTotalValue: TextView = itemView.findViewById(R.id.tv_receipt_total)
 
 
         fun bind(item: HistoryUiModel.MealItem, isExpanded: Boolean) {
             val meal = item.meal
 
-            // simple binding directly from UI Model
+            // --- Header ---
             titleText.text = item.displayTitle
-            detailsText.text = item.summaryDetailsText
+            carbsText.text = "${meal.carbs.toInt()}g"
             timeText.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date(meal.timestamp))
-
+            headerDoseBadge.text = item.totalDoseValue
+            
+            // Indicators in header
             sickIndicator.isVisible = meal.wasSickMode
             stressIndicator.isVisible = meal.wasStressMode
 
-            expandIcon.rotation = if (isExpanded) 180f else 0f
+            // --- Expanded Control ---
             expandedLayout.isVisible = isExpanded
-
+            
             if (isExpanded) {
-                bindExpandedContent(item)
+                // 1. Context
+                glucoseLayout.isVisible = item.isGlucoseVisible
+                if (item.isGlucoseVisible) {
+                    glucoseValue.text = item.glucoseText
+                }
+                
+                activityLayout.isVisible = item.isActivityVisible
+                if (item.isActivityVisible) {
+                    activityValue.text = item.activityText
+                }
+                
+                // Modes (Sick/Stress Status)
+                val hasModes = meal.wasSickMode || meal.wasStressMode
+                modesLayout.isVisible = hasModes
+                if (hasModes) {
+                    statusSick.isVisible = meal.wasSickMode
+                    statusStress.isVisible = meal.wasStressMode
+                }
+                
+                profileErrorText.isVisible = false // Hidden - we use warning box instead
+                
+                // Warning Box
+                profileWarningLayout.isVisible = item.hasProfileError
+
+                // 2. Food List
+                foodListText.text = item.receiptFoodList
+
+                // 3. Receipt
+                receiptCarbLabel.text = item.carbDoseLabel
+                receiptCarbValue.text = item.carbDoseValue
+
+                rowCorrection.isVisible = item.isCorrectionVisible
+                if (item.isCorrectionVisible) {
+                    receiptCorrectionValue.text = item.correctionDoseValue
+                }
+
+                rowExercise.isVisible = item.isExerciseVisible
+                if (item.isExerciseVisible) {
+                    receiptExerciseValue.text = item.exerciseDoseValue
+                }
+
+                rowSick.isVisible = item.isSickVisible
+                if (item.isSickVisible) {
+                    receiptSickValue.text = item.sickDoseValue
+                }
+                
+                rowStress.isVisible = item.isStressVisible
+                if (item.isStressVisible) {
+                    receiptStressValue.text = item.stressDoseValue
+                }
+
+                receiptTotalValue.text = item.totalDoseValue
             }
 
             headerLayout.setOnClickListener {
-                val mealId = meal.serverId ?: meal.timestamp.toString()  // ✅ fallback ל-timestamp
+                val mealId = meal.serverId ?: meal.timestamp.toString()
                 if (expandedPositions.contains(mealId)) {
                     expandedPositions.remove(mealId)
                 } else {
@@ -105,66 +181,6 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
                 notifyItemChanged(bindingAdapterPosition)
             }
         }
-
-        init {
-            // set listeners once, not on every bind
-            sickIndicator.setOnLongClickListener {
-                showIndicatorExplanation(itemView.context)
-                true
-            }
-            stressIndicator.setOnLongClickListener {
-                showIndicatorExplanation(itemView.context)
-                true
-            }
-        }
-
-        private fun showIndicatorExplanation(context: android.content.Context) {
-            androidx.appcompat.app.AlertDialog.Builder(context)
-                .setTitle("Status Indicators")
-                .setMessage("""
-                🤒 Sick Mode
-                Insulin dose was increased because you were sick.
-                
-                😰 Stress Mode
-                Insulin dose was increased because you were stressed.
-                
-                These adjustments are based on your profile settings.
-            """.trimIndent())
-                .setPositiveButton("Got it", null)
-                .show()
-        }
-        private fun bindExpandedContent(item: HistoryUiModel.MealItem) {
-            foodItemsText.text = item.formattedFoodList
-
-            glucoseLayout.isVisible = item.isGlucoseVisible
-            if (item.isGlucoseVisible) {
-                glucoseValue.text = item.glucoseText
-            }
-
-            activityLayout.isVisible = item.isActivityVisible
-            if (item.isActivityVisible) {
-                activityValue.text = item.activityText
-            }
-
-            // calculation breakdown
-            calcCarbDose.text = item.carbDoseText
-            calcCorrection.isVisible = item.isCorrectionVisible
-            if (item.isCorrectionVisible) {
-                calcCorrection.text = item.correctionDoseText
-            }
-            calcExercise.isVisible = item.isExerciseVisible
-            if (item.isExerciseVisible) {
-                calcExercise.text = item.exerciseDoseText
-            }
-            calcFinal.text = item.finalDoseText
-
-            // added: show confidence info
-            confidenceInfo.isVisible = item.hasConfidenceInfo
-            if (item.hasConfidenceInfo) {
-                confidenceInfo.text = item.confidenceText
-            }
-        }
-
     }
 
     companion object {

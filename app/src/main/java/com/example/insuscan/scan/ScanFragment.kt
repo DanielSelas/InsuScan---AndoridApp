@@ -518,34 +518,17 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     // Helper to convert server response to local Meal
     private fun convertMealDtoToMeal(dto: MealDto, portionResult: PortionResult?): Meal {
-        val totalCarbs = dto.totalCarbs ?: dto.foodItems?.sumOf {
-            (it.carbsGrams ?: 0f).toDouble()
-        }?.toFloat() ?: 0f
+        // Use the centralized mapper which includes name sanitization logic
+        val mappedMeal = com.example.insuscan.mapping.MealDtoMapper.map(dto)
 
-        return Meal(
-            title = dto.foodItems?.firstOrNull()?.name ?: "Detected meal",
-            carbs = totalCarbs,
+        // Apply local overrides (portion analysis fallbacks that might not be in DTO if server failed to update)
+        return mappedMeal.copy(
             portionWeightGrams = dto.estimatedWeight ?: (portionResult as? PortionResult.Success)?.estimatedWeightGrams,
             portionVolumeCm3 = dto.plateVolumeCm3 ?: (portionResult as? PortionResult.Success)?.volumeCm3,
             plateDiameterCm = dto.plateDiameterCm ?: (portionResult as? PortionResult.Success)?.plateDiameterCm,
             plateDepthCm = dto.plateDepthCm ?: (portionResult as? PortionResult.Success)?.depthCm,
             analysisConfidence = dto.analysisConfidence ?: (portionResult as? PortionResult.Success)?.confidence,
-            referenceObjectDetected = dto.referenceDetected ?: (portionResult as? PortionResult.Success)?.referenceObjectDetected,
-
-            profileComplete = dto.profileComplete ?: false,
-            insulinMessage = dto.insulinMessage,
-            missingProfileFields = dto.missingProfileFields ?: emptyList(),
-            serverId = dto.mealId?.id,
-
-            foodItems = dto.foodItems?.map { item ->
-                FoodItem(
-                    name = item.name,
-                    nameHebrew = item.nameHebrew,
-                    carbsGrams = item.carbsGrams,
-                    weightGrams = item.estimatedWeightGrams,
-                    confidence = item.confidence
-                )
-            }
+            referenceObjectDetected = dto.referenceDetected ?: (portionResult as? PortionResult.Success)?.referenceObjectDetected
         )
     }
 

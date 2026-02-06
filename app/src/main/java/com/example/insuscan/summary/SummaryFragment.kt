@@ -33,7 +33,7 @@ import java.io.File
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     // Food detection views
-    private lateinit var mealItemsText: TextView
+    private lateinit var mealItemsContainer: LinearLayout
     private lateinit var totalCarbsText: TextView
     private lateinit var editButton: Button
 
@@ -137,7 +137,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private fun findViews(view: View) {
         // Food detection
-        mealItemsText = view.findViewById(R.id.tv_meal_items)
+        mealItemsContainer = view.findViewById(R.id.layout_meal_items_container)
         totalCarbsText = view.findViewById(R.id.tv_total_carbs)
         editButton = view.findViewById(R.id.btn_edit_meal)
 
@@ -277,8 +277,10 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private fun updateFoodDisplay() {
         val meal = MealSessionManager.currentMeal
 
+        mealItemsContainer.removeAllViews()
+
         if (meal == null) {
-            mealItemsText.text = "No meal data"
+            addSingleMessageRow("No meal data")
             totalCarbsText.text = "Total carbs: -- g"
             return
         }
@@ -286,18 +288,95 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         // Check if we have actual food detection results
         val items = meal.foodItems
         if (!items.isNullOrEmpty()) {
-            val itemsText = items.joinToString("\n") { item ->
+            var calculatedTotalCarbs = 0f
+
+            items.forEachIndexed { index, item ->
                 val name = item.nameHebrew ?: item.name
                 val carbs = item.carbsGrams?.toInt() ?: 0
-                "• $name (${carbs}g carbs)"
+                val weight = item.weightGrams?.toInt()
+                
+                // Accumulate total from items for consistency
+                calculatedTotalCarbs += (item.carbsGrams ?: 0f)
+
+                addFoodItemRow(name, weight, carbs, index == items.lastIndex)
             }
-            mealItemsText.text = itemsText
-            totalCarbsText.text = "Total carbs: ${meal.carbs.toInt()} g"
+            
+            // Update total text with the calculated sum
+            totalCarbsText.text = "Total carbs: ${calculatedTotalCarbs.toInt()} g"
         } else {
             // No food detected - show clear message
-            mealItemsText.text = "No food detected in image"
+            addSingleMessageRow("No food detected in image")
             totalCarbsText.text = "Total carbs: 0 g"
         }
+    }
+
+    private fun addFoodItemRow(name: String, weight: Int?, carbs: Int, isLast: Boolean) {
+        val row = LinearLayout(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 16, 0, 16)
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+
+        // 1. Food Name
+        val nameText = TextView(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            text = name
+            textSize = 16f
+            setTextColor(0xFF424242.toInt())
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        row.addView(nameText)
+
+        // 2. Weight (if available)
+        if (weight != null && weight > 0) {
+            val weightText = TextView(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                text = "Weight: ${weight}g"
+                textSize = 13f
+                setTextColor(0xFF757575.toInt())
+                setPadding(16, 0, 16, 0)
+            }
+            row.addView(weightText)
+        }
+
+        // 3. Carbs
+        val carbsText = TextView(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            text = "Carbs: ${carbs}g"
+            textSize = 14f
+            setTextColor(0xFF1976D2.toInt()) // Blue distinct color
+            setTypeface(null, android.graphics.Typeface.BOLD)
+        }
+        row.addView(carbsText)
+
+        mealItemsContainer.addView(row)
+
+        // Divider
+        if (!isLast) {
+             val divider = View(ctx).apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2) // slightly thicker divider
+                setBackgroundColor(0xFFEEEEEE.toInt())
+             }
+             mealItemsContainer.addView(divider)
+        }
+    }
+
+    private fun addSingleMessageRow(message: String) {
+        val textView = TextView(ctx).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            text = message
+            textSize = 15f
+            setTextColor(0xFF616161.toInt())
+            setPadding(0, 8, 0, 8)
+        }
+        mealItemsContainer.addView(textView)
     }
 
     private fun calculateDose() {
@@ -583,10 +662,16 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         // ADD LOGS HERE
         Log.d("DEBUG_SAVE", "=== Building Updated Meal ===")
+        Log.d("DEBUG_SAVE", "ICR Raw: ${pm.getInsulinCarbRatioRaw(ctx)}")
+        Log.d("DEBUG_SAVE", "Units per gram: $unitsPerGram")
+        Log.d("DEBUG_SAVE", "Meal carbs (input): ${meal.carbs}")
+        Log.d("DEBUG_SAVE", "Meal carbDose (input): ${meal.carbDose}")
         Log.d("DEBUG_SAVE", "Glucose: $glucoseValue $glucoseUnits")
         Log.d("DEBUG_SAVE", "Activity: $activityLevel")
         Log.d("DEBUG_SAVE", "Last calculated dose: $lastCalculatedDose")
-        Log.d("DEBUG_SAVE", "Carb dose: ${unitsPerGram?.let { meal.carbs * it }}")
+        
+        val calculatedCarbDose = unitsPerGram?.let { meal.carbs * it }
+        Log.d("DEBUG_SAVE", "Calculated Carb dose: $calculatedCarbDose")
         Log.d("DEBUG_SAVE", "Exercise adj: ${calculateExerciseAdjustment(activityLevel, unitsPerGram, meal.carbs)}")
 
         return meal.copy(
@@ -595,9 +680,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             glucoseLevel = glucoseValue,
             glucoseUnits = glucoseUnits,
             activityLevel = activityLevel,
-            carbDose = unitsPerGram?.let { meal.carbs * it },
+            carbDose = calculatedCarbDose,
             correctionDose = calculateCorrectionDose(glucoseValue, glucoseUnits, unitsPerGram),
             exerciseAdjustment = calculateExerciseAdjustment(activityLevel, unitsPerGram, meal.carbs),
+            sickAdjustment = calculateSickAdjustment(meal.carbs, unitsPerGram, correctionDose = calculateCorrectionDose(glucoseValue, glucoseUnits, unitsPerGram)),
+            stressAdjustment = calculateStressAdjustment(meal.carbs, unitsPerGram, correctionDose = calculateCorrectionDose(glucoseValue, glucoseUnits, unitsPerGram)),
             wasSickMode = pm.isSickModeEnabled(ctx),
             wasStressMode = pm.isStressModeEnabled(ctx)
         )
@@ -636,45 +723,53 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         return -(carbDose * adjPercent / 100f)
     }
 
+    private fun calculateSickAdjustment(carbs: Float, unitsPerGram: Float?, correctionDose: Float?): Float? {
+        if (!UserProfileManager.isSickModeEnabled(ctx) || unitsPerGram == null) return null
+        
+        val carbDose = carbs * unitsPerGram
+        val baseDose = carbDose + (correctionDose ?: 0f)
+        val sickPercent = UserProfileManager.getSickDayAdjustment(ctx)
+        return baseDose * (sickPercent / 100f)
+    }
+
+    private fun calculateStressAdjustment(carbs: Float, unitsPerGram: Float?, correctionDose: Float?): Float? {
+        if (!UserProfileManager.isStressModeEnabled(ctx) || unitsPerGram == null) return null
+
+        val carbDose = carbs * unitsPerGram
+        val baseDose = carbDose + (correctionDose ?: 0f)
+        val stressPercent = UserProfileManager.getStressAdjustment(ctx)
+        return baseDose * (stressPercent / 100f)
+    }
+
     private fun saveToServer(mealId: String, dose: Float?) {
         logButton.isEnabled = false
 
         lifecycleScope.launch {
             try {
-                // OLD: confirmMeal(mealId, dose) - relies on server state
-                // NEW: saveScannedMeal(mealDto) - sends full state
+                // Use the current meal from session which has been updated with the latest UI values
+                val currentMeal = MealSessionManager.currentMeal
+                if (currentMeal == null) {
+                     showError("Error: No meal data to save")
+                     logButton.isEnabled = true
+                     return@launch
+                }
 
-                val currentMeal = MealSessionManager.currentMeal ?: return@launch
-                // Ensure the meal object has the latest dose/glucose from the UI (already done in performSave, but good to be sure)
-                // performSave passes 'meal' (which is 'updatedMeal') to this function? 
-                // Wait, performSave calls logic to update MealSessionManager, so currentMeal is updated.
-                // But performSave calls saveToServer(mealId, dose). It doesn't pass the meal object.
-                // I should probably use MealSessionManager.currentMeal since it was just updated.
-
-                // Need mapper
+                // Map to DTO to send the full object (including carb dose, correction, etc.)
                 val mealDto = com.example.insuscan.mapping.MealDtoMapper.mapToDto(currentMeal)
-                
-                val userEmail = com.example.insuscan.auth.AuthManager.getUserEmail()
-                android.util.Log.d("DEBUG_SAVE", "Attempting save for email: $userEmail")
-                
-                if (userEmail == null) {
-                    showError("Error: User not logged in (Email is null)")
-                    logButton.isEnabled = true
-                    return@launch
-                }
+                val userEmail = com.example.insuscan.auth.AuthManager.getUserEmail() ?: ""
 
-                android.util.Log.d("DEBUG_SAVE", "Calling repository.saveScannedMeal...")
+                // Use saveScannedMeal to save the detailed breakdown to the server
                 val result = mealRepository.saveScannedMeal(userEmail, mealDto)
-                
-                if (result.isSuccess) {
-                     android.util.Log.d("DEBUG_SAVE", "Repository returned Success!")
-                } else {
-                     android.util.Log.e("DEBUG_SAVE", "Repository returned Failure: ${result.exceptionOrNull()?.message}")
-                }
 
-                handleSaveResult(result)
+                if (result.isSuccess) {
+                    ToastHelper.showShort(ctx, "Meal logged successfully")
+                    selectHistoryTab()
+                } else {
+                    val errorMsg = result.exceptionOrNull()?.message ?: "Unknown error"
+                    showError("Failed to save: $errorMsg")
+                    logButton.isEnabled = true
+                }
             } catch (e: Exception) {
-                android.util.Log.e("DEBUG_SAVE", "Exception in saveToServer: ${e.message}", e)
                 showError("Error: ${e.message}")
                 logButton.isEnabled = true
             }

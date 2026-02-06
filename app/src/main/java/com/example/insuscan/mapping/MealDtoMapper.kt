@@ -27,8 +27,20 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             analysisConfidence = from.analysisConfidence,
             referenceObjectDetected = from.referenceDetected,
 
-            // food items
-            foodItems = from.foodItems?.map { FoodItemDtoMapper.map(it) },
+            // food items (sanitize "Item with X" names if breakdown exists)
+            foodItems = from.foodItems?.map { FoodItemDtoMapper.map(it) }?.let { items ->
+                if (items.size > 1) {
+                    items.map { item ->
+                        if (item.name.contains(" with ", ignoreCase = true)) {
+                            item.copy(name = item.name.replace(Regex(" with .*", RegexOption.IGNORE_CASE), ""))
+                        } else {
+                            item
+                        }
+                    }
+                } else {
+                    items
+                }
+            },
 
             // technical (save for documentation)
             profileComplete = from.profileComplete ?: false,
@@ -42,10 +54,12 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             // fixed: read activity from both top level and insulinCalculation
             activityLevel = from.activityLevel ?: from.insulinCalculation?.activityLevel,
 
-            // fixed: calculation breakdown - now reads all fields
-            carbDose = from.insulinCalculation?.carbDose,
-            correctionDose = from.insulinCalculation?.correctionDose,
-            exerciseAdjustment = from.insulinCalculation?.exerciseAdjustment,
+            // fixed: calculation breakdown - read from top level first, fallback to nested
+            carbDose = from.carbDose ?: from.insulinCalculation?.carbDose,
+            correctionDose = from.correctionDose ?: from.insulinCalculation?.correctionDose,
+            exerciseAdjustment = from.exerciseAdjustment ?: from.insulinCalculation?.exerciseAdjustment,
+            sickAdjustment = from.sickAdjustment ?: from.insulinCalculation?.sickAdjustment,
+            stressAdjustment = from.stressAdjustment ?: from.insulinCalculation?.stressAdjustment,
 
             // context flags
             wasSickMode = from.wasSickMode == true,
@@ -81,8 +95,8 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
                 currentGlucose = meal.glucoseLevel,
                 targetGlucose = null,
                 correctionFactor = null,
-                sickAdjustment = null,  // calculated on server
-                stressAdjustment = null,  // calculated on server
+                sickAdjustment = meal.sickAdjustment,
+                stressAdjustment = meal.stressAdjustment,
                 exerciseAdjustment = meal.exerciseAdjustment,
                 activityLevel = meal.activityLevel
             ),
@@ -91,6 +105,13 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             currentGlucose = meal.glucoseLevel,
             glucoseUnits = meal.glucoseUnits,  // added
             activityLevel = meal.activityLevel,
+
+            // Calculation breakdown at top level
+            carbDose = meal.carbDose,
+            correctionDose = meal.correctionDose,
+            sickAdjustment = meal.sickAdjustment,
+            stressAdjustment = meal.stressAdjustment,
+            exerciseAdjustment = meal.exerciseAdjustment,
 
             // technical (save for documentation)
             profileComplete = meal.profileComplete,
