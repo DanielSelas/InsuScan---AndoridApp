@@ -4,10 +4,10 @@ package com.example.insuscan.meal
 data class Meal(
     val title: String,
     val carbs: Float,
-    val insulinDose: Float? = null,
+    val insulinDose: Float? = null,  // this will become actualDose
     val timestamp: Long = System.currentTimeMillis(),
 
-    // Portion analysis data (from ARCore + OpenCV)
+    // portion analysis data (save but don't display)
     val portionWeightGrams: Float? = null,
     val portionVolumeCm3: Float? = null,
     val plateDiameterCm: Float? = null,
@@ -15,28 +15,31 @@ data class Meal(
     val analysisConfidence: Float? = null,
     val referenceObjectDetected: Boolean? = null,
 
-    // Food items from server
+    // food items from server
     val foodItems: List<FoodItem>? = null,
 
-    // Server IDs for sync
+    // server IDs for sync
     val serverId: String? = null,
 
-    // Local image path
+    // local image path
     val imagePath: String? = null,
 
-    // Context flags (existing)
+    // context flags
     val wasSickMode: Boolean = false,
     val wasStressMode: Boolean = false,
 
-    // Glucose and activity data
+    // glucose and activity data
     val glucoseLevel: Int? = null,
-    val glucoseUnits: String? = null,  // "mg/dL" or "mmol/L"
+    val glucoseUnits: String? = null,  // already exists - keep it
     val activityLevel: String? = null,  // "normal", "light", "intense"
 
-    // Calculation breakdown
+    // calculation breakdown
     val carbDose: Float? = null,
     val correctionDose: Float? = null,
     val exerciseAdjustment: Float? = null,
+
+    // added: separate recommended from actual
+    val recommendedDose: Float? = null,
 
     val profileComplete: Boolean = false,
     val missingProfileFields: List<String> = emptyList(),
