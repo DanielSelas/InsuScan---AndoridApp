@@ -160,6 +160,18 @@
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="#1976D2" />
+
+                <!-- Confidence info -->
+                <TextView
+                    android:id="@+id/tv_confidence_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Confidence: 85% • Reference detected ✓"
+                    android:textSize="12sp"
+                    android:textColor="#9E9E9E"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="4dp"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <!-- Activity section -->
