@@ -4,10 +4,15 @@ data class EditableFoodItem(
     val id: String = java.util.UUID.randomUUID().toString(),
     var name: String,
     var weightGrams: Float,
-    var carbsPer100g: Float,  // carbs per 100g from USDA
-    var usdaFdcId: String? = null
+    var carbsPer100g: Float?,  // Nullable - will be filled after USDA lookup
+    var usdaFdcId: String? = null,
+    var isLoading: Boolean = false  // True while fetching USDA data
 ) {
-    // Calculate actual carbs based on weight
+    // Calculate actual carbs based on weight (only if we have carbs data)
     val totalCarbs: Float
-        get() = (weightGrams * carbsPer100g) / 100f
+        get() = if (carbsPer100g != null) {
+            (weightGrams * carbsPer100g!!) / 100f
+        } else {
+            0f  // Return 0 if data not yet loaded
+        }
 }

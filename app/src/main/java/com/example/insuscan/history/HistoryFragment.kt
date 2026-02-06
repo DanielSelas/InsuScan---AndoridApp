@@ -111,7 +111,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
                 adapter.submitData(PagingData.empty())
             }
 
-            val apiDateString = DateTimeHelper.formatForApi(selection)
+            val apiDateString = DateTimeHelper.formatDateForFilter(selection)
             Log.d("HistoryFilter", "Date picker selected: $selection ms -> API date: $apiDateString")
 
             val uiFormat = SimpleDateFormat("dd MMM", Locale.getDefault())

@@ -10,7 +10,8 @@ class FoodSearchRepositoryImpl : BaseRepository(), FoodSearchRepository {
 
     override suspend fun searchFood(query: String): Result<List<FoodSearchResult>> {
         return try {
-            val response = api.searchFood(query, limit = 15)
+            // Simple USDA search - top 3 results only
+            val response = api.searchFood(query, limit = 3)
 
             if (response.isSuccessful && response.body() != null) {
                 val results = response.body()!!
