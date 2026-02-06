@@ -51,15 +51,23 @@ object UserProfileManager {
     fun getUnitsPerGram(context: Context): Float? {
         val ratioText = getInsulinCarbRatioRaw(context) ?: return null
 
-        // expecting format like "1:10"
-        val parts = ratioText.split(":")
-        if (parts.size != 2) return null
+        // Case 1: Format "1:10"
+        if (ratioText.contains(":")) {
+            val parts = ratioText.split(":")
+            if (parts.size != 2) return null
+            val units = parts[0].toFloatOrNull() ?: return null
+            val grams = parts[1].toFloatOrNull() ?: return null
+            if (grams == 0f) return null
+            return units / grams
+        }
 
-        val units = parts[0].toFloatOrNull() ?: return null
-        val grams = parts[1].toFloatOrNull() ?: return null
+        // Case 2: Just a number "10" (means 1 unit : 10 grams)
+        val grams = ratioText.toFloatOrNull()
+        if (grams != null && grams > 0) {
+            return 1.0f / grams
+        }
 
-        if (grams == 0f) return null
-        return units / grams
+        return null
     }
 
     // endregion

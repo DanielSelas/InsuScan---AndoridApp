@@ -124,15 +124,12 @@
 
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/tv_meal_items"
+                    <LinearLayout
+                        android:id="@+id/layout_meal_items_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Detected items will appear here"
-                        android:textSize="15sp"
-                        android:textColor="#616161"
-                        android:layout_marginTop="8dp"
-                        android:lineSpacingExtra="4dp" />
+                        android:orientation="vertical"
+                        android:layout_marginTop="8dp" />
 
                     <View
                         android:layout_width="match_parent"

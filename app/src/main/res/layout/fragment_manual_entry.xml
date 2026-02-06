@@ -39,55 +39,55 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔍 Search Food Database"
+                android:text="➕ הוסף מזון"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="#666666" />
 
-            <AutoCompleteTextView
-                android:id="@+id/actv_food_search"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="Type to search (e.g. rice, chicken...)"
-                android:inputType="text"
-                android:padding="12dp"
-                android:background="@drawable/edit_text_rounded"
-                android:completionThreshold="2"
-                android:dropDownHeight="200dp" />
-
-            <!-- Loading indicator and add custom button row -->
+            <!-- Input row: EditText + Add button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="8dp">
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical">
 
-                <ProgressBar
-                    android:id="@+id/pb_search_loading"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:visibility="gone" />
-
-                <View
+                <EditText
+                    android:id="@+id/et_food_name"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="לדוגמה: אורז לבן, עוף, בננה..."
+                    android:inputType="text"
+                    android:padding="12dp"
+                    android:background="@drawable/edit_text_rounded"
+                    android:imeOptions="actionDone" />
 
                 <Button
-                    android:id="@+id/btn_add_custom"
+                    android:id="@+id/btn_add_food"
                     android:layout_width="wrap_content"
-                    android:layout_height="36dp"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:paddingHorizontal="12dp"
-                    android:text="+ Add Custom"
-                    android:textSize="13sp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="8dp"
+                    android:text="הוסף"
                     android:textAllCaps="false"
-                    style="@style/Widget.Material3.Button.TextButton" />
+                    android:paddingHorizontal="20dp" />
 
             </LinearLayout>
+
+            <!-- Custom food button (kept for manual entry) -->
+            <Button
+                android:id="@+id/btn_add_custom"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_gravity="end"
+                android:layout_marginTop="4dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="12dp"
+                android:text="+ Add Custom (No USDA)"
+                android:textSize="12sp"
+                android:textAllCaps="false"
+                style="@style/Widget.Material3.Button.TextButton" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

@@ -27,6 +27,13 @@ data class MealDto(
     val activityLevel: String?,
     val glucoseUnits: String?,  // "mg/dL" or "mmol/L"
 
+    // Calculation breakdown (top level)
+    val carbDose: Float?,
+    val correctionDose: Float?,
+    val sickAdjustment: Float?,
+    val stressAdjustment: Float?,
+    val exerciseAdjustment: Float?,
+
     val recommendedDose: Float?,
     val actualDose: Float?,
     val status: String?,

@@ -37,6 +37,8 @@ data class Meal(
     val carbDose: Float? = null,
     val correctionDose: Float? = null,
     val exerciseAdjustment: Float? = null,
+    val sickAdjustment: Float? = null,
+    val stressAdjustment: Float? = null,
 
     // added: separate recommended from actual
     val recommendedDose: Float? = null,

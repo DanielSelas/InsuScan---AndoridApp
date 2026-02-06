@@ -118,4 +118,10 @@ interface InsuScanApi {
         @Query("query") query: String,
         @Query("limit") limit: Int = 10
     ): Response<List<FoodSearchResultDto>>
+    
+    // AI-enhanced food search with intelligent ranking
+    @POST("food/ai-search")
+    suspend fun aiSearchFood(
+        @Body request: AiSearchRequestDto
+    ): Response<AiSearchResponseDto>
 }

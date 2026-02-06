@@ -29,9 +29,39 @@ class FoodSearchAdapter(
 
         val item = getItem(position) ?: return view
 
+        // Food name
         view.findViewById<TextView>(R.id.tv_food_name).text = item.name
+        
+        // Carbs info
         view.findViewById<TextView>(R.id.tv_food_carbs).text =
             "${item.carbsPer100g.toInt()}g carbs per 100g"
+
+        // AI match reason (if available)
+        val matchReasonView = view.findViewById<TextView>(R.id.tv_match_reason)
+        if (item.matchReason != null) {
+            matchReasonView.text = item.matchReason
+            matchReasonView.visibility = View.VISIBLE
+        } else {
+            matchReasonView.visibility = View.GONE
+        }
+
+        // AI relevance score badge (if available)
+        val scoreView = view.findViewById<TextView>(R.id.tv_relevance_score)
+        if (item.relevanceScore != null && item.relevanceScore > 0) {
+            scoreView.text = "${item.relevanceScore}%"
+            scoreView.visibility = View.VISIBLE
+            
+            // Color badge based on score
+            val backgroundColor = when {
+                item.relevanceScore >= 90 -> 0xFF4CAF50.toInt() // Green - excellent match
+                item.relevanceScore >= 70 -> 0xFF8BC34A.toInt() // Light green - good match
+                item.relevanceScore >= 50 -> 0xFFFFC107.toInt() // Amber - moderate match
+                else -> 0xFFFF9800.toInt() // Orange - weak match
+            }
+            scoreView.setBackgroundColor(backgroundColor)
+        } else {
+            scoreView.visibility = View.GONE
+        }
 
         return view
     }

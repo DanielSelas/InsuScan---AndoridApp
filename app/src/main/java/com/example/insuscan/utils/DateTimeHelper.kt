@@ -60,4 +60,11 @@ object DateTimeHelper {
     fun formatForApi(timestamp: Long): String {
         return FULL_ISO_FORMAT.format(Date(timestamp))
     }
+
+    // Formats date for filtering (YYYY-MM-DD) - matches server expectation
+    fun formatDateForFilter(timestamp: Long): String {
+        return SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }.format(Date(timestamp))
+    }
 }
