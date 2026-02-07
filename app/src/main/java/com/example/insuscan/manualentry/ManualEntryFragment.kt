@@ -112,6 +112,9 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
                 editableItems.remove(item)
                 foodItemAdapter.removeItem(item)
                 updateEmptyState()
+            },
+            onItemEdit = { item ->
+                showEditItemDialog(item)
             }
         )
 
@@ -461,6 +464,64 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
         updateTotalCarbs()
 
         ToastHelper.showShort(ctx, "✅ Added: $name")
+        ToastHelper.showShort(ctx, "✅ Added: $name")
+    }
+
+    private fun showEditItemDialog(item: EditableFoodItem) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_custom_food, null)
+        val etName = dialogView.findViewById<TextInputEditText>(R.id.et_food_name)
+        val etDialogWeight = dialogView.findViewById<TextInputEditText>(R.id.et_weight)
+        val etCarbsPer100g = dialogView.findViewById<TextInputEditText>(R.id.et_carbs_per_100g)
+        val tvCarbsPreview = dialogView.findViewById<TextView>(R.id.tv_carbs_preview)
+
+        etName.setText(item.name)
+        etDialogWeight.setText(item.weightGrams.toInt().toString())
+        etCarbsPer100g.setText(item.carbsPer100g?.toInt()?.toString() ?: "0")
+
+        val updatePreview = {
+            val weight = etDialogWeight.text.toString().toFloatOrNull() ?: 0f
+            val carbsPer100g = etCarbsPer100g.text.toString().toFloatOrNull() ?: 0f
+            val totalCarbs = (weight * carbsPer100g) / 100f
+            tvCarbsPreview.text = "Total carbs: ${totalCarbs.toInt()}g"
+        }
+
+        // Initial preview
+        updatePreview()
+
+        val textWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) { updatePreview() }
+        }
+
+        etDialogWeight.addTextChangedListener(textWatcher)
+        etCarbsPer100g.addTextChangedListener(textWatcher)
+
+        AlertDialog.Builder(ctx)
+            .setTitle("Edit Item")
+            .setView(dialogView)
+            .setPositiveButton("Update") { _, _ ->
+                val name = etName.text.toString().trim()
+                val weight = etDialogWeight.text.toString().toFloatOrNull()
+                val carbsPer100gVal = etCarbsPer100g.text.toString().toFloatOrNull()
+
+                if (name.isNotEmpty() && weight != null && carbsPer100gVal != null) {
+                    // Update item
+                    item.name = name
+                    item.weightGrams = weight
+                    item.carbsPer100g = carbsPer100gVal
+                    
+                    // Notify adapter
+                    val index = foodItemAdapter.items.indexOf(item)
+                    if (index >= 0) {
+                        foodItemAdapter.notifyItemChanged(index)
+                    }
+                    updateTotalCarbs()
+                    ToastHelper.showShort(ctx, "Updated")
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupListeners() {
