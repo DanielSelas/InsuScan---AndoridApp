@@ -298,7 +298,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
                 // Accumulate total from items for consistency
                 calculatedTotalCarbs += (item.carbsGrams ?: 0f)
 
-                addFoodItemRow(name, weight, carbs, index == items.lastIndex)
+                addFoodItemRow(item, index, index == items.lastIndex)
             }
             
             // Update total text with the calculated sum
@@ -310,7 +310,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         }
     }
 
-    private fun addFoodItemRow(name: String, weight: Int?, carbs: Int, isLast: Boolean) {
+    private fun addFoodItemRow(item: com.example.insuscan.meal.FoodItem, index: Int, isLast: Boolean) {
         val row = LinearLayout(ctx).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -319,50 +319,140 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             orientation = LinearLayout.HORIZONTAL
             setPadding(0, 16, 0, 16)
             gravity = android.view.Gravity.CENTER_VERTICAL
+            isClickable = true
+            isFocusable = true
+            // Add ripple effect
+            val outValue = android.util.TypedValue()
+            ctx.theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
+            setBackgroundResource(outValue.resourceId)
         }
+
+        val name = item.nameHebrew ?: item.name
+        val carbs = item.carbsGrams?.toInt() ?: 0
+        val weight = item.weightGrams?.toInt()
+        val hasMissingData = carbs == 0
 
         // 1. Food Name
         val nameText = TextView(ctx).apply {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            text = name
+            text = if (hasMissingData) "⚠️ $name" else name
             textSize = 16f
-            setTextColor(0xFF424242.toInt())
+            setTextColor(if (hasMissingData) 0xFFD32F2F.toInt() else 0xFF424242.toInt())
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
         row.addView(nameText)
 
-        // 2. Weight (if available)
+        // 2. Weight (Editable)
         if (weight != null && weight > 0) {
             val weightText = TextView(ctx).apply {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                text = "Weight: ${weight}g"
+                text = "Weight: ${weight}g ✎" // Add pencil icon to indicate editability
                 textSize = 13f
-                setTextColor(0xFF757575.toInt())
+                setTextColor(0xFF1976D2.toInt()) // Blue to indicate interaction
                 setPadding(16, 0, 16, 0)
+                setOnClickListener {
+                    showWeightEditDialog(index, item)
+                }
             }
             row.addView(weightText)
         }
 
-        // 3. Carbs
-        val carbsText = TextView(ctx).apply {
+        // 3. Carbs or Missing Data Action
+        val trailingText = TextView(ctx).apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            text = "Carbs: ${carbs}g"
-            textSize = 14f
-            setTextColor(0xFF1976D2.toInt()) // Blue distinct color
-            setTypeface(null, android.graphics.Typeface.BOLD)
+            if (hasMissingData) {
+                text = "Fix >"
+                textSize = 14f
+                setTextColor(0xFFD32F2F.toInt()) // Red
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            } else {
+                text = "Carbs: ${carbs}g"
+                textSize = 14f
+                setTextColor(0xFF1976D2.toInt()) // Blue distinct color
+                setTypeface(null, android.graphics.Typeface.BOLD)
+            }
         }
-        row.addView(carbsText)
+        row.addView(trailingText)
+
+        // Row Click Listener
+        if (hasMissingData) {
+            row.setOnClickListener {
+                findNavController().navigate(R.id.action_summaryFragment_to_manualEntryFragment)
+            }
+        }
 
         mealItemsContainer.addView(row)
 
         // Divider
         if (!isLast) {
              val divider = View(ctx).apply {
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2) // slightly thicker divider
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2)
                 setBackgroundColor(0xFFEEEEEE.toInt())
              }
              mealItemsContainer.addView(divider)
         }
+    }
+
+    private fun showWeightEditDialog(index: Int, item: com.example.insuscan.meal.FoodItem) {
+        val currentWeight = item.weightGrams ?: 0f
+        val input = EditText(ctx).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            setText(currentWeight.toInt().toString())
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+        }
+
+        AlertDialog.Builder(ctx)
+            .setTitle("Edit Weight (grams)")
+            .setMessage("Enter new weight for ${item.nameHebrew ?: item.name}:")
+            .setView(input)
+            .setPositiveButton("Update") { _, _ ->
+                val newWeightStr = input.text.toString()
+                val newWeight = newWeightStr.toFloatOrNull()
+                if (newWeight != null && newWeight > 0) {
+                    updateMealItemWeight(index, item, newWeight)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun updateMealItemWeight(index: Int, item: com.example.insuscan.meal.FoodItem, newWeight: Float) {
+        val currentMeal = MealSessionManager.currentMeal ?: return
+        val currentItems = currentMeal.foodItems?.toMutableList() ?: return
+        
+        // Calculate factor based on old weight
+        val oldWeight = item.weightGrams ?: 100f // prevent div by zero if missing
+        val safeOldWeight = if (oldWeight == 0f) 100f else oldWeight
+        
+        val currentCarbs = item.carbsGrams ?: 0f
+        val carbsPerGram = currentCarbs / safeOldWeight
+        
+        val newCarbs = newWeight * carbsPerGram
+        
+        // Update item
+        val updatedItem = item.copy(
+            weightGrams = newWeight,
+            carbsGrams = newCarbs
+        )
+        
+        currentItems[index] = updatedItem
+        
+        // Update Meal
+        // Recalculate total meal carbs
+        var newTotalCarbs = 0f
+        currentItems.forEach { newTotalCarbs += (it.carbsGrams ?: 0f) }
+        
+        val updatedMeal = currentMeal.copy(
+            foodItems = currentItems,
+            carbs = newTotalCarbs
+        )
+        
+        MealSessionManager.updateCurrentMeal(updatedMeal)
+        
+        // Refresh UI
+        updateFoodDisplay()
+        calculateDose()
+        ToastHelper.showShort(ctx, "Weight updated: ${newWeight.toInt()}g")
     }
 
     private fun addSingleMessageRow(message: String) {

@@ -11,10 +11,11 @@ import com.google.android.material.slider.Slider
 
 class FoodItemEditorAdapter(
     private val onItemChanged: () -> Unit,
-    private val onItemRemoved: (EditableFoodItem) -> Unit
+    private val onItemRemoved: (EditableFoodItem) -> Unit,
+    private val onItemEdit: (EditableFoodItem) -> Unit // New callback for editing
 ) : RecyclerView.Adapter<FoodItemEditorAdapter.ViewHolder>() {
 
-    internal val items = mutableListOf<EditableFoodItem>()  // Changed to internal for fragment access
+    internal val items = mutableListOf<EditableFoodItem>()
 
     fun setItems(newItems: List<EditableFoodItem>) {
         items.clear()
@@ -67,14 +68,18 @@ class FoodItemEditorAdapter(
         private val btnMinus: ImageButton = itemView.findViewById(R.id.btn_minus)
         private val btnPlus: ImageButton = itemView.findViewById(R.id.btn_plus)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btn_delete)
-        private val loadingText: TextView? = itemView.findViewById(R.id.tv_loading)  // Optional loading indicator
+        private val loadingText: TextView? = itemView.findViewById(R.id.tv_loading)
 
         fun bind(item: EditableFoodItem) {
             nameText.text = item.name
             updateDisplay(item)
 
+            // Make text clickable for editing
+            nameText.setOnClickListener { onItemEdit(item) }
+            carbsText.setOnClickListener { onItemEdit(item) }
+
             // Slider: 10g to 500g range
-            val roundedWeight = (Math.round(item.weightGrams / 5f) * 5f).coerceIn(10f, 500f)
+            val roundedWeight = getRoundedWeight(item.weightGrams)
             weightSlider.value = roundedWeight
             weightSlider.addOnChangeListener { _, value, fromUser ->
                 if (fromUser) {
@@ -86,9 +91,16 @@ class FoodItemEditorAdapter(
 
             // Minus button: -10g
             btnMinus.setOnClickListener {
-                val newWeight = (item.weightGrams - 10f).coerceAtLeast(10f)
+                val currentWeight = item.weightGrams
+                val newWeight = (currentWeight - 10f).coerceAtLeast(10f)
+                
+                // Update item with exact value
                 item.weightGrams = newWeight
-                weightSlider.value = newWeight
+                
+                // Update slider with ROUNDED value
+                val roundedWeight = getRoundedWeight(newWeight)
+                weightSlider.value = roundedWeight
+                
                 updateDisplay(item)
                 onItemChanged()
             }
@@ -97,7 +109,11 @@ class FoodItemEditorAdapter(
             btnPlus.setOnClickListener {
                 val newWeight = (item.weightGrams + 10f).coerceAtMost(500f)
                 item.weightGrams = newWeight
-                weightSlider.value = newWeight
+                
+                // Update slider with ROUNDED value
+                val roundedWeight = getRoundedWeight(newWeight)
+                weightSlider.value = roundedWeight
+                
                 updateDisplay(item)
                 onItemChanged()
             }
@@ -108,8 +124,11 @@ class FoodItemEditorAdapter(
             }
         }
 
+        private fun getRoundedWeight(weight: Float): Float {
+            return (Math.round(weight / 5f) * 5f).coerceIn(10f, 500f)
+        }
+
         private fun updateDisplay(item: EditableFoodItem) {
-            // Show/hide loading state
             if (item.isLoading) {
                 loadingText?.visibility = View.VISIBLE
                 carbsText.visibility = View.GONE
@@ -123,13 +142,13 @@ class FoodItemEditorAdapter(
                 btnMinus.isEnabled = true
                 btnPlus.isEnabled = true
                 
-                // Show carbs info
                 if (item.carbsPer100g != null && item.carbsPer100g!! > 0) {
                     weightText.text = "${item.weightGrams.toInt()}g"
-                    carbsText.text = "${item.totalCarbs.toInt()}g carbs (${item.carbsPer100g!!.toInt()}g/100g)"
+                    // Add pencil icon to hint editability
+                    carbsText.text = "${item.totalCarbs.toInt()}g carbs (${item.carbsPer100g!!.toInt()}g/100g) ✎"
                 } else {
                     weightText.text = "${item.weightGrams.toInt()}g"
-                    carbsText.text = "⚠️ No nutrition info"
+                    carbsText.text = "⚠️ No nutrition info (Tap to fix)"
                 }
             }
         }
