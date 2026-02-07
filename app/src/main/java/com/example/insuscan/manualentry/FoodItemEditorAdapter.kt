@@ -28,6 +28,12 @@ class FoodItemEditorAdapter(
         onItemChanged()
     }
 
+    fun insertItemAt(position: Int, item: EditableFoodItem) {
+        items.add(position, item)
+        notifyItemInserted(position)
+        onItemChanged()
+    }
+
     fun removeItem(item: EditableFoodItem) {
         val index = items.indexOf(item)
         if (index >= 0) {
@@ -123,7 +129,7 @@ class FoodItemEditorAdapter(
                     carbsText.text = "${item.totalCarbs.toInt()}g carbs (${item.carbsPer100g!!.toInt()}g/100g)"
                 } else {
                     weightText.text = "${item.weightGrams.toInt()}g"
-                    carbsText.text = "⚠️ אין מידע תזונתי"
+                    carbsText.text = "⚠️ No nutrition info"
                 }
             }
         }

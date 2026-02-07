@@ -64,7 +64,22 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
 
         // Expanded
         private val expandedLayout: LinearLayout = itemView.findViewById(R.id.layout_expanded)
-        
+
+        // Meal details section
+        private val detailDateTime: TextView = itemView.findViewById(R.id.tv_detail_datetime)
+        private val detailWeight: TextView = itemView.findViewById(R.id.tv_detail_weight)
+        private val detailItemCount: TextView = itemView.findViewById(R.id.tv_detail_item_count)
+        private val detailConfidence: TextView = itemView.findViewById(R.id.tv_detail_confidence)
+        private val detailReference: TextView = itemView.findViewById(R.id.tv_detail_reference)
+
+        // Dose comparison (recommended vs actual)
+        private val doseComparisonLayout: LinearLayout = itemView.findViewById(R.id.layout_dose_comparison)
+        private val doseRecommended: TextView = itemView.findViewById(R.id.tv_dose_recommended)
+        private val doseActual: TextView = itemView.findViewById(R.id.tv_dose_actual)
+
+        // Server message
+        private val insulinMessage: TextView = itemView.findViewById(R.id.tv_insulin_message)
+
         // Context Row
         private val glucoseLayout: LinearLayout = itemView.findViewById(R.id.layout_context_glucose)
         private val glucoseValue: TextView = itemView.findViewById(R.id.tv_context_glucose)
@@ -169,6 +184,42 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
                 }
 
                 receiptTotalValue.text = item.totalDoseValue
+
+                // -- Recommended vs Actual comparison --
+                doseComparisonLayout.isVisible = item.isActualDoseDifferent
+                if (item.isActualDoseDifferent) {
+                    doseRecommended.text = item.recommendedDoseText
+                    doseActual.text = item.actualDoseText
+                }
+
+                // -- Server insulin message --
+                insulinMessage.isVisible = item.hasInsulinMessage
+                if (item.hasInsulinMessage) {
+                    insulinMessage.text = item.insulinMessageText
+                }
+
+                // -- Meal details --
+                detailDateTime.text = item.fullDateTime
+
+                val weightStr = item.totalWeightText
+                detailWeight.isVisible = weightStr != null
+                if (weightStr != null) {
+                    detailWeight.text = "Estimated weight: $weightStr"
+                }
+
+                detailItemCount.text = item.foodItemCountText
+
+                val confStr = item.confidenceText
+                detailConfidence.isVisible = confStr != null
+                if (confStr != null) {
+                    detailConfidence.text = "Confidence: $confStr"
+                }
+
+                val refStr = item.referenceDetectedText
+                detailReference.isVisible = refStr != null
+                if (refStr != null) {
+                    detailReference.text = refStr
+                }
             }
 
             headerLayout.setOnClickListener {

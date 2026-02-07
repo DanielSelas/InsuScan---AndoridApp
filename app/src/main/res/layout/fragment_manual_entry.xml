@@ -39,12 +39,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="➕ הוסף מזון"
+                android:text="➕ Add Food"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="#666666" />
 
-            <!-- Input row: EditText + Add button -->
+            <!-- Input row: Food name + Weight + Add button -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -57,9 +57,22 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="לדוגמה: אורז לבן, עוף, בננה..."
+                    android:hint="Food name (e.g. white rice)"
                     android:inputType="text"
                     android:padding="12dp"
+                    android:background="@drawable/edit_text_rounded"
+                    android:imeOptions="actionNext" />
+
+                <EditText
+                    android:id="@+id/et_weight"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:hint="g"
+                    android:text="100"
+                    android:inputType="number"
+                    android:padding="12dp"
+                    android:gravity="center"
                     android:background="@drawable/edit_text_rounded"
                     android:imeOptions="actionDone" />
 
@@ -68,26 +81,60 @@
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
                     android:layout_marginStart="8dp"
-                    android:text="הוסף"
+                    android:text="Add"
                     android:textAllCaps="false"
-                    android:paddingHorizontal="20dp" />
+                    android:paddingHorizontal="16dp" />
 
             </LinearLayout>
 
-            <!-- Custom food button (kept for manual entry) -->
-            <Button
-                android:id="@+id/btn_add_custom"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:layout_gravity="end"
+            <!-- Searching indicator -->
+            <LinearLayout
+                android:id="@+id/layout_searching"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="8dp"
+                android:visibility="gone">
+
+                <ProgressBar
+                    android:id="@+id/searching_indicator"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tv_searching"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="🔍 Searching USDA database..."
+                    android:textSize="13sp"
+                    android:textColor="#1976D2"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <!-- Autocomplete suggestions -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_autocomplete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:paddingHorizontal="12dp"
-                android:text="+ Add Custom (No USDA)"
-                android:textSize="12sp"
-                android:textAllCaps="false"
-                style="@style/Widget.Material3.Button.TextButton" />
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_autocomplete"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxHeight="200dp"
+                    android:background="@android:color/white"
+                    android:nestedScrollingEnabled="true" />
+
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>

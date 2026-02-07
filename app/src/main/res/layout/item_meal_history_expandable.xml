@@ -293,6 +293,71 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Meal Details section - timestamp, weight, items count -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MEAL DETAILS"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#999999"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="6dp"/>
+
+            <!-- Full date + time -->
+            <TextView
+                android:id="@+id/tv_detail_datetime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Sun, 2 Feb 2025 • 14:30"
+                android:textSize="13sp"
+                android:textColor="#444444"
+                android:drawablePadding="6dp"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Total estimated weight -->
+            <TextView
+                android:id="@+id/tv_detail_weight"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Estimated weight: 350g"
+                android:textSize="13sp"
+                android:textColor="#444444"
+                android:visibility="gone"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Items count -->
+            <TextView
+                android:id="@+id/tv_detail_item_count"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="3 items detected"
+                android:textSize="13sp"
+                android:textColor="#444444"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Analysis confidence -->
+            <TextView
+                android:id="@+id/tv_detail_confidence"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Confidence: 85%"
+                android:textSize="13sp"
+                android:textColor="#444444"
+                android:visibility="gone"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Reference object status -->
+            <TextView
+                android:id="@+id/tv_detail_reference"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="✓ Reference detected"
+                android:textSize="13sp"
+                android:textColor="#444444"
+                android:visibility="gone"
+                android:layout_marginBottom="12dp"/>
+
             <!-- Food List -->
             <TextView
                 android:layout_width="wrap_content"
@@ -479,6 +544,80 @@
                         android:textStyle="bold"
                         android:textColor="#1976D2"/>
                 </RelativeLayout>
+
+                <!-- Recommended vs Actual (shown only when user changed the dose) -->
+                <LinearLayout
+                    android:id="@+id/layout_dose_comparison"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp"
+                    android:padding="10dp"
+                    android:background="@drawable/bg_info_box">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dose was adjusted by user"
+                        android:textSize="11sp"
+                        android:textColor="#666666"
+                        android:layout_marginBottom="4dp"/>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Recommended"
+                            android:textSize="13sp"
+                            android:textColor="#555555"/>
+                        <TextView
+                            android:id="@+id/tv_dose_recommended"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            tools:text="4.5u"
+                            android:textSize="13sp"
+                            android:textColor="#555555"/>
+                    </RelativeLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Actual taken"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#333333"/>
+                        <TextView
+                            android:id="@+id/tv_dose_actual"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            tools:text="5.0u"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#333333"/>
+                    </RelativeLayout>
+                </LinearLayout>
+
+                <!-- Server message if available -->
+                <TextView
+                    android:id="@+id/tv_insulin_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp"
+                    android:padding="10dp"
+                    android:background="#FFF3E0"
+                    android:textSize="12sp"
+                    android:textColor="#E65100"
+                    tools:text="Note: dose adjusted for sick mode"/>
 
             </LinearLayout>
 

@@ -212,6 +212,67 @@ sealed class HistoryUiModel {
             
         val hasProfileError: Boolean
              get() = !meal.profileComplete && (meal.insulinDose == null || meal.insulinDose == 0f)
+
+        // -- extra info for expanded view --
+
+        // full date + time: "Sun, 2 Feb 2025 • 14:30"
+        val fullDateTime: String
+            get() {
+                val sdf = java.text.SimpleDateFormat("EEE, d MMM yyyy • HH:mm", java.util.Locale.getDefault())
+                return sdf.format(java.util.Date(meal.timestamp))
+            }
+
+        // total weight of all food items combined
+        val totalWeightText: String?
+            get() {
+                val weight = meal.portionWeightGrams
+                    ?: meal.foodItems?.mapNotNull { it.weightGrams }?.sum()
+                return if (weight != null && weight > 0f) "${weight.toInt()}g" else null
+            }
+
+        // how many items were detected
+        val foodItemCountText: String
+            get() {
+                val count = meal.foodItems?.size ?: 0
+                return "$count item${if (count != 1) "s" else ""} detected"
+            }
+
+        // confidence display: "85%" or null if unavailable
+        val confidenceText: String?
+            get() {
+                val conf = meal.analysisConfidence ?: return null
+                return "${(conf * 100).toInt()}%"
+            }
+
+        // reference object (syringe) found or not
+        val referenceDetectedText: String?
+            get() = when (meal.referenceObjectDetected) {
+                true -> "✓ Reference detected"
+                false -> "✗ No reference object"
+                null -> null
+            }
+
+        // show recommended vs actual if they differ
+        val isActualDoseDifferent: Boolean
+            get() {
+                val rec = meal.recommendedDose ?: return false
+                val actual = meal.insulinDose ?: return false
+                return kotlin.math.abs(rec - actual) > 0.05f
+            }
+
+        val recommendedDoseText: String
+            get() = DoseFormatter.formatDoseWithUnit(meal.recommendedDose)
+
+        val actualDoseText: String
+            get() = DoseFormatter.formatDoseWithUnit(meal.insulinDose)
+
+        // show insulin message from server if available
+        val hasInsulinMessage: Boolean
+            get() = !meal.insulinMessage.isNullOrBlank()
+
+        val insulinMessageText: String
+            get() = meal.insulinMessage ?: ""
+
     }
 
 class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
