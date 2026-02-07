@@ -9,5 +9,7 @@ data class ScoredFoodResultDto(
     val found: Boolean?,
     // AI scoring fields
     val relevanceScore: Int?,
-    val matchReason: String?
+    val matchReason: String?,
+    val displayName: String?  // Clean, formatted name for UI
 )
+
