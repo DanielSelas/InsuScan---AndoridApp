@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select the best match"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#424242" />
+
+    <TextView
+        android:id="@+id/tv_search_query"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Results for: "
+        android:textSize="14sp"
+        android:textColor="#757575"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Options RadioGroup -->
+    <RadioGroup
+        android:id="@+id/radio_group_options"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/option_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:background="@drawable/radio_item_background"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp"
+            android:textColor="#333333" />
+
+        <RadioButton
+            android:id="@+id/option_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:background="@drawable/radio_item_background"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp"
+            android:textColor="#333333" />
+
+        <RadioButton
+            android:id="@+id/option_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:background="@drawable/radio_item_background"
+            android:layout_marginBottom="8dp"
+            android:textSize="14sp"
+            android:textColor="#333333" />
+
+    </RadioGroup>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Can't find it? Enter manually"
+        android:textSize="13sp"
+        android:textColor="#757575" />
+
+    <Button
+        android:id="@+id/btn_manual_entry"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_marginTop="8dp"
+        android:text="📝 Manual Entry"
+        android:textSize="12sp"
+        android:textAllCaps="false"
+        style="@style/Widget.Material3.Button.TextButton" />
+
+</LinearLayout>
