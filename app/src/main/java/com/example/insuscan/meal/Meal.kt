@@ -39,6 +39,7 @@ data class Meal(
     val exerciseAdjustment: Float? = null,
     val sickAdjustment: Float? = null,
     val stressAdjustment: Float? = null,
+    val activeInsulin: Float? = null, // IOB
 
     // added: separate recommended from actual
     val recommendedDose: Float? = null,

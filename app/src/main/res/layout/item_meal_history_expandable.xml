@@ -9,7 +9,7 @@
     android:layout_marginHorizontal="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:cardBackgroundColor="@color/card_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="14dp"
+            android:padding="16dp"
             android:background="?attr/selectableItemBackground">
 
             <!-- Top Row: Title + Dose Badge -->
@@ -45,8 +45,23 @@
                         android:layout_height="wrap_content"
                         tools:text="Banana, Apple"
                         android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#222222"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_primary"
+                        android:letterSpacing="0.01"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <!-- NEW: Subtitle with context -->
+                    <TextView
+                        android:id="@+id/tv_meal_subtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        tools:text="Good glucose • Light activity"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_tertiary"
+                        android:fontFamily="sans-serif"
+                        android:letterSpacing="0.02"
                         android:maxLines="1"
                         android:ellipsize="end" />
 
@@ -55,7 +70,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginTop="4dp">
+                        android:layout_marginTop="6dp">
 
                         <TextView
                             android:id="@+id/tv_meal_carbs"
@@ -63,14 +78,14 @@
                             android:layout_height="wrap_content"
                             tools:text="45g"
                             android:textSize="13sp"
-                            android:textColor="#666666" />
+                            android:textColor="@color/text_secondary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=" • "
                             android:textSize="13sp"
-                            android:textColor="#999999" />
+                            android:textColor="@color/text_tertiary" />
 
                         <TextView
                             android:id="@+id/tv_meal_time"
@@ -78,7 +93,7 @@
                             android:layout_height="wrap_content"
                             tools:text="14:30"
                             android:textSize="13sp"
-                            android:textColor="#666666" />
+                            android:textColor="@color/text_secondary" />
 
                         <!-- Context Indicators -->
                         <TextView
@@ -107,11 +122,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_dose_badge"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="7dp"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="8dp"
                     tools:text="4.5u"
                     android:textColor="#FFFFFF"
-                    android:textStyle="bold"
+                    android:fontFamily="sans-serif-medium"
                     android:textSize="15sp" />
 
             </LinearLayout>
@@ -125,15 +140,16 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone"
-            android:background="#FAFAFA"
-            android:paddingHorizontal="16dp"
-            android:paddingBottom="16dp">
+            android:background="@color/expanded_background"
+            android:paddingHorizontal="18dp"
+            android:paddingBottom="18dp">
 
+            <!-- Warm divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#E0E0E0"
-                android:layout_marginBottom="14dp" />
+                android:background="@color/divider_warm"
+                android:layout_marginBottom="16dp" />
 
             <!-- Context Row -->
             <LinearLayout
@@ -156,17 +172,18 @@
                         android:text="GLUCOSE"
                         android:textSize="10sp"
                         android:textStyle="bold"
-                        android:textColor="#999999"
-                        android:letterSpacing="0.05"/>
+                        android:textColor="@color/text_tertiary"
+                        android:letterSpacing="0.05"
+                        android:layout_marginBottom="4dp"/>
+
                     <TextView
                         android:id="@+id/tv_context_glucose"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="145 mg/dL"
-                        android:textColor="#333333"
-                        android:textStyle="bold"
+                        tools:text="✓ 120 mg/dL"
                         android:textSize="14sp"
-                        android:layout_marginTop="2dp"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_primary" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -183,17 +200,18 @@
                         android:text="ACTIVITY"
                         android:textSize="10sp"
                         android:textStyle="bold"
-                        android:textColor="#999999"
-                        android:letterSpacing="0.05"/>
+                        android:textColor="@color/text_tertiary"
+                        android:letterSpacing="0.05"
+                        android:layout_marginBottom="4dp"/>
+
                     <TextView
                         android:id="@+id/tv_context_activity"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:text="Light"
-                        android:textColor="#333333"
-                        android:textStyle="bold"
+                        tools:text="🚶 Light activity"
                         android:textSize="14sp"
-                        android:layout_marginTop="2dp"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_primary" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -210,13 +228,15 @@
                         android:text="STATUS"
                         android:textSize="10sp"
                         android:textStyle="bold"
-                        android:textColor="#999999"
-                        android:letterSpacing="0.05"/>
+                        android:textColor="@color/text_tertiary"
+                        android:letterSpacing="0.05"
+                        android:layout_marginBottom="4dp"/>
+
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginTop="2dp">
+                        android:orientation="horizontal">
+
                         <TextView
                             android:id="@+id/tv_status_sick"
                             android:layout_width="wrap_content"
@@ -224,8 +244,9 @@
                             android:text="🤒 Sick"
                             android:textSize="13sp"
                             android:textColor="#E65100"
-                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
                             android:visibility="gone" />
+
                         <TextView
                             android:id="@+id/tv_status_stress"
                             android:layout_width="wrap_content"
@@ -233,23 +254,23 @@
                             android:text="😰 Stress"
                             android:textSize="13sp"
                             android:textColor="#F57C00"
-                            android:textStyle="bold"
+                            android:fontFamily="sans-serif-medium"
                             android:layout_marginStart="8dp"
                             android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_profile_error"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Missing Profile"
-                    android:textColor="#D32F2F"
-                    android:textStyle="bold"
-                    android:textSize="12sp"
-                    android:visibility="gone" />
-
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_profile_error"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Missing Profile"
+                android:textColor="#D32F2F"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
             <!-- Profile Warning Box -->
             <LinearLayout
@@ -279,7 +300,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Insulin Not Calculated"
-                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
                         android:textColor="#E65100"
                         android:textSize="13sp"/>
 
@@ -287,76 +308,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Your medical profile was incomplete when this meal was saved."
-                        android:textColor="#F57C00"
                         android:textSize="12sp"
-                        android:layout_marginTop="4dp"/>
+                        android:textColor="#666666"
+                        android:layout_marginTop="2dp"/>
                 </LinearLayout>
             </LinearLayout>
-
-            <!-- Meal Details section - timestamp, weight, items count -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="MEAL DETAILS"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:textColor="#999999"
-                android:letterSpacing="0.05"
-                android:layout_marginBottom="6dp"/>
-
-            <!-- Full date + time -->
-            <TextView
-                android:id="@+id/tv_detail_datetime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Sun, 2 Feb 2025 • 14:30"
-                android:textSize="13sp"
-                android:textColor="#444444"
-                android:drawablePadding="6dp"
-                android:layout_marginBottom="4dp"/>
-
-            <!-- Total estimated weight -->
-            <TextView
-                android:id="@+id/tv_detail_weight"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Estimated weight: 350g"
-                android:textSize="13sp"
-                android:textColor="#444444"
-                android:visibility="gone"
-                android:layout_marginBottom="4dp"/>
-
-            <!-- Items count -->
-            <TextView
-                android:id="@+id/tv_detail_item_count"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="3 items detected"
-                android:textSize="13sp"
-                android:textColor="#444444"
-                android:layout_marginBottom="4dp"/>
-
-            <!-- Analysis confidence -->
-            <TextView
-                android:id="@+id/tv_detail_confidence"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="Confidence: 85%"
-                android:textSize="13sp"
-                android:textColor="#444444"
-                android:visibility="gone"
-                android:layout_marginBottom="4dp"/>
-
-            <!-- Reference object status -->
-            <TextView
-                android:id="@+id/tv_detail_reference"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                tools:text="✓ Reference detected"
-                android:textSize="13sp"
-                android:textColor="#444444"
-                android:visibility="gone"
-                android:layout_marginBottom="12dp"/>
 
             <!-- Food List -->
             <TextView
@@ -365,18 +321,18 @@
                 android:text="FOOD ITEMS"
                 android:textSize="10sp"
                 android:textStyle="bold"
-                android:textColor="#999999"
+                android:textColor="@color/text_tertiary"
                 android:letterSpacing="0.05"
-                android:layout_marginBottom="6dp"/>
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:id="@+id/tv_food_list_formatted"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:text="Rice (150g) ... 35g carbs\nChicken ... 0g carbs"
-                android:lineSpacingExtra="4dp"
+                android:lineSpacingExtra="6dp"
                 android:textSize="13sp"
-                android:textColor="#444444"
+                android:textColor="@color/text_primary"
                 android:layout_marginBottom="20dp"/>
 
             <!-- Dose Calculation Receipt -->
@@ -386,16 +342,16 @@
                 android:text="DOSE CALCULATION"
                 android:textSize="10sp"
                 android:textStyle="bold"
-                android:textColor="#999999"
-                android:letterSpacing="0.05"/>
+                android:textColor="@color/text_tertiary"
+                android:letterSpacing="0.05"
+                android:layout_marginBottom="8dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_receipt_paper"
-                android:padding="12dp">
+                android:background="@drawable/bg_receipt_warm"
+                android:padding="14dp">
 
                 <!-- Carb Dose -->
                 <RelativeLayout
@@ -408,7 +364,7 @@
                         android:layout_height="wrap_content"
                         tools:text="Insulin for Food (45g)"
                         android:textSize="13sp"
-                        android:textColor="#555555"/>
+                        android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_carb_value"
                         android:layout_width="wrap_content"
@@ -416,8 +372,8 @@
                         android:layout_alignParentEnd="true"
                         tools:text="4.5u"
                         android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_primary"/>
                 </RelativeLayout>
 
                 <!-- Correction -->
@@ -432,7 +388,7 @@
                         android:layout_height="wrap_content"
                         android:text="Correction"
                         android:textSize="13sp"
-                        android:textColor="#555555"/>
+                        android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_correction_value"
                         android:layout_width="wrap_content"
@@ -440,8 +396,8 @@
                         android:layout_alignParentEnd="true"
                         tools:text="+0.5u"
                         android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="#D32F2F"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/dose_correction"/>
                 </RelativeLayout>
 
                 <!-- Sick -->
@@ -456,7 +412,7 @@
                         android:layout_height="wrap_content"
                         android:text="🤒 Sick Day Adj."
                         android:textSize="13sp"
-                        android:textColor="#555555"/>
+                        android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_sick_value"
                         android:layout_width="wrap_content"
@@ -464,8 +420,8 @@
                         android:layout_alignParentEnd="true"
                         tools:text="+1.2u"
                         android:textSize="13sp"
-                       android:textStyle="bold"
-                        android:textColor="#D32F2F"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/dose_sick"/>
                 </RelativeLayout>
 
                 <!-- Stress -->
@@ -480,7 +436,7 @@
                         android:layout_height="wrap_content"
                         android:text="😰 Stress Adj."
                         android:textSize="13sp"
-                        android:textColor="#555555"/>
+                        android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_stress_value"
                         android:layout_width="wrap_content"
@@ -488,8 +444,8 @@
                         android:layout_alignParentEnd="true"
                         tools:text="+0.8u"
                         android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="#D32F2F"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/dose_stress"/>
                 </RelativeLayout>
 
                 <!-- Exercise -->
@@ -504,7 +460,7 @@
                         android:layout_height="wrap_content"
                         android:text="🏃 Exercise Adj."
                         android:textSize="13sp"
-                        android:textColor="#555555"/>
+                        android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_exercise_value"
                         android:layout_width="wrap_content"
@@ -512,15 +468,15 @@
                         android:layout_alignParentEnd="true"
                         tools:text="-0.5u"
                         android:textSize="13sp"
-                        android:textStyle="bold"
-                        android:textColor="#388E3C"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/dose_adjustment"/>
                 </RelativeLayout>
 
                 <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#DDDDDD"
+                    android:background="@color/divider_warm"
                     android:layout_marginVertical="8dp" />
 
                 <!-- Total -->
@@ -532,8 +488,8 @@
                         android:layout_height="wrap_content"
                         android:text="Final Dose"
                         android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"/>
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_primary"/>
                     <TextView
                         android:id="@+id/tv_receipt_total"
                         android:layout_width="wrap_content"
@@ -541,83 +497,9 @@
                         android:layout_alignParentEnd="true"
                         tools:text="5.2u"
                         android:textSize="16sp"
-                        android:textStyle="bold"
+                        android:fontFamily="sans-serif-medium"
                         android:textColor="#1976D2"/>
                 </RelativeLayout>
-
-                <!-- Recommended vs Actual (shown only when user changed the dose) -->
-                <LinearLayout
-                    android:id="@+id/layout_dose_comparison"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone"
-                    android:layout_marginTop="8dp"
-                    android:padding="10dp"
-                    android:background="@drawable/bg_info_box">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Dose was adjusted by user"
-                        android:textSize="11sp"
-                        android:textColor="#666666"
-                        android:layout_marginBottom="4dp"/>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="2dp">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Recommended"
-                            android:textSize="13sp"
-                            android:textColor="#555555"/>
-                        <TextView
-                            android:id="@+id/tv_dose_recommended"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            tools:text="4.5u"
-                            android:textSize="13sp"
-                            android:textColor="#555555"/>
-                    </RelativeLayout>
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Actual taken"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:textColor="#333333"/>
-                        <TextView
-                            android:id="@+id/tv_dose_actual"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_alignParentEnd="true"
-                            tools:text="5.0u"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:textColor="#333333"/>
-                    </RelativeLayout>
-                </LinearLayout>
-
-                <!-- Server message if available -->
-                <TextView
-                    android:id="@+id/tv_insulin_message"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_marginTop="8dp"
-                    android:padding="10dp"
-                    android:background="#FFF3E0"
-                    android:textSize="12sp"
-                    android:textColor="#E65100"
-                    tools:text="Note: dose adjusted for sick mode"/>
 
             </LinearLayout>
 

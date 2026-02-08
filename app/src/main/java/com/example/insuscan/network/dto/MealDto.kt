@@ -33,6 +33,7 @@ data class MealDto(
     val sickAdjustment: Float?,
     val stressAdjustment: Float?,
     val exerciseAdjustment: Float?,
+    val activeInsulin: Float?,
 
     val recommendedDose: Float?,
     val actualDose: Float?,

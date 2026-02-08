@@ -26,6 +26,10 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
+        // Initialize Debug Logger
+        com.example.insuscan.utils.FileLogger.init(applicationContext)
+        com.example.insuscan.utils.FileLogger.log("MAIN", "App Started")
+
         initializeViews()
         setupBottomNavigationListener()
 

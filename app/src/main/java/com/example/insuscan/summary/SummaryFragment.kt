@@ -30,6 +30,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import java.io.File
+import com.example.insuscan.utils.FileLogger
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     // Food detection views
@@ -52,6 +53,9 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private lateinit var imageCard: CardView
     private lateinit var mealImageView: ImageView
 
+    // Active Insulin
+    private lateinit var activeInsulinEditText: EditText
+
     // Dose calculation views
     private lateinit var carbDoseText: TextView
     private lateinit var correctionLayout: LinearLayout
@@ -62,6 +66,8 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private lateinit var stressAdjustmentText: TextView
     private lateinit var exerciseLayout: LinearLayout
     private lateinit var exerciseAdjustmentText: TextView
+    private lateinit var activeInsulinLayout: LinearLayout
+    private lateinit var activeInsulinText: TextView
     private lateinit var finalDoseText: TextView
 
     // Analysis views
@@ -84,7 +90,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     private lateinit var scanNowButton: Button
 
     // Calculation results (stored for saving)
-    private var lastCalculatedDose: Float = 0f
+    private var lastCalculatedResult: DoseResult? = null
 
     companion object {
         private const val MSG_SET_RATIO = "Please set insulin to carb ratio in Profile first"
@@ -97,6 +103,18 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             object ProfileIncomplete : SaveValidation()
         }
     }
+
+    data class DoseResult(
+        val carbDose: Float,
+        val correctionDose: Float,
+        val baseDose: Float,
+        val sickAdj: Float,
+        val stressAdj: Float,
+        val exerciseAdj: Float,
+        val iob: Float,
+        val finalDose: Float,
+        val roundedDose: Float
+    )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -152,6 +170,9 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         rbLight = view.findViewById(R.id.rb_activity_light)
         rbIntense = view.findViewById(R.id.rb_activity_intense)
 
+        // Active Insulin
+        activeInsulinEditText = view.findViewById(R.id.et_active_insulin)
+
         // Dose calculation
         carbDoseText = view.findViewById(R.id.tv_carb_dose)
         correctionLayout = view.findViewById(R.id.layout_correction_dose)
@@ -162,6 +183,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         stressAdjustmentText = view.findViewById(R.id.tv_stress_adjustment)
         exerciseLayout = view.findViewById(R.id.layout_exercise_adjustment)
         exerciseAdjustmentText = view.findViewById(R.id.tv_exercise_adjustment)
+        
+        // Note: You might need to add a layout for IOB display in the breakdown if desired, 
+        // but for now we just subtract it from the final. 
+        // Ideally we should add a row for it in layout_summary_breakdown if possible, 
+        // but it's not strictly required by the prompt, just the input.
+        
         finalDoseText = view.findViewById(R.id.tv_final_dose)
 
         // Analysis
@@ -175,7 +202,6 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         // Bottom
         logButton = view.findViewById(R.id.btn_log_meal)
 
-        // Image card
         // Image card
         imageCard = view.findViewById(R.id.card_image)
         mealImageView = view.findViewById(R.id.iv_meal_image)
@@ -210,12 +236,20 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             }
         })
 
+        // Active Insulin input listener
+        activeInsulinEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                calculateDose()
+            }
+        })
+
         // Activity level listener
         activityRadioGroup.setOnCheckedChangeListener { _, _ ->
             calculateDose()
         }
 
-        // Update activity labels with percentages
         // Update activity labels with percentages
         updateActivityLabels()
 
@@ -470,136 +504,186 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     }
 
     private fun calculateDose() {
-        val meal = MealSessionManager.currentMeal?: return
+        val meal = MealSessionManager.currentMeal ?: return
         val pm = UserProfileManager
-
-        // --- 1. Server Status Check (Hybrid Check) ---
-        // If server indicates incomplete profile -> stop and show warning
+        
+        // 1. Check Profile
         if (!meal.profileComplete) {
-            finalDoseText.text = "Setup Required"
-            finalDoseText.setTextColor(resources.getColor(R.color.red_warning, null))
-            carbDoseText.text = "Tap here to complete profile"
-            carbDoseText.setTextColor(resources.getColor(R.color.light_blue, null))
-            carbDoseText.setOnClickListener {
-                findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
-            }
-            correctionLayout.visibility = View.GONE
+            showProfileIncompleteState()
             return
         }
 
-        // Get ICR
-        val unitsPerGram = pm.getUnitsPerGram(ctx)
-        if (unitsPerGram == null) {
+        val gramsPerUnit = pm.getGramsPerUnit(ctx)
+        if (gramsPerUnit == null) {
             finalDoseText.text = "Set ICR in profile"
             return
         }
 
-        val carbs = meal?.carbs ?: 0f
+        // 2. Perform centralized calculation
+        val result = performCalculation(
+            carbs = meal.carbs,
+            glucose = glucoseEditText.text.toString().toIntOrNull(),
+            activeInsulin = activeInsulinEditText.text.toString().toFloatOrNull(),
+            activityLevel = getSelectedActivityLevel(),
+            gramsPerUnit = gramsPerUnit
+        )
+        
+        lastCalculatedResult = result
 
-        // 1. Carb dose
-        val carbDose = carbs * unitsPerGram
-        carbDoseText.text = String.format("%.1f u", carbDose)
+        // 3. Update UI
+        carbDoseText.text = String.format("%.1f u", result.carbDose)
 
-        // 2. Correction dose (if glucose entered)
-        var correctionDose = 0f
-        val glucoseStr = glucoseEditText.text.toString()
-        val currentGlucose = glucoseStr.toIntOrNull()
-
-        if (currentGlucose != null) {
-            val target = pm.getTargetGlucose(ctx) ?: 100
-            val isf = pm.getCorrectionFactor(ctx) ?: 50f
-            val unit = pm.getGlucoseUnits(ctx)
-
-            // Convert to mg/dL if needed
-            val glucoseInMgDl = if (unit == "mmol/L") (currentGlucose * 18) else currentGlucose
-
-            if (glucoseInMgDl > target && isf > 0) {
-                correctionDose = (glucoseInMgDl - target) / isf
-                correctionLayout.visibility = View.VISIBLE
-                correctionDoseText.text = String.format("+%.1f u", correctionDose)
-            } else if (glucoseInMgDl < target) {
-                // Negative correction (reduce dose)
-                correctionDose = (glucoseInMgDl - target) / isf
-                correctionLayout.visibility = View.VISIBLE
-                correctionDoseText.text = String.format("%.1f u", correctionDose)
-            } else {
-                correctionLayout.visibility = View.GONE
-            }
+        // Correction
+        if (result.correctionDose != 0f) {
+            correctionLayout.visibility = View.VISIBLE
+            val sign = if (result.correctionDose > 0) "+" else ""
+            correctionDoseText.text = String.format("%s%.1f u", sign, result.correctionDose)
+            // Color code
+            correctionDoseText.setTextColor(if(result.correctionDose > 0) 0xFFF57C00.toInt() else 0xFF4CAF50.toInt())
         } else {
             correctionLayout.visibility = View.GONE
         }
 
-        // Base dose before adjustments
-        val baseDose = carbDose + correctionDose
-
-        // 3. Sick day adjustment
-        var sickAdjustment = 0f
-        if (pm.isSickModeEnabled(ctx)) {
-            val sickPercent = pm.getSickDayAdjustment(ctx)
-            sickAdjustment = baseDose * (sickPercent / 100f)
+        // Adjustments
+        if (result.sickAdj > 0) {
             sickLayout.visibility = View.VISIBLE
-            sickAdjustmentText.text = String.format("+%.1f u", sickAdjustment)
+            sickAdjustmentText.text = String.format("+%.1f u", result.sickAdj)
         } else {
             sickLayout.visibility = View.GONE
         }
 
-        // 4. Stress adjustment
-        var stressAdjustment = 0f
-        if (pm.isStressModeEnabled(ctx)) {
-            val stressPercent = pm.getStressAdjustment(ctx)
-            stressAdjustment = baseDose * (stressPercent / 100f)
+        if (result.stressAdj > 0) {
             stressLayout.visibility = View.VISIBLE
-            stressAdjustmentText.text = String.format("+%.1f u", stressAdjustment)
+            stressAdjustmentText.text = String.format("+%.1f u", result.stressAdj)
         } else {
             stressLayout.visibility = View.GONE
         }
 
-        // 5. Exercise adjustment (from radio buttons OR home toggle)
-        var exerciseAdjustment = 0f
-        val selectedActivity = activityRadioGroup.checkedRadioButtonId
-
-        when (selectedActivity) {
-            R.id.rb_activity_light -> {
-                val lightPercent = pm.getLightExerciseAdjustment(ctx)
-                exerciseAdjustment = -(baseDose * (lightPercent / 100f))
-                exerciseLayout.visibility = View.VISIBLE
-                exerciseAdjustmentText.text = String.format("%.1f u", exerciseAdjustment)
-            }
-            R.id.rb_activity_intense -> {
-                val intensePercent = pm.getIntenseExerciseAdjustment(ctx)
-                exerciseAdjustment = -(baseDose * (intensePercent / 100f))
-                exerciseLayout.visibility = View.VISIBLE
-                exerciseAdjustmentText.text = String.format("%.1f u", exerciseAdjustment)
-            }
-            else -> {
-                // Check home screen exercise mode
-                if (pm.isExerciseModeEnabled(ctx)) {
-                    val lightPercent = pm.getLightExerciseAdjustment(ctx)
-                    exerciseAdjustment = -(baseDose * (lightPercent / 100f))
-                    exerciseLayout.visibility = View.VISIBLE
-                    exerciseAdjustmentText.text = String.format("%.1f u", exerciseAdjustment)
-                } else {
-                    exerciseLayout.visibility = View.GONE
-                }
-            }
-        }
-
-        // 6. Final dose
-        var finalDose = baseDose + sickAdjustment + stressAdjustment + exerciseAdjustment
-
-        // Apply rounding
-        val rounding = pm.getDoseRounding(ctx)
-        finalDose = if (rounding == 0.5f) {
-            (Math.round(finalDose * 2) / 2f)
+        if (result.exerciseAdj > 0) { // Exercise adjustment is a reduction
+            exerciseLayout.visibility = View.VISIBLE
+            exerciseAdjustmentText.text = String.format("-%.1f u", result.exerciseAdj)
         } else {
-            Math.round(finalDose).toFloat()
+            exerciseLayout.visibility = View.GONE
         }
 
-        // Don't allow negative dose
-        if (finalDose < 0) finalDose = 0f
+        // Final Dose
+        finalDoseText.text = String.format("%.1f u", result.roundedDose)
+    }
 
-        lastCalculatedDose = finalDose
-        finalDoseText.text = String.format("%.1f u", finalDose)
+    /**
+     * THE GOLDEN LOGIC (Client Implementation)
+     * Matches Server-Side InsulinCalculator.java
+     */
+    private fun performCalculation(
+        carbs: Float,
+        glucose: Int?,
+        activeInsulin: Float?,
+        activityLevel: String,
+        gramsPerUnit: Float
+    ): DoseResult {
+        val pm = UserProfileManager
+        
+        FileLogger.log("CALC", "--- New Calculation Started ---")
+        FileLogger.log("CALC", "INPUTS:")
+        FileLogger.log("CALC", "  Carbs: $carbs g")
+        FileLogger.log("CALC", "  Glucose: $glucose mg/dL")
+        FileLogger.log("CALC", "  Active Insulin: $activeInsulin u")
+        FileLogger.log("CALC", "  Activity: $activityLevel")
+        FileLogger.log("CALC", "PROFILE:")
+        FileLogger.log("CALC", "  ICR: $gramsPerUnit g/u")
+        
+        // 1. Carb Dose = Carbs / Ratio
+        val carbDose = if (gramsPerUnit > 0) carbs / gramsPerUnit else 0f
+        FileLogger.log("CALC", "STEP 1: Carb Dose = $carbs / $gramsPerUnit = $carbDose u")
+
+        // 2. Correction Dose
+        var correctionDose = 0f
+        if (glucose != null) {
+            val target = pm.getTargetGlucose(ctx) ?: 100
+            val isf = pm.getCorrectionFactor(ctx) ?: 50f
+            val unit = pm.getGlucoseUnits(ctx)
+            
+            // Normalize to mg/dL
+            val glucoseInMgDl = if (unit == "mmol/L") (glucose * 18) else glucose
+            
+            if (isf > 0) {
+                correctionDose = (glucoseInMgDl - target) / isf
+                FileLogger.log("CALC", "STEP 2: Correction = ($glucoseInMgDl - $target) / $isf = $correctionDose u")
+            }
+        } else {
+             FileLogger.log("CALC", "STEP 2: Correction = 0 (No glucose)")
+        }
+
+        // 3. Base Dose
+        val baseDose = carbDose + correctionDose
+        FileLogger.log("CALC", "STEP 3: Base Dose = $carbDose + $correctionDose = $baseDose u")
+
+        // 4. Adjustments (Applied to Base Dose)
+        // Sick
+        var sickAdj = 0f
+        if (pm.isSickModeEnabled(ctx)) {
+            val pct = pm.getSickDayAdjustment(ctx)
+            sickAdj = baseDose * (pct / 100f)
+            FileLogger.log("CALC", "STEP 4a: Sick Adj = $baseDose * $pct% = +$sickAdj u")
+        }
+        
+        // Stress
+        var stressAdj = 0f
+        if (pm.isStressModeEnabled(ctx)) {
+            val pct = pm.getStressAdjustment(ctx)
+            stressAdj = baseDose * (pct / 100f)
+            FileLogger.log("CALC", "STEP 4b: Stress Adj = $baseDose * $pct% = +$stressAdj u")
+        }
+        
+        // Exercise
+        var exerciseAdj = 0f 
+        // Logic: if specific button selected -> use that. Else if home mode -> use light.
+        if (activityLevel == "light") {
+            val pct = pm.getLightExerciseAdjustment(ctx)
+            exerciseAdj = baseDose * (pct / 100f)
+            FileLogger.log("CALC", "STEP 4c: Exercise (Light) = $baseDose * $pct% = -$exerciseAdj u")
+        } else if (activityLevel == "intense") {
+            val pct = pm.getIntenseExerciseAdjustment(ctx)
+            exerciseAdj = baseDose * (pct / 100f)
+            FileLogger.log("CALC", "STEP 4c: Exercise (Intense) = $baseDose * $pct% = -$exerciseAdj u")
+        } else if (pm.isExerciseModeEnabled(ctx) && activityLevel == "normal") {
+            // Fallback to Home Screen Mode
+            val pct = pm.getLightExerciseAdjustment(ctx)
+            exerciseAdj = baseDose * (pct / 100f)
+            FileLogger.log("CALC", "STEP 4c: Exercise (Home) = $baseDose * $pct% = -$exerciseAdj u")
+        }
+
+        // IOB
+        val iob = activeInsulin ?: 0f
+        FileLogger.log("CALC", "STEP 4d: Active Insulin (IOB) = -$iob u")
+
+        // 5. Final
+        var finalDose = baseDose + sickAdj + stressAdj - exerciseAdj - iob
+        if (finalDose < 0) finalDose = 0f
+        FileLogger.log("CALC", "STEP 5: Final Raw = $baseDose + $sickAdj + $stressAdj - $exerciseAdj - $iob = $finalDose u")
+
+        // 6. Rounding (User requested precise result)
+        // We bypass the profile's rounding preference and provide 2-decimal precision
+        val roundedDose = (Math.round(finalDose * 100) / 100f)
+        FileLogger.log("CALC", "STEP 6: Rounded (2 dec) = $roundedDose u")
+        FileLogger.log("CALC", "--- Calculation Complete ---")
+
+        return DoseResult(
+            carbDose, correctionDose, baseDose, 
+            sickAdj, stressAdj, exerciseAdj, iob, 
+            finalDose, roundedDose
+        )
+    }
+
+    private fun showProfileIncompleteState() {
+        finalDoseText.text = "Setup Required"
+        finalDoseText.setTextColor(resources.getColor(R.color.red_warning, null))
+        carbDoseText.text = "Tap here to complete profile"
+        carbDoseText.setTextColor(resources.getColor(R.color.light_blue, null))
+        carbDoseText.setOnClickListener {
+            findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
+        }
+        correctionLayout.visibility = View.GONE
     }
 
     private fun updateAnalysisResults() {
@@ -748,35 +832,36 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val glucoseValue = glucoseEditText.text.toString().toIntOrNull()
         val glucoseUnits = pm.getGlucoseUnits(ctx)
         val activityLevel = getSelectedActivityLevel()
-        val unitsPerGram = pm.getUnitsPerGram(ctx)
+        val gramsPerUnit = pm.getGramsPerUnit(ctx)
+        val activeInsulin = activeInsulinEditText.text.toString().toFloatOrNull() ?: 0f
 
-        // ADD LOGS HERE
-        Log.d("DEBUG_SAVE", "=== Building Updated Meal ===")
-        Log.d("DEBUG_SAVE", "ICR Raw: ${pm.getInsulinCarbRatioRaw(ctx)}")
-        Log.d("DEBUG_SAVE", "Units per gram: $unitsPerGram")
-        Log.d("DEBUG_SAVE", "Meal carbs (input): ${meal.carbs}")
-        Log.d("DEBUG_SAVE", "Meal carbDose (input): ${meal.carbDose}")
-        Log.d("DEBUG_SAVE", "Glucose: $glucoseValue $glucoseUnits")
-        Log.d("DEBUG_SAVE", "Activity: $activityLevel")
-        Log.d("DEBUG_SAVE", "Last calculated dose: $lastCalculatedDose")
-        
-        val calculatedCarbDose = unitsPerGram?.let { meal.carbs * it }
-        Log.d("DEBUG_SAVE", "Calculated Carb dose: $calculatedCarbDose")
-        Log.d("DEBUG_SAVE", "Exercise adj: ${calculateExerciseAdjustment(activityLevel, unitsPerGram, meal.carbs)}")
+        if (gramsPerUnit == null) return meal
+
+        // Re-run calculation to be safe/sure
+        val result = performCalculation(
+            meal.carbs, 
+            glucoseValue, 
+            activeInsulin, 
+            activityLevel, 
+            gramsPerUnit
+        )
+
+        val exerciseAdjValue = if(result.exerciseAdj > 0) -result.exerciseAdj else 0f
 
         return meal.copy(
-            insulinDose = lastCalculatedDose,
-            recommendedDose = lastCalculatedDose,
+            insulinDose = result.roundedDose,
+            recommendedDose = result.roundedDose,
             glucoseLevel = glucoseValue,
             glucoseUnits = glucoseUnits,
             activityLevel = activityLevel,
-            carbDose = calculatedCarbDose,
-            correctionDose = calculateCorrectionDose(glucoseValue, glucoseUnits, unitsPerGram),
-            exerciseAdjustment = calculateExerciseAdjustment(activityLevel, unitsPerGram, meal.carbs),
-            sickAdjustment = calculateSickAdjustment(meal.carbs, unitsPerGram, correctionDose = calculateCorrectionDose(glucoseValue, glucoseUnits, unitsPerGram)),
-            stressAdjustment = calculateStressAdjustment(meal.carbs, unitsPerGram, correctionDose = calculateCorrectionDose(glucoseValue, glucoseUnits, unitsPerGram)),
+            carbDose = result.carbDose,
+            correctionDose = result.correctionDose,
+            exerciseAdjustment = exerciseAdjValue,
+            sickAdjustment = result.sickAdj,
+            stressAdjustment = result.stressAdj,
             wasSickMode = pm.isSickModeEnabled(ctx),
-            wasStressMode = pm.isStressModeEnabled(ctx)
+            wasStressMode = pm.isStressModeEnabled(ctx),
+            activeInsulin = activeInsulin
         )
     }
 
