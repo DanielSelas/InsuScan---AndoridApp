@@ -336,7 +336,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             }
             
             // Update total text with the calculated sum
-            totalCarbsText.text = "Total carbs: ${calculatedTotalCarbs.toInt()} g"
+            totalCarbsText.text = String.format("Total carbs: %.2f g", calculatedTotalCarbs)
         } else {
             // No food detected - show clear message
             addSingleMessageRow("No food detected in image")
@@ -362,9 +362,9 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         }
 
         val name = item.nameHebrew ?: item.name
-        val carbs = item.carbsGrams?.toInt() ?: 0
+        val carbs = item.carbsGrams ?: 0f
         val weight = item.weightGrams?.toInt()
-        val hasMissingData = carbs == 0
+        val hasMissingData = carbs == 0f
 
         // 1. Food Name
         val nameText = TextView(ctx).apply {
@@ -400,7 +400,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
                 setTextColor(0xFFD32F2F.toInt()) // Red
                 setTypeface(null, android.graphics.Typeface.BOLD)
             } else {
-                text = "Carbs: ${carbs}g"
+                text = String.format("Carbs: %.2f g", carbs)
                 textSize = 14f
                 setTextColor(0xFF1976D2.toInt()) // Blue distinct color
                 setTypeface(null, android.graphics.Typeface.BOLD)
