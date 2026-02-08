@@ -1,6 +1,7 @@
 package com.example.insuscan.profile
 
 import android.content.Context
+import com.example.insuscan.utils.FileLogger
 
 object UserProfileManager {
     private const val KEY_USER_EMAIL = "user_email"
@@ -70,9 +71,80 @@ object UserProfileManager {
         return null
     }
 
+    /**
+     * Returns the "Grams per Unit" value (e.g. 10.0 for 1:10).
+     * This matches the Server's Golden Logic parameters.
+     */
+    fun getGramsPerUnit(context: Context): Float? {
+        val ratioText = getInsulinCarbRatioRaw(context) ?: return null
+        
+        // Case 1: "1:10" -> returns 10.0
+        if (ratioText.contains(":")) {
+            val parts = ratioText.split(":")
+            if (parts.size >= 2) {
+                return parts[1].toFloatOrNull()
+            }
+        }
+        
+        // Case 2: "10" -> returns 10.0
+        return ratioText.toFloatOrNull()
+    }
+
     // endregion
 
     // region user name
+
+    // This init block cannot directly access 'context' as UserProfileManager is an object.
+    // Assuming there's an external mechanism to call FileLogger.init(context) or
+    // that the user intends for a different structure (e.g., a class with a constructor).
+    // For now, I will add a placeholder init function.
+    fun init(context: Context) {
+        FileLogger.init(context)
+    }
+
+    // Assuming UserProfile is a data class defined elsewhere
+    // data class UserProfile(val name: String, val insulinCarbRatio: String, val correctionFactor: Float, val targetGlucose: Int, val activeInsulinTime: Float)
+
+    fun saveUserProfile(context: Context, profile: UserProfile) {
+        val editor = prefs(context).edit()
+        
+        FileLogger.log("PROFILE", "💾 Saving User Profile")
+        FileLogger.log("PROFILE", "   Name: ${profile.name}")
+        FileLogger.log("PROFILE", "   ICR: ${profile.insulinCarbRatio} g/unit")
+        FileLogger.log("PROFILE", "   ISF: ${profile.correctionFactor}")
+        FileLogger.log("PROFILE", "   Target: ${profile.targetGlucose}")
+        FileLogger.log("PROFILE", "   Active Insulin Time: ${profile.activeInsulinTime}")
+        
+        editor.putString(KEY_USER_NAME, profile.name)
+            .putString(KEY_RATIO, profile.insulinCarbRatio)
+            .putFloat(KEY_CORRECTION_FACTOR, profile.correctionFactor)
+            .putInt(KEY_TARGET_GLUCOSE, profile.targetGlucose)
+            .putFloat(KEY_ACTIVE_INSULIN_TIME, profile.activeInsulinTime)
+            .apply()
+    }
+
+    fun getUserProfile(context: Context): UserProfile? {
+        val p = prefs(context)
+        val name = p.getString(KEY_USER_NAME, null)
+        val insulinCarbRatio = p.getString(KEY_RATIO, null)
+        val correctionFactor = if (p.contains(KEY_CORRECTION_FACTOR)) p.getFloat(KEY_CORRECTION_FACTOR, 0f) else null
+        val targetGlucose = if (p.contains(KEY_TARGET_GLUCOSE)) p.getInt(KEY_TARGET_GLUCOSE, 0) else null
+        val activeInsulinTime = p.getFloat(KEY_ACTIVE_INSULIN_TIME, 4f)
+
+        if (name == null || insulinCarbRatio == null || correctionFactor == null || targetGlucose == null) {
+            FileLogger.log("PROFILE", "⚠️ User Profile not fully available.")
+            return null
+        }
+
+        val profile = UserProfile(name, insulinCarbRatio, correctionFactor, targetGlucose, activeInsulinTime)
+        FileLogger.log("PROFILE", "📖 Loading User Profile")
+        FileLogger.log("PROFILE", "   Name: ${profile.name}")
+        FileLogger.log("PROFILE", "   ICR: ${profile.insulinCarbRatio} g/unit")
+        FileLogger.log("PROFILE", "   ISF: ${profile.correctionFactor}")
+        FileLogger.log("PROFILE", "   Target: ${profile.targetGlucose}")
+        FileLogger.log("PROFILE", "   Active Insulin Time: ${profile.activeInsulinTime}")
+        return profile
+    }
 
     fun saveUserName(context: Context, name: String) {
         prefs(context).edit()
@@ -394,8 +466,15 @@ object UserProfileManager {
         // Sick mode is intentionally left as-is (persistent)
     }
 
-    // ============== Clear All ==============
     fun clearAllData(context: Context) {
         prefs(context).edit().clear().apply()
     }
 }
+
+data class UserProfile(
+    val name: String,
+    val insulinCarbRatio: String,
+    val correctionFactor: Float,
+    val targetGlucose: Int,
+    val activeInsulinTime: Float
+)
