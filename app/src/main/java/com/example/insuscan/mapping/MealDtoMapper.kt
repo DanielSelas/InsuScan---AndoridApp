@@ -60,6 +60,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             exerciseAdjustment = from.exerciseAdjustment ?: from.insulinCalculation?.exerciseAdjustment,
             sickAdjustment = from.sickAdjustment ?: from.insulinCalculation?.sickAdjustment,
             stressAdjustment = from.stressAdjustment ?: from.insulinCalculation?.stressAdjustment,
+            activeInsulin = from.activeInsulin, // top level only
 
             // context flags
             wasSickMode = from.wasSickMode == true,
@@ -112,6 +113,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             sickAdjustment = meal.sickAdjustment,
             stressAdjustment = meal.stressAdjustment,
             exerciseAdjustment = meal.exerciseAdjustment,
+            activeInsulin = meal.activeInsulin,
 
             // technical (save for documentation)
             profileComplete = meal.profileComplete,

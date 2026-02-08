@@ -7,6 +7,7 @@ import com.example.insuscan.network.dto.CreateMealRequest
 import com.example.insuscan.network.dto.FoodItemDto
 import com.example.insuscan.network.dto.MealDto
 import com.example.insuscan.network.repository.base.BaseRepository
+import com.example.insuscan.utils.FileLogger
 
 class MealRepositoryImpl : BaseRepository(), MealRepository {
 
@@ -18,11 +19,21 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
     }
 
     override suspend fun saveScannedMeal(email: String, meal: MealDto): Result<MealDto> = safeApiCall {
+        val jsonDebug = "Carbs: ${meal.totalCarbs}, Dose: ${meal.recommendedDose}"
+        FileLogger.log("NET", "📤 UPLOADING MEAL to $email")
+        FileLogger.log("NET", "   Total Carbs: ${meal.totalCarbs}")
+        FileLogger.log("NET", "   Calc Dose  : ${meal.recommendedDose}")
+        FileLogger.log("NET", "   Food Items : ${meal.foodItems?.size}")
+        
+        // Detailed check of what we are sending for the calculation
+        if (meal.insulinCalculation != null) {
+            FileLogger.log("NET", "   [Calc Data] CarbDose: ${meal.insulinCalculation.carbDose}")
+            FileLogger.log("NET", "   [Calc Data] RecDose: ${meal.insulinCalculation.recommendedDose}")
+        } else {
+             FileLogger.log("NET", "   [Calc Data] NULL")
+        }
+
         Log.d("DEBUG_SAVE", "Repo: Sending POST to meals/${ApiConfig.SYSTEM_ID}/$email/save-scanned")
-        Log.d("DEBUG_SAVE", "DTO totalCarbs: ${meal.totalCarbs}")
-        Log.d("DEBUG_SAVE", "DTO carbDose: ${meal.carbDose}")
-        Log.d("DEBUG_SAVE", "DTO correctionDose: ${meal.correctionDose}")
-        Log.d("DEBUG_SAVE", "DTO insulinCalculation.carbDose: ${meal.insulinCalculation?.carbDose}")
         api.saveScannedMeal(ApiConfig.SYSTEM_ID, email, meal)
     }
 

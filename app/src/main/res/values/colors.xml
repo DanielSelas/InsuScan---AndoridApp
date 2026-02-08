@@ -7,5 +7,26 @@
     <color name="red_warning">#D32F2F</color>
 
     <color name="purple_500">#6200EE</color>
-    purple_500
+
+    <!-- Warm medical color palette -->
+    <color name="dose_primary">#64B5F6</color>           <!-- lighter, friendlier blue -->
+    <color name="dose_correction">#FFB74D</color>        <!-- warm amber for corrections -->
+    <color name="dose_adjustment">#81C784</color>        <!-- soft green for adjustments -->
+    <color name="dose_sick">#EF9A9A</color>              <!-- soft red for sick mode -->
+    <color name="dose_stress">#FFCC80</color>            <!-- warm orange for stress -->
+
+    <!-- Background tones -->
+    <color name="card_background">#FAFAFA</color>        <!-- slightly warm white -->
+    <color name="expanded_background">#F8F9FA</color>    <!-- subtle blue-ish tint -->
+    <color name="divider_warm">#E8EDF2</color>           <!-- warm divider -->
+
+    <!-- Context indicators -->
+    <color name="glucose_normal">#81C784</color>         <!-- calm green -->
+    <color name="glucose_high">#FFB74D</color>           <!-- warning amber -->
+    <color name="glucose_low">#EF5350</color>            <!-- alert red -->
+
+    <!-- Text hierarchy -->
+    <color name="text_primary">#2C3E50</color>           <!-- warm dark gray -->
+    <color name="text_secondary">#7B8794</color>         <!-- medium gray -->
+    <color name="text_tertiary">#B0B8C1</color>          <!-- light gray -->
 </resources>

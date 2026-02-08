@@ -134,20 +134,6 @@ sealed class HistoryUiModel {
         val isExerciseVisible: Boolean
             get() = meal.exerciseAdjustment != null && meal.exerciseAdjustment != 0f
 
-        val glucoseText: String
-            get() {
-                val level = meal.glucoseLevel ?: return ""
-                val units = meal.glucoseUnits ?: "mg/dL"
-                return "$level $units"
-            }
-
-        val activityText: String
-            get() = when (meal.activityLevel) {
-                "light" -> "Light exercise"
-                "intense" -> "Intense exercise"
-                else -> meal.activityLevel ?: ""
-            }
-
         // Receipt Style Data
         val carbDoseLabel: String
             get() {
@@ -273,6 +259,67 @@ sealed class HistoryUiModel {
         val insulinMessageText: String
             get() = meal.insulinMessage ?: ""
 
+
+        // Subtitle showing context at a glance
+        val displaySubtitle: String
+            get() = buildList {
+                // Glucose status
+                if (meal.glucoseLevel != null) {
+                    val level = meal.glucoseLevel!!
+                    val status = when {
+                        level < 70 -> "Low glucose"
+                        level > 180 -> "High glucose"
+                        else -> "Good glucose"
+                    }
+                    add(status)
+                }
+
+                // Activity level (only if not normal)
+                if (meal.activityLevel != null && meal.activityLevel != "normal") {
+                    val activity = when (meal.activityLevel?.lowercase()) {
+                        "sedentary" -> "Resting"
+                        "light" -> "Light activity"
+                        "moderate" -> "Active"
+                        "vigorous" -> "High intensity"
+                        else -> meal.activityLevel
+                    }
+                    add(activity)
+                }
+
+                // Special modes
+                if (meal.wasSickMode) add("Sick day")
+                if (meal.wasStressMode) add("Stressed")
+
+                // If nothing to show, add formatted date/time as fallback
+                if (isEmpty()) {
+                    val sdf = java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault())
+                    add(sdf.format(java.util.Date(meal.timestamp)))
+                }
+
+            }.joinToString(" • ")
+
+        // Enhanced glucose text with visual indicator
+        val glucoseText: String
+            get() {
+                val level = meal.glucoseLevel ?: return ""
+                val units = meal.glucoseUnits ?: "mg/dL"
+                val emoji = when {
+                    level < 70 -> "\u2705"   // ✅ low (actually should be warning)
+                    level > 180 -> "\u26A0"  // ⚠️ high
+                    else -> "\u2705"         // ✅ normal
+                }
+                return "$emoji $level $units"
+            }
+
+        // Enhanced activity text with emoji
+        val activityText: String
+            get() = when (meal.activityLevel?.lowercase()) {
+                "sedentary" -> "\uD83E\uDE91 Resting"      // 🪑
+                "light" -> "\uD83D\uDEB6 Light activity"    // 🚶
+                "moderate" -> "\uD83C\uDFC3 Active"         // 🏃
+                "vigorous" -> "\uD83D\uDCAA High intensity" // 💪
+                else -> meal.activityLevel ?: ""
+            }
     }
 
 class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.Factory {
