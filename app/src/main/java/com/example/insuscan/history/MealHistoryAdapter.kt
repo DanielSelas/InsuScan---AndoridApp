@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -56,6 +57,8 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
         // Header
         private val headerLayout: LinearLayout = itemView.findViewById(R.id.layout_header)
         private val titleText: TextView = itemView.findViewById(R.id.tv_meal_title)
+        private val subtitleText: TextView = itemView.findViewById(R.id.tv_meal_subtitle)
+
         private val carbsText: TextView = itemView.findViewById(R.id.tv_meal_carbs)
         private val timeText: TextView = itemView.findViewById(R.id.tv_meal_time)
         private val headerDoseBadge: TextView = itemView.findViewById(R.id.tv_header_dose)
@@ -64,21 +67,6 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
 
         // Expanded
         private val expandedLayout: LinearLayout = itemView.findViewById(R.id.layout_expanded)
-
-        // Meal details section
-        private val detailDateTime: TextView = itemView.findViewById(R.id.tv_detail_datetime)
-        private val detailWeight: TextView = itemView.findViewById(R.id.tv_detail_weight)
-        private val detailItemCount: TextView = itemView.findViewById(R.id.tv_detail_item_count)
-        private val detailConfidence: TextView = itemView.findViewById(R.id.tv_detail_confidence)
-        private val detailReference: TextView = itemView.findViewById(R.id.tv_detail_reference)
-
-        // Dose comparison (recommended vs actual)
-        private val doseComparisonLayout: LinearLayout = itemView.findViewById(R.id.layout_dose_comparison)
-        private val doseRecommended: TextView = itemView.findViewById(R.id.tv_dose_recommended)
-        private val doseActual: TextView = itemView.findViewById(R.id.tv_dose_actual)
-
-        // Server message
-        private val insulinMessage: TextView = itemView.findViewById(R.id.tv_insulin_message)
 
         // Context Row
         private val glucoseLayout: LinearLayout = itemView.findViewById(R.id.layout_context_glucose)
@@ -123,26 +111,40 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
             carbsText.text = "${meal.carbs.toInt()}g"
             timeText.text = SimpleDateFormat("HH:mm", Locale.getDefault()).format(java.util.Date(meal.timestamp))
             headerDoseBadge.text = item.totalDoseValue
-            
+
+
+            // NEW: Add subtitle
+            subtitleText.text = item.displaySubtitle
+            subtitleText.isVisible = item.displaySubtitle.isNotEmpty()
+
             // Indicators in header
             sickIndicator.isVisible = meal.wasSickMode
             stressIndicator.isVisible = meal.wasStressMode
 
             // --- Expanded Control ---
             expandedLayout.isVisible = isExpanded
-            
+
             if (isExpanded) {
-                // 1. Context
+                // 1. Context with enhanced colors
                 glucoseLayout.isVisible = item.isGlucoseVisible
                 if (item.isGlucoseVisible) {
                     glucoseValue.text = item.glucoseText
+                    // Color based on level
+                    val level = (meal.glucoseLevel ?: 0f).toFloat()
+                    val colorRes = when {
+                        level < 70f -> R.color.glucose_low
+                        level > 180f -> R.color.glucose_high
+                        else -> R.color.glucose_normal
+                    }
+                    glucoseValue.setTextColor(ContextCompat.getColor(itemView.context, colorRes))
                 }
-                
+
+
                 activityLayout.isVisible = item.isActivityVisible
                 if (item.isActivityVisible) {
                     activityValue.text = item.activityText
                 }
-                
+
                 // Modes (Sick/Stress Status)
                 val hasModes = meal.wasSickMode || meal.wasStressMode
                 modesLayout.isVisible = hasModes
@@ -150,78 +152,47 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
                     statusSick.isVisible = meal.wasSickMode
                     statusStress.isVisible = meal.wasStressMode
                 }
-                
-                profileErrorText.isVisible = false // Hidden - we use warning box instead
-                
+
                 // Warning Box
                 profileWarningLayout.isVisible = item.hasProfileError
 
                 // 2. Food List
                 foodListText.text = item.receiptFoodList
 
-                // 3. Receipt
+                // 3. Receipt with color-coded values
                 receiptCarbLabel.text = item.carbDoseLabel
                 receiptCarbValue.text = item.carbDoseValue
+                receiptCarbValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_primary))
 
                 rowCorrection.isVisible = item.isCorrectionVisible
                 if (item.isCorrectionVisible) {
                     receiptCorrectionValue.text = item.correctionDoseValue
+                    receiptCorrectionValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_correction))
                 }
 
                 rowExercise.isVisible = item.isExerciseVisible
                 if (item.isExerciseVisible) {
                     receiptExerciseValue.text = item.exerciseDoseValue
+                    receiptExerciseValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_adjustment))
                 }
 
                 rowSick.isVisible = item.isSickVisible
                 if (item.isSickVisible) {
                     receiptSickValue.text = item.sickDoseValue
+                    receiptSickValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_sick))
                 }
-                
+
                 rowStress.isVisible = item.isStressVisible
                 if (item.isStressVisible) {
                     receiptStressValue.text = item.stressDoseValue
+                    receiptStressValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_stress))
                 }
 
                 receiptTotalValue.text = item.totalDoseValue
-
-                // -- Recommended vs Actual comparison --
-                doseComparisonLayout.isVisible = item.isActualDoseDifferent
-                if (item.isActualDoseDifferent) {
-                    doseRecommended.text = item.recommendedDoseText
-                    doseActual.text = item.actualDoseText
-                }
-
-                // -- Server insulin message --
-                insulinMessage.isVisible = item.hasInsulinMessage
-                if (item.hasInsulinMessage) {
-                    insulinMessage.text = item.insulinMessageText
-                }
-
-                // -- Meal details --
-                detailDateTime.text = item.fullDateTime
-
-                val weightStr = item.totalWeightText
-                detailWeight.isVisible = weightStr != null
-                if (weightStr != null) {
-                    detailWeight.text = "Estimated weight: $weightStr"
-                }
-
-                detailItemCount.text = item.foodItemCountText
-
-                val confStr = item.confidenceText
-                detailConfidence.isVisible = confStr != null
-                if (confStr != null) {
-                    detailConfidence.text = "Confidence: $confStr"
-                }
-
-                val refStr = item.referenceDetectedText
-                detailReference.isVisible = refStr != null
-                if (refStr != null) {
-                    detailReference.text = refStr
-                }
+                receiptTotalValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
             }
 
+            // Click listener with animation
             headerLayout.setOnClickListener {
                 val mealId = meal.serverId ?: meal.timestamp.toString()
                 if (expandedPositions.contains(mealId)) {
