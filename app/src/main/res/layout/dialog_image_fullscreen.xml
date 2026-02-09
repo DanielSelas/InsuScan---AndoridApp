@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:layout_margin="@dimen/spacing_large"
         android:scaleType="fitCenter"
-        android:contentDescription="Scanned meal image" />
+        android:contentDescription="@string/content_desc_scanned_meal" />
 
     <!-- Close button -->
     <ImageButton
@@ -24,7 +24,7 @@
         android:layout_margin="@dimen/spacing_medium"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:contentDescription="Close"
+        android:contentDescription="@string/action_close"
         app:tint="@android:color/white" />
 
 </FrameLayout>

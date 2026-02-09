@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select the best match"
+        android:text="@string/dialog_select_food_title"
         android:textSize="@dimen/text_h2"
         android:textStyle="bold"
         android:textColor="@color/text_primary" />
@@ -18,7 +18,7 @@
         android:id="@+id/tv_search_query"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Results for: "
+        android:text="@string/dialog_results_for"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/text_secondary"
         android:layout_marginTop="@dimen/spacing_xs"
@@ -37,8 +37,8 @@
             android:padding="12dp"
             android:background="@drawable/radio_item_background"
             android:layout_marginBottom="8dp"
-            android:textSize="14sp"
-            android:textColor="#333333" />
+            android:textSize="@dimen/text_body2"
+            android:textColor="@color/text_primary" />
 
         <RadioButton
             android:id="@+id/option_2"
@@ -47,8 +47,8 @@
             android:padding="12dp"
             android:background="@drawable/radio_item_background"
             android:layout_marginBottom="8dp"
-            android:textSize="14sp"
-            android:textColor="#333333" />
+            android:textSize="@dimen/text_body2"
+            android:textColor="@color/text_primary" />
 
         <RadioButton
             android:id="@+id/option_3"
@@ -57,8 +57,8 @@
             android:padding="12dp"
             android:background="@drawable/radio_item_background"
             android:layout_marginBottom="8dp"
-            android:textSize="14sp"
-            android:textColor="#333333" />
+            android:textSize="@dimen/text_body2"
+            android:textColor="@color/text_primary" />
 
     </RadioGroup>
 
@@ -73,7 +73,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Can't find it? Enter manually"
+        android:text="@string/dialog_manual_entry_hint"
         android:textSize="@dimen/text_caption"
         android:textColor="@color/text_secondary" />
 
@@ -82,7 +82,7 @@
         android:layout_width="wrap_content"
         android:layout_height="@dimen/button_height_small"
         android:layout_marginTop="@dimen/spacing_small"
-        android:text="📝 Manual Entry"
+        android:text="@string/action_manual_entry"
         android:textSize="@dimen/text_caption"
         android:textAllCaps="false"
         style="@style/Widget.Material3.Button.TextButton" />

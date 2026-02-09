@@ -1,61 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- ==================== Dark Mode Colors ==================== -->
+    <!-- Black and white stay the same -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
 
-    <!-- Primary Colors (slightly lighter blue for dark mode) -->
-    <color name="primary">#64B5F6</color>              <!-- Lighter blue -->
-    <color name="primary_dark">#42A5F5</color>
-    <color name="primary_light">#90CAF9</color>
-    <color name="primary_very_light">#1E3A5F</color>   <!-- Dark blue background -->
+    <!-- ==================== Primary Colors ==================== -->
+    <!-- Lighter blue for better visibility on dark backgrounds -->
+    <color name="primary">#64B5F6</color>              <!-- Lighter medical blue -->
+    <color name="primary_dark">#42A5F5</color>         <!-- Medium blue -->
+    <color name="primary_light">#90CAF9</color>        <!-- Very light blue -->
+    <color name="primary_very_light">#1E3A5F</color>   <!-- Dark blue tint for backgrounds -->
 
-    <!-- Alias -->
+    <!-- ==================== Secondary Colors ==================== -->
+    <!-- Lighter green for dark mode visibility -->
+    <color name="secondary">#81C784</color>            <!-- Lighter health green -->
+    <color name="secondary_dark">#66BB6A</color>       <!-- Medium green -->
+    <color name="secondary_light">#A5D6A7</color>      <!-- Very light green -->
+
+    <!-- Alias for backward compatibility -->
     <color name="light_blue">@color/primary</color>
 
-    <!-- Secondary Colors -->
-    <color name="secondary">#81C784</color>            <!-- Lighter green -->
-    <color name="secondary_dark">#66BB6A</color>
-    <color name="secondary_light">#A5D6A7</color>
+    <!-- ==================== Status Colors ==================== -->
+    <!-- Brighter status colors for dark background visibility -->
+    <color name="status_normal">#81C784</color>        <!-- Lighter green: glucose in range -->
+    <color name="status_warning">#FFB74D</color>       <!-- Lighter orange: slightly high -->
+    <color name="status_critical">#E57373</color>      <!-- Lighter red: dangerously high/low -->
+    <color name="status_info">#64B5F6</color>          <!-- Lighter blue: informational -->
+    <color name="status_error">@color/status_critical</color>
 
-    <!-- Status Colors (brighter for visibility on dark) -->
-    <color name="status_normal">#81C784</color>        <!-- Lighter green -->
-    <color name="status_warning">#FFB74D</color>       <!-- Lighter orange -->
-    <color name="status_critical">#E57373</color>      <!-- Lighter red -->
-    <color name="status_error">#E57373</color>
-    <color name="status_info">#64B5F6</color>
-
-    <!-- Background Colors (dark backgrounds) -->
-    <color name="background">#121212</color>           <!-- Almost black -->
-    <color name="surface">#1E1E1E</color>              <!-- Dark gray -->
+    <!-- ==================== Background Colors ==================== -->
+    <!-- Dark backgrounds for dark mode -->
+    <color name="background">#121212</color>           <!-- Almost black main background -->
+    <color name="surface">#1E1E1E</color>              <!-- Dark gray for cards/containers -->
     <color name="background_secondary">#2C2C2C</color> <!-- Lighter dark gray -->
-    <color name="background_light">#2C2C2C</color>
+    <color name="background_light">#2C2C2C</color>     <!-- Alternative light background -->
 
-    <!-- Text Colors (light text on dark background) -->
-    <color name="text_primary">#FFFFFF</color>         <!-- White text -->
-    <color name="text_secondary">#B0B0B0</color>       <!-- Light gray -->
-    <color name="text_disabled">#6C6C6C</color>        <!-- Medium gray -->
-    <color name="text_on_primary">#000000</color>      <!-- Black on bright blue -->
-    <color name="text_hint">#808080</color>
+    <!-- ==================== Text Colors ==================== -->
+    <!-- Light text for dark backgrounds -->
+    <color name="text_primary">#FFFFFF</color>         <!-- White text for main content -->
+    <color name="text_secondary">#B0B0B0</color>       <!-- Light gray for secondary text -->
+    <color name="text_disabled">#6C6C6C</color>        <!-- Medium gray for disabled -->
+    <color name="text_on_primary">#000000</color>      <!-- Black text on bright blue buttons -->
+    <color name="text_hint">#808080</color>            <!-- Gray for hints -->
 
-    <!-- Divider & Border Colors -->
-    <color name="divider">#3C3C3C</color>              <!-- Darker divider -->
-    <color name="divider_light">#2C2C2C</color>
-    <color name="divider_warm">#3C3C3C</color>
-    <color name="border">#3C3C3C</color>
+    <!-- ==================== Divider & Border Colors ==================== -->
+    <!-- Darker dividers for dark mode -->
+    <color name="divider">#3C3C3C</color>              <!-- Standard dark divider -->
+    <color name="divider_light">#2C2C2C</color>        <!-- Even darker divider -->
+    <color name="divider_warm">#3C3C3C</color>         <!-- Warm-toned dark divider -->
+    <color name="border">#3C3C3C</color>               <!-- Input borders -->
 
-    <!-- Semantic Colors -->
-    <color name="error">#E57373</color>
-    <color name="success">#81C784</color>
-    <color name="warning">#FFB74D</color>
-    <color name="info">#64B5F6</color>
+    <!-- ==================== Semantic Colors ==================== -->
+    <!-- Lighter semantic colors for visibility -->
+    <color name="error">#E57373</color>                <!-- Lighter red for errors -->
+    <color name="success">#81C784</color>              <!-- Lighter green for success -->
+    <color name="warning">#FFB74D</color>              <!-- Lighter orange for warnings -->
+    <color name="info">#64B5F6</color>                 <!-- Lighter blue for info -->
 
-    <!-- Special Use Colors -->
-    <color name="overlay_dark">#99000000</color>
-    <color name="overlay_light">#33FFFFFF</color>      <!-- Light overlay for dark mode -->
-    <color name="ripple">#33FFFFFF</color>             <!-- Light ripple -->
-    <color name="transparent">#00000000</color>
+    <!-- ==================== Special Use Colors ==================== -->
+    <!-- Adjusted overlays for dark mode -->
+    <color name="overlay_dark">#99000000</color>       <!-- Semi-transparent black overlay -->
+    <color name="overlay_light">#33FFFFFF</color>      <!-- Light white overlay -->
+    <color name="ripple">#33FFFFFF</color>             <!-- Light ripple effect -->
+    <color name="transparent">#00000000</color>        <!-- Fully transparent -->
 
-    <!-- Component Colors -->
-    <color name="dose_badge">#64B5F6</color>
-    <color name="relevance_badge">#81C784</color>
-    <color name="activity_indicator">#FFB74D</color>
+    <!-- ==================== Specific Component Colors ==================== -->
+    <!-- Lighter component colors for dark mode -->
+    <color name="dose_badge">#64B5F6</color>           <!-- Lighter blue insulin dose badge -->
+    <color name="relevance_badge">#81C784</color>      <!-- Lighter green relevance indicator -->
+    <color name="activity_indicator">#FFB74D</color>   <!-- Lighter orange activity level -->
+
 </resources>
