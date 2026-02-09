@@ -65,18 +65,29 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun loadProfileImage() {
-        val photoUrl = UserProfileManager.getProfilePhotoUrl(ctx)
-        
-        if (!photoUrl.isNullOrEmpty()) {
+        val ctx = context ?: return
+        val localPhotoUrl = UserProfileManager.getProfilePhotoUrl(ctx)
+        val googlePhotoUrl = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.photoUrl
+
+        if (!localPhotoUrl.isNullOrEmpty()) {
+            // 1. Custom Profile Picture (Top Priority)
             com.bumptech.glide.Glide.with(this)
-                .load(photoUrl)
+                .load(localPhotoUrl)
+                .circleCrop()
+                .placeholder(R.drawable.duck)
+                .error(R.drawable.duck)
+                .into(profileImage)
+        } else if (googlePhotoUrl != null) {
+            // 2. Google Profile Picture (Fallback)
+            com.bumptech.glide.Glide.with(this)
+                .load(googlePhotoUrl)
                 .circleCrop()
                 .placeholder(R.drawable.duck)
                 .error(R.drawable.duck)
                 .into(profileImage)
         } else {
-             // Load default
-             com.bumptech.glide.Glide.with(this)
+            // 3. Default Duck (Last Resort)
+            com.bumptech.glide.Glide.with(this)
                 .load(R.drawable.duck)
                 .circleCrop()
                 .into(profileImage)
@@ -102,11 +113,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     try {
                         userRepository.register(email, name)
                     } catch (e: Exception) {
-                        // Ignore
+                        android.util.Log.e("HomeFragment", "Registration failed", e)
                     }
                 }
             } catch (e: Exception) {
-                // Ignore
+                android.util.Log.e("HomeFragment", "Error fetching user profile", e)
             }
         }
     }

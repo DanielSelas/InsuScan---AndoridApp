@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="@android:color/white">
+    android:background="@color/background">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -17,11 +17,11 @@
             android:id="@+id/tv_app_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="InsuScan"
-            android:textSize="36sp"
+            android:text="@string/app_name"
+            android:textSize="@dimen/text_h1_large"
             android:textStyle="bold"
-            android:textColor="#2196F3"
-            android:layout_marginTop="48dp"
+            android:textColor="@color/primary"
+            android:layout_marginTop="@dimen/spacing_xxlarge"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -30,10 +30,10 @@
             android:id="@+id/tv_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Diabetes meal management"
-            android:textSize="16sp"
-            android:textColor="#666666"
-            android:layout_marginTop="8dp"
+            android:text="@string/app_subtitle"
+            android:textSize="@dimen/text_body1"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="@dimen/spacing_small"
             app:layout_constraintTop_toBottomOf="@id/tv_app_title"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -43,11 +43,11 @@
             android:id="@+id/tv_screen_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sign In"
-            android:textSize="24sp"
+            android:text="@string/auth_sign_in"
+            android:textSize="@dimen/text_h2"
             android:textStyle="bold"
-            android:textColor="#333333"
-            android:layout_marginTop="40dp"
+            android:textColor="@color/text_primary"
+            android:layout_marginTop="@dimen/spacing_xlarge"
             app:layout_constraintTop_toBottomOf="@id/tv_subtitle"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -135,12 +135,13 @@
         <Button
             android:id="@+id/btn_action"
             android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="24dp"
-            android:text="Sign In"
-            android:textSize="16sp"
+            android:layout_height="@dimen/button_height_large"
+            android:layout_marginTop="@dimen/spacing_large"
+            android:text="@string/auth_sign_in"
+            android:textSize="@dimen/text_button"
             android:textAllCaps="false"
-            app:cornerRadius="8dp"
+            android:textColor="@color/text_on_primary"
+            android:background="@drawable/button_primary"
             app:layout_constraintTop_toBottomOf="@id/tv_password_hint"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -150,11 +151,11 @@
             android:id="@+id/tv_forgot_password"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Forgot password?"
-            android:textSize="14sp"
-            android:textColor="#2196F3"
-            android:padding="4dp"
+            android:layout_marginTop="@dimen/spacing_medium"
+            android:text="@string/auth_forgot_password"
+            android:textSize="@dimen/text_body2"
+            android:textColor="@color/primary"
+            android:padding="@dimen/spacing_xs"
             app:layout_constraintTop_toBottomOf="@id/btn_action"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -174,18 +175,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Don't have an account? "
-                android:textSize="14sp"
-                android:textColor="#666666" />
+                android:textSize="@dimen/text_body2"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/tv_toggle_action"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sign Up"
-                android:textSize="14sp"
+                android:text="@string/auth_sign_up"
+                android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
-                android:textColor="#2196F3"
-                android:padding="4dp" />
+                android:textColor="@color/primary"
+                android:padding="@dimen/spacing_xs" />
         </LinearLayout>
 
         <!-- OR divider -->
@@ -193,10 +194,10 @@
             android:id="@+id/tv_or"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="@dimen/spacing_large"
             android:text="OR"
-            android:textSize="14sp"
-            android:textColor="#999999"
+            android:textSize="@dimen/text_body2"
+            android:textColor="@color/text_hint"
             app:layout_constraintTop_toBottomOf="@id/ll_toggle_mode"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -205,20 +206,20 @@
         <Button
             android:id="@+id/btn_google"
             android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="24dp"
-            android:text="Continue with Google"
-            android:textSize="16sp"
-            android:textColor="#333333"
+            android:layout_height="@dimen/button_height_large"
+            android:layout_marginTop="@dimen/spacing_large"
+            android:text="@string/auth_continue_google"
+            android:textSize="@dimen/text_button"
+            android:textColor="@color/text_primary"
             android:textAllCaps="false"
-            android:backgroundTint="#FFFFFF"
+            android:backgroundTint="@color/surface"
             app:icon="@drawable/ic_google"
             app:iconGravity="textStart"
-            app:iconPadding="12dp"
+            app:iconPadding="@dimen/spacing_medium"
             app:iconTint="@null"
-            app:strokeColor="#DDDDDD"
-            app:strokeWidth="1dp"
-            app:cornerRadius="8dp"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="@dimen/stroke_thin"
+            app:cornerRadius="@dimen/corner_radius_button"
             style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintTop_toBottomOf="@id/tv_or"
             app:layout_constraintStart_toStartOf="parent"

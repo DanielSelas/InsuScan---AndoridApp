@@ -13,6 +13,7 @@ import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
+import androidx.core.content.ContextCompat
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -268,7 +269,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         if (enabled) {
              // Restore original color (assuming it was blue/primary)
              logButton.backgroundTintList = android.content.res.ColorStateList.valueOf(
-                 androidx.core.content.ContextCompat.getColor(ctx, R.color.dose_primary)
+                 ContextCompat.getColor(ctx, R.color.primary)
              )
              // If R.color.primary isn't available, we can hardcode the blue color used in XML or default
              // The XML used default or a specific tint. Let's try to set it to the blue used elsewhere.
@@ -346,23 +347,23 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         when {
             glucoseInMgDl < 70 -> {
                 glucoseStatusText.text = "⚠️ Low!"
-                glucoseStatusText.setTextColor(0xFFD32F2F.toInt())
+                glucoseStatusText.setTextColor(ContextCompat.getColor(ctx, R.color.status_critical))
             }
             glucoseInMgDl < targetInMgDl - 20 -> {
                 glucoseStatusText.text = "Below target"
-                glucoseStatusText.setTextColor(0xFFF57C00.toInt())
+                glucoseStatusText.setTextColor(ContextCompat.getColor(ctx, R.color.status_warning))
             }
             glucoseInMgDl <= targetInMgDl + 30 -> {
                 glucoseStatusText.text = "✓ In range"
-                glucoseStatusText.setTextColor(0xFF388E3C.toInt())
+                glucoseStatusText.setTextColor(ContextCompat.getColor(ctx, R.color.status_normal))
             }
             glucoseInMgDl <= 180 -> {
                 glucoseStatusText.text = "Above target"
-                glucoseStatusText.setTextColor(0xFFF57C00.toInt())
+                glucoseStatusText.setTextColor(ContextCompat.getColor(ctx, R.color.status_warning))
             }
             else -> {
                 glucoseStatusText.text = "⚠️ High!"
-                glucoseStatusText.setTextColor(0xFFD32F2F.toInt())
+                glucoseStatusText.setTextColor(ContextCompat.getColor(ctx, R.color.status_critical))
             }
         }
     }
@@ -430,7 +431,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
             text = if (hasMissingData) "⚠️ $name" else name
             textSize = 16f
-            setTextColor(if (hasMissingData) 0xFFD32F2F.toInt() else 0xFF424242.toInt())
+            setTextColor(ContextCompat.getColor(ctx, if (hasMissingData) R.color.error else R.color.text_primary))
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
         row.addView(nameText)
@@ -441,7 +442,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 text = "Weight: ${weight}g ✎" // Add pencil icon to indicate editability
                 textSize = 13f
-                setTextColor(0xFF1976D2.toInt()) // Blue to indicate interaction
+                setTextColor(ContextCompat.getColor(ctx, R.color.primary)) // Blue to indicate interaction
                 setPadding(16, 0, 16, 0)
                 setOnClickListener {
                     showWeightEditDialog(index, item)
@@ -456,12 +457,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             if (hasMissingData) {
                 text = "Fix >"
                 textSize = 14f
-                setTextColor(0xFFD32F2F.toInt()) // Red
+                setTextColor(ContextCompat.getColor(ctx, R.color.error)) // Red
                 setTypeface(null, android.graphics.Typeface.BOLD)
             } else {
                 text = String.format("Carbs: %.2f g", carbs)
                 textSize = 14f
-                setTextColor(0xFF1976D2.toInt()) // Blue distinct color
+                setTextColor(ContextCompat.getColor(ctx, R.color.primary)) // Blue distinct color
                 setTypeface(null, android.graphics.Typeface.BOLD)
             }
         }
@@ -556,7 +557,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             )
             text = message
             textSize = 15f
-            setTextColor(0xFF616161.toInt())
+            setTextColor(ContextCompat.getColor(ctx, R.color.text_secondary))
             setPadding(0, 8, 0, 8)
         }
         mealItemsContainer.addView(textView)
@@ -598,7 +599,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             val sign = if (result.correctionDose > 0) "+" else ""
             correctionDoseText.text = String.format("%s%.1f u", sign, result.correctionDose)
             // Color code
-            correctionDoseText.setTextColor(if(result.correctionDose > 0) 0xFFF57C00.toInt() else 0xFF4CAF50.toInt())
+            correctionDoseText.setTextColor(ContextCompat.getColor(ctx, if(result.correctionDose > 0) R.color.status_warning else R.color.status_normal))
         } else {
             correctionLayout.visibility = View.GONE
         }
@@ -736,9 +737,9 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private fun showProfileIncompleteState() {
         finalDoseText.text = "Setup Required"
-        finalDoseText.setTextColor(resources.getColor(R.color.red_warning, null))
+        finalDoseText.setTextColor(ContextCompat.getColor(ctx, R.color.error))
         carbDoseText.text = "Tap here to complete profile"
-        carbDoseText.setTextColor(resources.getColor(R.color.light_blue, null))
+        carbDoseText.setTextColor(ContextCompat.getColor(ctx, R.color.primary))
         carbDoseText.setOnClickListener {
             findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
         }

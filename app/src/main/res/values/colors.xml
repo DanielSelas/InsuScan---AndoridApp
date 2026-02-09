@@ -3,30 +3,99 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="light_blue">#6388BE</color>
-    <color name="red_warning">#D32F2F</color>
+    <!-- ==================== Primary Colors ==================== -->
+    <!-- Main brand color - medical blue for trust and professionalism -->
+    <color name="primary">#2196F3</color>
+    <color name="primary_dark">#1976D2</color>
+    <color name="primary_light">#BBDEFB</color>
+    <color name="primary_very_light">#E3F2FD</color>
 
-    <color name="purple_500">#6200EE</color>
+    <!-- ==================== Secondary Colors ==================== -->
+    <!-- Health green for success and normal values -->
+    <color name="secondary">#4CAF50</color>
+    <color name="secondary_dark">#388E3C</color>
+    <color name="secondary_light">#C8E6C9</color>
 
-    <!-- Warm medical color palette -->
-    <color name="dose_primary">#64B5F6</color>           <!-- lighter, friendlier blue -->
-    <color name="dose_correction">#FFB74D</color>        <!-- warm amber for corrections -->
-    <color name="dose_adjustment">#81C784</color>        <!-- soft green for adjustments -->
-    <color name="dose_sick">#EF9A9A</color>              <!-- soft red for sick mode -->
-    <color name="dose_stress">#FFCC80</color>            <!-- warm orange for stress -->
+    <!-- Alias for backward compatibility -->
+    <color name="light_blue">@color/primary</color>
 
-    <!-- Background tones -->
-    <color name="card_background">#FAFAFA</color>        <!-- slightly warm white -->
-    <color name="expanded_background">#F8F9FA</color>    <!-- subtle blue-ish tint -->
-    <color name="divider_warm">#E8EDF2</color>           <!-- warm divider -->
+    <!-- ==================== Status Colors ==================== -->
+    <!-- Critical for medical status indicators -->
+    <color name="status_normal">#4CAF50</color>     <!-- Green: glucose in range -->
+    <color name="status_warning">#FF9800</color>    <!-- Orange: slightly high -->
+    <color name="status_critical">#F44336</color>   <!-- Red: dangerously high/low -->
+    <color name="status_info">#2196F3</color>       <!-- Blue: informational -->
+    <color name="status_error">@color/status_critical</color>
 
-    <!-- Context indicators -->
-    <color name="glucose_normal">#81C784</color>         <!-- calm green -->
-    <color name="glucose_high">#FFB74D</color>           <!-- warning amber -->
-    <color name="glucose_low">#EF5350</color>            <!-- alert red -->
+    <!-- ==================== Background Colors ==================== -->
+    <color name="background">#FAFAFA</color>              <!-- Main app background -->
+    <color name="surface">#FFFFFF</color>                 <!-- Card/container surface -->
+    <color name="background_secondary">#F5F5F5</color>   <!-- Alternative background -->
+    <color name="background_light">#F5F5F5</color>
 
-    <!-- Text hierarchy -->
-    <color name="text_primary">#2C3E50</color>           <!-- warm dark gray -->
-    <color name="text_secondary">#7B8794</color>         <!-- medium gray -->
-    <color name="text_tertiary">#B0B8C1</color>          <!-- light gray -->
+    <!-- ==================== Text Colors ==================== -->
+    <color name="text_primary">#212121</color>      <!-- Main text - dark for readability -->
+    <color name="text_secondary">#757575</color>    <!-- Secondary text - medium gray -->
+    <color name="text_disabled">#BDBDBD</color>     <!-- Disabled text - light gray -->
+    <color name="text_on_primary">#FFFFFF</color>   <!-- White text on colored backgrounds -->
+    <color name="text_hint">#9E9E9E</color>         <!-- Hint text in inputs -->
+
+    <!-- ==================== Divider & Border Colors ==================== -->
+    <color name="divider">#E0E0E0</color>           <!-- Standard divider -->
+    <color name="divider_light">#F0F0F0</color>     <!-- Lighter divider -->
+    <color name="divider_warm">#E8E8E8</color>      <!-- Warm-toned divider -->
+    <color name="border">#E0E0E0</color>            <!-- Input borders -->
+
+    <!-- ==================== Semantic Colors ==================== -->
+    <color name="error">#F44336</color>             <!-- Error messages -->
+    <color name="success">#4CAF50</color>           <!-- Success messages -->
+    <color name="warning">#FF9800</color>           <!-- Warning messages -->
+    <color name="info">#2196F3</color>              <!-- Info messages -->
+
+    <!-- ==================== Special Use Colors ==================== -->
+    <color name="overlay_dark">#99000000</color>    <!-- Semi-transparent black overlay -->
+    <color name="overlay_light">#33000000</color>   <!-- Light black overlay -->
+    <color name="ripple">#20000000</color>          <!-- Ripple effect on clicks -->
+    <color name="transparent">#00000000</color>     <!-- Fully transparent -->
+
+    <!-- ==================== Specific Component Colors ==================== -->
+    <color name="dose_badge">#2196F3</color>        <!-- Insulin dose badge -->
+    <color name="relevance_badge">#4CAF50</color>   <!-- Relevance indicator -->
+    <color name="activity_indicator">#FF9800</color><!-- Activity level indicator -->
+
+    <!-- ==================== Dark Mode Support (Optional) ==================== -->
+    <!-- Uncomment these for dark theme support -->
+    <!--
+    <color name="background_dark">#121212</color>
+    <color name="surface_dark">#1E1E1E</color>
+    <color name="primary_dark_theme">#1E88E5</color>
+    -->
+
+    <!--    <color name="light_blue">#6388BE</color>-->
+    <!--    <color name="red_warning">#D32F2F</color>-->
+
+    <!--    <color name="purple_500">#6200EE</color>-->
+
+    <!--    &lt;!&ndash; Warm medical color palette &ndash;&gt;-->
+    <!--    <color name="dose_primary">#64B5F6</color>           &lt;!&ndash; lighter, friendlier blue &ndash;&gt;-->
+    <!--    <color name="dose_correction">#FFB74D</color>        &lt;!&ndash; warm amber for corrections &ndash;&gt;-->
+    <!--    <color name="dose_adjustment">#81C784</color>        &lt;!&ndash; soft green for adjustments &ndash;&gt;-->
+    <!--    <color name="dose_sick">#EF9A9A</color>              &lt;!&ndash; soft red for sick mode &ndash;&gt;-->
+    <!--    <color name="dose_stress">#FFCC80</color>            &lt;!&ndash; warm orange for stress &ndash;&gt;-->
+
+    <!--    &lt;!&ndash; Background tones &ndash;&gt;-->
+    <!--    <color name="card_background">#FAFAFA</color>        &lt;!&ndash; slightly warm white &ndash;&gt;-->
+    <!--    <color name="expanded_background">#F8F9FA</color>    &lt;!&ndash; subtle blue-ish tint &ndash;&gt;-->
+    <!--    <color name="divider_warm">#E8EDF2</color>           &lt;!&ndash; warm divider &ndash;&gt;-->
+
+    <!--    &lt;!&ndash; Context indicators &ndash;&gt;-->
+    <!--    <color name="glucose_normal">#81C784</color>         &lt;!&ndash; calm green &ndash;&gt;-->
+    <!--    <color name="glucose_high">#FFB74D</color>           &lt;!&ndash; warning amber &ndash;&gt;-->
+    <!--    <color name="glucose_low">#EF5350</color>            &lt;!&ndash; alert red &ndash;&gt;-->
+
+    <!--    &lt;!&ndash; Text hierarchy &ndash;&gt;-->
+    <!--    <color name="text_primary">#2C3E50</color>           &lt;!&ndash; warm dark gray &ndash;&gt;-->
+    <!--    <color name="text_secondary">#7B8794</color>         &lt;!&ndash; medium gray &ndash;&gt;-->
+    <!--    <color name="text_tertiary">#B0B8C1</color>          &lt;!&ndash; light gray &ndash;&gt;-->
+
 </resources>

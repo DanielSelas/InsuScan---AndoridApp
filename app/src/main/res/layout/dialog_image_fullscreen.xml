@@ -4,16 +4,16 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#DD000000">
+    android:background="@color/overlay_dark">
 
     <!-- Fullscreen image -->
     <ImageView
         android:id="@+id/iv_fullscreen_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="24dp"
+        android:layout_margin="@dimen/spacing_large"
         android:scaleType="fitCenter"
-        android:contentDescription="Scanned meal image" />
+        android:contentDescription="@string/content_desc_scanned_meal" />
 
     <!-- Close button -->
     <ImageButton
@@ -21,10 +21,10 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="top|end"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/spacing_medium"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:contentDescription="Close"
+        android:contentDescription="@string/action_close"
         app:tint="@android:color/white" />
 
 </FrameLayout>

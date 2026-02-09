@@ -1,0 +1,209 @@
+<resources>
+    <!-- ==================== App Name ==================== -->
+    <string name="app_name">InsuScan</string>
+    <string name="app_tagline">מחשבון אינסולין חכם</string>
+
+    <!-- ==================== Common Actions ==================== -->
+    <string name="action_save">שמור</string>
+    <string name="action_cancel">ביטול</string>
+    <string name="action_delete">מחק</string>
+    <string name="action_edit">ערוך</string>
+    <string name="action_confirm">אישור</string>
+    <string name="action_continue">המשך</string>
+    <string name="action_retry">נסה שוב</string>
+    <string name="action_ok">אישור</string>
+    <string name="action_done">סיום</string>
+    <string name="action_close">סגור</string>
+    <string name="action_back">חזור</string>
+    <string name="action_next">הבא</string>
+    <string name="action_skip">דלג</string>
+
+    <!-- ==================== Navigation ==================== -->
+    <string name="nav_home">בית</string>
+    <string name="nav_history">היסטוריה</string>
+    <string name="nav_scan">סרוק ארוחה</string>
+    <string name="nav_profile">פרופיל</string>
+    <string name="nav_settings">הגדרות</string>
+
+    <!-- ==================== Authentication ==================== -->
+    <string name="auth_sign_in">התחבר</string>
+    <string name="auth_sign_up">הירשם</string>
+    <string name="auth_sign_out">התנתק</string>
+    <string name="auth_email">דוא״ל</string>
+    <string name="auth_password">סיסמה</string>
+    <string name="auth_confirm_password">אימות סיסמה</string>
+    <string name="auth_forgot_password">שכחת סיסמה?</string>
+    <string name="auth_with_google">התחבר עם Google</string>
+    <string name="auth_create_account">צור חשבון</string>
+
+    <!-- ==================== Camera & Scanning ==================== -->
+    <string name="scan_take_photo">צלם תמונה</string>
+    <string name="scan_analyzing">מנתח ארוחה...</string>
+    <string name="scan_place_syringe">הנח מזרק אינסולין כהתייחסות לגודל</string>
+    <string name="scan_hold_steady">החזק יציב...</string>
+    <string name="scan_processing">מעבד תמונה...</string>
+    <string name="scan_detecting_food">מזהה מזון...</string>
+
+    <!-- ==================== Meal Details ==================== -->
+    <string name="meal_name">שם הארוחה</string>
+    <string name="meal_type">סוג ארוחה</string>
+    <string name="meal_breakfast">ארוחת בוקר</string>
+    <string name="meal_lunch">ארוחת צהריים</string>
+    <string name="meal_dinner">ארוחת ערב</string>
+    <string name="meal_snack">חטיף</string>
+    <string name="meal_date">תאריך</string>
+    <string name="meal_time">שעה</string>
+
+    <!-- ==================== Nutritional Info ==================== -->
+    <string name="nutrition_carbs">פחמימות</string>
+    <string name="nutrition_carbs_short">פחמימות</string>
+    <string name="nutrition_protein">חלבון</string>
+    <string name="nutrition_fat">שומן</string>
+    <string name="nutrition_calories">קלוריות</string>
+    <string name="nutrition_fiber">סיבים תזונתיים</string>
+    <string name="nutrition_serving_size">גודל מנה</string>
+
+    <!-- ==================== Units ==================== -->
+    <string name="unit_grams">גר׳</string>
+    <string name="unit_grams_full">גרם</string>
+    <string name="unit_ml">מ״ל</string>
+    <string name="unit_units">יחידות</string>
+    <string name="unit_mgdl">mg/dL</string>
+    <string name="unit_mmol">mmol/L</string>
+    <string name="unit_kcal">קלוריות</string>
+
+    <!-- ==================== Insulin Calculation ==================== -->
+    <string name="insulin_recommended_dose">מינון מומלץ</string>
+    <string name="insulin_dose">מינון אינסולין</string>
+    <string name="insulin_units">%d יחידות</string>
+    <string name="insulin_carb_ratio">יחס פחמימות</string>
+    <string name="insulin_sensitivity">רגישות לאינסולין</string>
+    <string name="insulin_target_glucose">ערך גלוקוז יעד</string>
+    <string name="insulin_correction_factor">גורם תיקון</string>
+
+    <!-- ==================== Glucose Monitoring ==================== -->
+    <string name="glucose_current">רמת גלוקוז נוכחית</string>
+    <string name="glucose_reading">קריאת גלוקוז</string>
+    <string name="glucose_target">טווח יעד</string>
+    <string name="glucose_normal">תקין</string>
+    <string name="glucose_high">גבוה</string>
+    <string name="glucose_low">נמוך</string>
+
+    <!-- ==================== Activity Level ==================== -->
+    <string name="activity_level">רמת פעילות</string>
+    <string name="activity_sedentary">יושבני</string>
+    <string name="activity_light">פעילות קלה</string>
+    <string name="activity_moderate">פעילות בינונית</string>
+    <string name="activity_heavy">פעילות כבדה</string>
+    <string name="activity_intense">פעילות אינטנסיבית</string>
+
+    <!-- ==================== Profile & Settings ==================== -->
+    <string name="profile_personal_info">מידע אישי</string>
+    <string name="profile_medical_info">מידע רפואי</string>
+    <string name="profile_name">שם מלא</string>
+    <string name="profile_age">גיל</string>
+    <string name="profile_weight">משקל</string>
+    <string name="profile_height">גובה</string>
+    <string name="profile_diabetes_type">סוג סוכרת</string>
+    <string name="profile_type_1">סוג 1</string>
+    <string name="profile_type_2">סוג 2</string>
+
+    <string name="settings_notifications">התראות</string>
+    <string name="settings_units">העדפת יחידות</string>
+    <string name="settings_language">שפה</string>
+    <string name="settings_privacy">פרטיות</string>
+    <string name="settings_about">אודות</string>
+    <string name="settings_version">גרסה</string>
+
+    <!-- ==================== History ==================== -->
+    <string name="history_meal_history">היסטוריית ארוחות</string>
+    <string name="history_recent">אחרונות</string>
+    <string name="history_today">היום</string>
+    <string name="history_yesterday">אתמול</string>
+    <string name="history_this_week">השבוע</string>
+    <string name="history_filter">סינון</string>
+    <string name="history_no_meals">אין ארוחות שנרשמו עדיין</string>
+
+    <!-- ==================== Error Messages ==================== -->
+    <string name="error_generic">משהו השתבש. אנא נסה שוב.</string>
+    <string name="error_network">אין חיבור לאינטרנט</string>
+    <string name="error_camera">גישה למצלמה נדחתה</string>
+    <string name="error_invalid_email">כתובת דוא״ל לא תקינה</string>
+    <string name="error_weak_password">הסיסמה חלשה מדי</string>
+    <string name="error_login_failed">ההתחברות נכשלה. בדוק את פרטי ההזדהות.</string>
+    <string name="error_food_detection">לא הצלחנו לזהות מזון. נסה שוב.</string>
+    <string name="error_no_syringe">מזרק לא זוהה. אנא כלול בתמונה.</string>
+    <string name="error_invalid_input">קלט לא תקין. אנא בדוק ונסה שוב.</string>
+
+    <!-- ==================== Success Messages ==================== -->
+    <string name="success_meal_saved">הארוחה נשמרה בהצלחה</string>
+    <string name="success_profile_updated">הפרופיל עודכן</string>
+    <string name="success_dose_calculated">המינון חושב</string>
+    <string name="success_login">ברוך שובך!</string>
+
+    <!-- ==================== Confirmation Messages ==================== -->
+    <string name="confirm_delete_meal">למחוק ארוחה זו?</string>
+    <string name="confirm_sign_out">האם אתה בטוח שברצונך להתנתק?</string>
+    <string name="confirm_high_dose">זהו מינון גבוה מהרגיל. לאשר?</string>
+
+    <!-- ==================== Loading Messages ==================== -->
+    <string name="loading_please_wait">אנא המתן...</string>
+    <string name="loading_analyzing">מנתח...</string>
+    <string name="loading_calculating">מחשב מינון...</string>
+    <string name="loading_saving">שומר...</string>
+
+    <!-- ==================== Empty States ==================== -->
+    <string name="empty_history">אין עדיין היסטוריית ארוחות.\nלחץ על המצלמה כדי לסרוק את הארוחה הראשונה שלך!</string>
+    <string name="empty_search">לא נמצאו תוצאות</string>
+
+    <!-- ==================== Hints ==================== -->
+    <string name="hint_search">חפש ארוחות...</string>
+    <string name="hint_notes">הוסף הערות (אופציונלי)</string>
+    <string name="hint_meal_name">לדוגמה, פסטה עם עוף</string>
+
+    <!-- ==================== Medical Warnings ==================== -->
+    <string name="warning_high_glucose">רמת הגלוקוז גבוהה</string>
+    <string name="warning_low_glucose">רמת הגלוקוז נמוכה</string>
+    <string name="warning_high_dose">מינון אינסולין גבוה - אנא ודא</string>
+    <string name="warning_consult_doctor">תמיד התייעץ עם הרופא שלך</string>
+
+    <!-- ==================== Accessibility ==================== -->
+    <string name="content_desc_profile_image">תמונת פרופיל</string>
+    <string name="content_desc_meal_image">תמונת ארוחה</string>
+    <string name="content_desc_take_photo">צלם תמונה</string>
+    <string name="content_desc_back_button">חזור אחורה</string>
+    <string name="content_desc_menu">תפריט</string>
+
+    <!-- ==================== Formats ==================== -->
+    <!-- Use these with String.format() -->
+    <string name="format_carbs_amount">%d גר׳ פחמימות</string>
+    <string name="format_insulin_units">%d יחידות</string>
+    <string name="format_glucose_reading">%d mg/dL</string>
+    <string name="format_date">%s</string>
+    <string name="format_time">%s</string>
+
+    <string name="app_subtitle">מחשבון אינסולין חכם</string>
+    <string name="auth_continue_google">המשך עם Google</string>
+    <string name="action_add">הוסף</string>
+    <string name="action_settings">הגדרות</string>
+    <string name="scan_save">שמור ארוחה</string>
+    <string name="scan_confirm_save">אשר ושמור</string>
+
+    <!-- Dialog: Add Custom Food -->
+    <string name="dialog_add_food_title">הוסף מזון מותאם</string>
+    <string name="dialog_add_food_subtitle">הזן מידע תזונתי באופן ידני</string>
+    <string name="hint_food_name">שם המזון</string>
+    <string name="hint_weight_grams">משקל (גרם)</string>
+    <string name="hint_carbs_per_100g">פחמימות ל-100 גרם</string>
+    <string name="format_total_carbs">סה״כ פחמימות: %d גרם</string>
+
+    <!-- Dialog: Select Food -->
+    <string name="dialog_select_food_title">בחר את ההתאמה הטובה ביותר</string>
+    <string name="dialog_results_for">תוצאות עבור: %s</string>
+    <string name="dialog_manual_entry_hint">לא מצאת? הזן באופן ידני</string>
+    <string name="action_manual_entry">📝 הזנה ידנית</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_scanned_meal">תמונת ארוחה סרוקה</string>
+
+</resources>
