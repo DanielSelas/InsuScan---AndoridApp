@@ -9,7 +9,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Custom Food"
+        android:text="@string/dialog_add_food_title"
         android:textSize="@dimen/text_h2"
         android:textStyle="bold"
         android:textColor="@color/text_primary" />
@@ -17,7 +17,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Enter nutritional info manually"
+        android:text="@string/dialog_add_food_subtitle"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/text_secondary"
         android:layout_marginTop="@dimen/spacing_xs"
@@ -27,7 +27,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Food name"
+        android:hint="@string/hint_food_name"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -43,8 +43,8 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Weight (grams)"
-        android:layout_marginTop="12dp"
+        android:hint="@string/hint_weight_grams"
+        android:layout_marginTop="@dimen/spacing_small"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -60,8 +60,8 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Carbs per 100g"
-        android:layout_marginTop="12dp"
+        android:hint="@string/hint_carbs_per_100g"
+        android:layout_marginTop="@dimen/spacing_small"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -78,7 +78,7 @@
         android:id="@+id/tv_carbs_preview"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Total carbs: 0g"
+        android:text="@string/format_total_carbs"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/primary"
         android:textStyle="bold"
