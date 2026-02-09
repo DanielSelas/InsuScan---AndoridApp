@@ -222,6 +222,9 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             findNavController().navigate(R.id.action_summaryFragment_to_manualEntryFragment)
         }
 
+        // Initially disable the log button and make it gray
+        setLogButtonEnabled(false)
+
         logButton.setOnClickListener {
             saveMeal()
         }
@@ -255,6 +258,62 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         scanNowButton.setOnClickListener {
             (requireActivity() as? MainActivity)?.selectScanTab()
+        }
+
+        setupScrollListener()
+    }
+
+    private fun setLogButtonEnabled(enabled: Boolean) {
+        logButton.isEnabled = enabled
+        if (enabled) {
+             // Restore original color (assuming it was blue/primary)
+             logButton.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                 androidx.core.content.ContextCompat.getColor(ctx, R.color.dose_primary)
+             )
+             // If R.color.primary isn't available, we can hardcode the blue color used in XML or default
+             // The XML used default or a specific tint. Let's try to set it to the blue used elsewhere.
+             // XML had no backgroundTint, so it used default theme color.
+             // We can just set alpha to 1f vs 0.5f or use a gray color.
+             logButton.alpha = 1.0f
+        } else {
+            // Make it gray/looks disabled
+             logButton.alpha = 0.5f
+        }
+    }
+
+    private fun setupScrollListener() {
+        val scrollView = view?.findViewById<ScrollView>(R.id.content_scroll_view) ?: return
+
+        // 1. Check if scrolling is even needed (content fits on screen)
+        scrollView.viewTreeObserver.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
+            override fun onGlobalLayout() {
+                // Remove listener to avoid multiple calls
+                scrollView.viewTreeObserver.removeOnGlobalLayoutListener(this)
+                
+                checkScrollAndEnable(scrollView)
+            }
+        })
+
+        // 2. Listen for scroll changes
+        scrollView.viewTreeObserver.addOnScrollChangedListener {
+            checkScrollAndEnable(scrollView)
+        }
+    }
+
+    private fun checkScrollAndEnable(scrollView: ScrollView) {
+        if (logButton.isEnabled) return // Already enabled
+
+        val child = scrollView.getChildAt(0) ?: return
+        val childHeight = child.height
+        val scrollHeight = scrollView.height
+        val scrollY = scrollView.scrollY
+
+        // Check if content fits entirely or if we scrolled to bottom
+        // We add a small buffer (e.g. 50px) to make it easier to trigger
+        val diff = (childHeight - (scrollHeight + scrollY))
+
+        if (childHeight <= scrollHeight || diff <= 50) {
+            setLogButtonEnabled(true)
         }
     }
 
