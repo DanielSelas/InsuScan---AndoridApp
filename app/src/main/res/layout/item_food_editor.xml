@@ -2,6 +2,7 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/spacing_small"
@@ -13,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="@dimen/padding_input_horizontal">
 
         <!-- Header row: name + delete -->
         <LinearLayout
@@ -27,7 +28,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Food name"
+                tools:text="@string/label_food_name"
                 android:textSize="@dimen/text_body1"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -36,8 +37,8 @@
 
             <ImageButton
                 android:id="@+id/btn_delete"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="@dimen/button_height_small"
+                android:layout_height="@dimen/button_height_small"
                 android:src="@android:drawable/ic_menu_delete"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Delete item"
@@ -49,7 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/spacing_small"
             android:gravity="center_vertical">
 
             <TextView
@@ -84,7 +85,7 @@
                 android:id="@+id/tv_loading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🔄 מחפש נתונים..."
+                android:text="@string/loading_searching_data"
                 android:textSize="@dimen/text_caption"
                 android:textColor="@color/status_warning"
                 android:visibility="gone" />
@@ -95,13 +96,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/spacing_small"
             android:gravity="center_vertical">
 
             <ImageButton
                 android:id="@+id/btn_minus"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/spacing_xlarge"
+                android:layout_height="@dimen/spacing_xlarge"
                 android:src="@android:drawable/ic_menu_revert"
                 android:background="@drawable/btn_circle_outline"
                 android:contentDescription="Decrease weight" />
@@ -111,7 +112,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginHorizontal="8dp"
+                android:layout_marginHorizontal="@dimen/spacing_small"
                 android:valueFrom="10"
                 android:valueTo="500"
                 android:stepSize="5"
@@ -121,8 +122,8 @@
 
             <ImageButton
                 android:id="@+id/btn_plus"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="@dimen/spacing_xlarge"
+                android:layout_height="@dimen/spacing_xlarge"
                 android:src="@android:drawable/ic_input_add"
                 android:background="@drawable/btn_circle_outline"
                 android:contentDescription="Increase weight" />

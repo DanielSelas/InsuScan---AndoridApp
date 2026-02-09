@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -18,7 +19,7 @@
             android:id="@+id/tv_food_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="White Rice"
+            tools:text="White Rice"
             android:textSize="@dimen/text_body1"
             android:textColor="@color/text_primary"
             android:textStyle="bold" />
@@ -27,7 +28,7 @@
             android:id="@+id/tv_food_original"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Rice, white, cooked"
+            tools:text="Rice, white, cooked"
             android:textSize="@dimen/text_caption"
             android:textColor="@color/text_secondary"
             android:maxLines="1"
@@ -39,7 +40,7 @@
         android:id="@+id/tv_carbs"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="28g"
+        tools:text="28g"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/primary"
         android:textStyle="bold"
