@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
@@ -18,7 +19,7 @@
             android:id="@+id/tv_food_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Food name"
+            tools:text="Food name"
             android:textSize="@dimen/text_body1"
             android:textColor="@color/text_primary"
             android:textStyle="bold"
@@ -30,7 +31,7 @@
             android:id="@+id/tv_match_reason"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Match reason"
+            tools:text="Match reason"
             android:textSize="@dimen/text_caption"
             android:textColor="@color/text_secondary"
             android:layout_marginTop="2dp"
@@ -42,7 +43,7 @@
             android:id="@+id/tv_food_carbs"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="25g carbs per 100g"
+            tools:text="25g carbs per 100g"
             android:textSize="@dimen/text_caption"
             android:textColor="@color/primary"
             android:layout_marginTop="2dp" />
@@ -54,7 +55,7 @@
         android:id="@+id/tv_relevance_score"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="95%"
+        tools:text="95%"
         android:textSize="@dimen/text_caption"
         android:textStyle="bold"
         android:textColor="@color/text_on_primary"
