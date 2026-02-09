@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
@@ -20,7 +21,7 @@
         android:id="@+id/tv_scan_subtitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Place your plate and insulin pen in the frame, then tap Capture"
+        android:text="@string/scan_instruction_frame"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/text_secondary"
         android:layout_marginTop="@dimen/spacing_small"
@@ -46,11 +47,11 @@
     <!-- Target Zone Overlay (Dashed Pen Outline on Right) -->
     <View
         android:id="@+id/view_target_zone"
-        android:layout_width="40dp"
-        android:layout_height="200dp"
+        android:layout_width="@dimen/spacing_xlarge"
+        android:layout_height="@dimen/meal_image_height"
         android:background="@drawable/dashed_border_rect"
         android:alpha="0.3"
-        android:layout_marginEnd="40dp"
+        android:layout_marginEnd="@dimen/spacing_xlarge"
         app:layout_constraintEnd_toEndOf="@id/camera_preview"
         app:layout_constraintTop_toTopOf="@id/camera_preview"
         app:layout_constraintBottom_toBottomOf="@id/camera_preview" />
@@ -60,7 +61,7 @@
         android:id="@+id/tv_coach_pill"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Too Dark 🌑"
+        android:text="@string/scan_coach_too_dark"
         android:textColor="@color/text_on_primary"
         android:background="@drawable/bg_coach_pill"
         android:paddingStart="@dimen/padding_input_horizontal"
@@ -93,7 +94,7 @@
         android:id="@+id/tv_quality_status"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Validating preview..."
+        android:text="@string/scan_validating_preview"
         android:textAlignment="center"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/text_primary"
@@ -124,7 +125,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Gallery"
+            android:text="@string/action_gallery"
             android:textSize="@dimen/text_button"
             android:textColor="@color/primary"
             android:layout_marginEnd="@dimen/spacing_small"
@@ -164,7 +165,7 @@
             android:textColor="@color/text_on_primary"
             android:textSize="@dimen/text_body1"
             android:layout_gravity="center"
-            android:layout_marginTop="60dp" />
+            android:layout_marginTop="@dimen/size_60" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

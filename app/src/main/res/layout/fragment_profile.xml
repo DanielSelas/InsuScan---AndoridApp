@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
@@ -28,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/padding_card">
 
             <!-- ============== PROFILE HEADER ============== -->
             <androidx.cardview.widget.CardView
@@ -43,18 +44,18 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp"
+                    android:padding="@dimen/padding_card"
                     android:gravity="center_vertical">
 
                     <!-- Profile photo with edit button -->
                     <FrameLayout
-                        android:layout_width="72dp"
-                        android:layout_height="72dp">
+                        android:layout_width="@dimen/progress_size_large"
+                        android:layout_height="@dimen/progress_size_large">
 
                         <ImageView
                             android:id="@+id/iv_profile_photo"
-                            android:layout_width="72dp"
-                            android:layout_height="72dp"
+                            android:layout_width="@dimen/progress_size_large"
+                            android:layout_height="@dimen/progress_size_large"
                             android:src="@drawable/ic_person"
                             android:background="@drawable/circle_background"
                             android:padding="@dimen/spacing_medium"
@@ -63,13 +64,13 @@
                         <!-- Camera icon overlay -->
                         <ImageView
                             android:id="@+id/iv_edit_photo"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="@dimen/icon_standard"
+                            android:layout_height="@dimen/icon_standard"
                             android:layout_gravity="bottom|end"
                             android:src="@drawable/ic_camera"
                             android:background="@drawable/circle_background_primary"
-                            android:padding="4dp"
-                            android:elevation="4dp" />
+                            android:padding="@dimen/spacing_xs"
+                            android:elevation="@dimen/elevation_card" />
 
                     </FrameLayout>
 
@@ -78,14 +79,14 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:orientation="vertical"
-                        android:layout_marginStart="16dp">
+                        android:layout_marginStart="@dimen/spacing_medium">
 
                         <!-- Name -->
                         <EditText
                             android:id="@+id/et_user_name"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Your name"
+                            android:hint="@string/hint_your_name"
                             android:textSize="@dimen/text_h3"
                             android:textStyle="bold"
                             android:inputType="textPersonName"
@@ -96,7 +97,7 @@
                             android:id="@+id/tv_user_email"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="email@example.com"
+                            tools:text="email@example.com"
                             android:textSize="@dimen/text_body2"
                             android:textColor="@color/text_secondary"
                             android:layout_marginTop="@dimen/spacing_xs" />
@@ -109,7 +110,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="👤 Personal Info"
+                android:text="@string/profile_personal_info"
                 android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -128,7 +129,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="@dimen/padding_card">
 
                     <!-- Age -->
                     <LinearLayout
@@ -148,7 +149,7 @@
                             android:id="@+id/et_user_age"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
-                            android:hint="30"
+                            tools:hint="30"
                             android:inputType="number"
                             android:textAlignment="center"
                             android:background="@drawable/edit_text_background" />
@@ -171,8 +172,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Gender"
-                            android:textSize="16sp" />
+                            android:text="@string/profile_gender"
+                            android:textSize="@dimen/text_body1" />
 
                         <Spinner
                             android:id="@+id/spinner_gender"
@@ -193,7 +194,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="1dp"
                             android:background="#EEEEEE"
-                            android:layout_marginVertical="12dp" />
+                            android:layout_marginVertical="@dimen/padding_input_horizontal" />
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -205,8 +206,8 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Currently pregnant?"
-                                android:textSize="16sp" />
+                                android:text="@string/profile_pregnant_question"
+                                android:textSize="@dimen/text_body1" />
 
                             <androidx.appcompat.widget.SwitchCompat
                                 android:id="@+id/switch_pregnant"
@@ -221,23 +222,23 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="@dimen/padding_input_horizontal"
                             android:visibility="gone">
 
                             <TextView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Due date"
-                                android:textSize="16sp" />
+                                android:text="@string/profile_due_date"
+                                android:textSize="@dimen/text_body1" />
 
                             <TextView
                                 android:id="@+id/tv_due_date"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Select date"
+                                android:text="@string/action_select_date"
                                 android:textColor="#1976D2"
-                                android:padding="8dp"
+                                android:padding="@dimen/spacing_small"
                                 android:background="@drawable/edit_text_background" />
                         </LinearLayout>
                     </LinearLayout>
@@ -249,7 +250,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🏥 Medical Info"
+                android:text="@string/profile_medical_info"
                 android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -268,7 +269,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="@dimen/padding_card">
 
                     <!-- Diabetes Type -->
                     <LinearLayout
@@ -281,8 +282,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Diabetes type"
-                            android:textSize="16sp" />
+                            android:text="@string/profile_diabetes_type"
+                            android:textSize="@dimen/text_body1" />
 
                         <Spinner
                             android:id="@+id/spinner_diabetes_type"
@@ -295,7 +296,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="#EEEEEE"
-                        android:layout_marginVertical="12dp" />
+                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
 
                     <!-- Insulin Type -->
                     <LinearLayout
@@ -308,8 +309,8 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Insulin type"
-                            android:textSize="16sp" />
+                            android:text="@string/profile_insulin_type"
+                            android:textSize="@dimen/text_body1" />
 
                         <Spinner
                             android:id="@+id/spinner_insulin_type"
@@ -325,12 +326,12 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="💉 Insulin Parameters"
+                android:text="@string/profile_insulin_parameters"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="#666666"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="4dp" />
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -344,7 +345,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="@dimen/padding_card">
 
                     <!-- ICR -->
                     <LinearLayout
@@ -362,13 +363,13 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Carb Ratio (ICR)"
-                                android:textSize="16sp" />
+                                android:text="@string/profile_icr"
+                                android:textSize="@dimen/text_body1" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="1 unit per X grams"
+                                android:text="@string/profile_icr_desc"
                                 android:textSize="@dimen/text_caption"
                                 android:textColor="@color/text_hint" />
                         </LinearLayout>
@@ -385,7 +386,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="1 :"
+                                tools:text="1 :"
                                 android:textSize="16sp"
                                 android:textColor="#000000"
                                 android:layout_marginEnd="4dp"/>
@@ -424,14 +425,14 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Correction Factor (ISF)"
+                                android:text="@string/profile_isf"
                                 android:textSize="16sp" />
 
                             <TextView
                                 android:id="@+id/tv_isf_subtitle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="mg/dL drop per 1 unit"
+                                android:text="@string/profile_isf_desc"
                                 android:textSize="@dimen/text_caption"
                                 android:textColor="@color/text_hint" />
                         </LinearLayout>
@@ -468,14 +469,14 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Target Glucose"
+                                android:text="@string/profile_target_glucose"
                                 android:textSize="16sp" />
 
                             <TextView
                                 android:id="@+id/tv_target_subtitle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="mg/dL"
+                                android:text="@string/unit_mgdl"
                                 android:textSize="@dimen/text_caption"
                                 android:textColor="@color/text_hint" />
                         </LinearLayout>
@@ -512,13 +513,13 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Active Insulin Time"
+                                android:text="@string/profile_active_insulin_time"
                                 android:textSize="16sp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Auto-set by insulin type"
+                                android:text="@string/profile_active_insulin_auto"
                                 android:textSize="@dimen/text_caption"
                                 android:textColor="@color/text_hint" />
                         </LinearLayout>
@@ -527,7 +528,7 @@
                             android:id="@+id/tv_active_insulin_time"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
-                            android:text="4h"
+                            tools:text="4h"
                             android:textAlignment="center"
                             android:textSize="16sp"
                             android:textColor="#666666" />
@@ -540,7 +541,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📏 Reference Object"
+                android:text="@string/profile_reference_object"
                 android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -572,7 +573,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Object Type"
+                            android:text="@string/profile_object_type"
                             android:textSize="16sp" />
 
                         <Spinner
@@ -606,7 +607,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="Length (cm)"
+                                android:text="@string/profile_length_cm"
                                 android:textSize="16sp" />
 
                             <EditText
@@ -621,7 +622,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="cm"
+                                android:text="@string/unit_cm"
                                 android:textSize="16sp"
                                 android:layout_marginStart="8dp" />
                         </LinearLayout>
@@ -629,7 +630,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Measure your cutlery (fork/knife) for better accuracy."
+                            android:text="@string/profile_reference_hint"
                             android:textSize="@dimen/text_caption"
                             android:textColor="@color/text_hint"
                             android:layout_marginTop="@dimen/spacing_xs" />
@@ -652,7 +653,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Dose rounding"
+                            android:text="@string/profile_dose_rounding"
                             android:textSize="16sp" />
 
                         <Spinner
@@ -669,7 +670,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⚡ Adjustment Factors"
+                android:text="@string/profile_adj_factors"
                 android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -701,7 +702,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🤒 Sick day increase"
+                            android:text="@string/profile_adj_sick"
                             android:textSize="16sp" />
 
                         <EditText
@@ -716,7 +717,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="%"
+                            android:text="@string/unit_percent"
                             android:textSize="16sp"
                             android:layout_marginStart="4dp" />
                     </LinearLayout>
@@ -738,7 +739,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="😰 Stress increase"
+                            android:text="@string/profile_adj_stress"
                             android:textSize="16sp" />
 
                         <EditText
@@ -753,7 +754,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="%"
+                            android:text="@string/unit_percent"
                             android:textSize="16sp"
                             android:layout_marginStart="4dp" />
                     </LinearLayout>
@@ -775,7 +776,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🏃 Light exercise decrease"
+                            android:text="@string/profile_adj_exercise_decrease"
                             android:textSize="16sp" />
 
                         <EditText
@@ -790,7 +791,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="%"
+                            android:text="@string/unit_percent"
                             android:textSize="16sp"
                             android:layout_marginStart="4dp" />
                     </LinearLayout>
@@ -812,7 +813,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🏋️ Intense exercise decrease"
+                            android:text="@string/profile_adj_intense_exercise"
                             android:textSize="16sp" />
 
                         <EditText
@@ -827,7 +828,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="%"
+                            android:text="@string/unit_percent"
                             android:textSize="16sp"
                             android:layout_marginStart="4dp" />
                     </LinearLayout>
@@ -839,7 +840,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📏 Units"
+                android:text="@string/profile_units_section"
                 android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
@@ -871,7 +872,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Glucose units"
+                            android:text="@string/profile_units_glucose"
                             android:textSize="16sp" />
 
                         <Spinner
@@ -892,7 +893,7 @@
         android:id="@+id/btn_save_profile"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="💾 Save Changes"
+        android:text="@string/action_save_changes"
         android:textAllCaps="false"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
@@ -906,7 +907,7 @@
         android:id="@+id/btn_logout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="🚪 Logout"
+        android:text="@string/action_logout"
         android:textAllCaps="false"
         android:backgroundTint="#F44336"
         android:layout_marginStart="16dp"

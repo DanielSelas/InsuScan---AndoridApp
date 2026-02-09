@@ -95,4 +95,8 @@
     <!-- ==================== Divider ==================== -->
     <dimen name="divider_height">1dp</dimen>                <!-- Standard divider -->
     <dimen name="divider_thick">2dp</dimen>                 <!-- Thick divider -->
+
+    <dimen name="size_60">60dp</dimen>
+    <dimen name="size_100">100dp</dimen>
+
 </resources>
