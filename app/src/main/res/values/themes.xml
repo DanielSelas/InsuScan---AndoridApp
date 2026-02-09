@@ -1,12 +1,39 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <style name="Base.Theme.InsuScan" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/light_blue</item>
-        <item name="colorOnPrimary">@android:color/white</item>
 
-        <!-- אופציונלי אבל מומלץ -->
-        <item name="colorSecondary">@color/light_blue</item>
-        <item name="colorOnSecondary">@android:color/white</item>
+        <!-- Primary colors (main brand color - medical blue) -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/text_on_primary</item>
+        <item name="colorPrimaryContainer">@color/primary_light</item>
+        <item name="colorOnPrimaryContainer">@color/text_primary</item>
+
+        <!-- Secondary colors (health green) -->
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/text_on_primary</item>
+        <item name="colorSecondaryContainer">@color/secondary_light</item>
+        <item name="colorOnSecondaryContainer">@color/text_primary</item>
+
+        <!-- Error colors (medical critical) -->
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/text_on_primary</item>
+
+        <!-- Background colors -->
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorSurfaceVariant">@color/background_secondary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+
+        <!-- Status bar and navigation bar -->
+        <item name="android:statusBarColor">@color/primary_dark</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+
+        <!-- Divider color -->
+        <item name="colorOutline">@color/divider</item>
+
     </style>
 
     <style name="Theme.InsuScan" parent="Base.Theme.InsuScan" />

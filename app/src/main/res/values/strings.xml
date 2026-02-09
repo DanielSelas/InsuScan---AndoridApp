@@ -1,46 +1,250 @@
 <resources>
+    <!-- ==================== App Name ==================== -->
     <string name="app_name">InsuScan</string>
-    <string name="action_settings">Settings</string>
-    <!-- Strings used for fragments for navigation -->
-    <string name="first_fragment_label">First Fragment</string>
-    <string name="second_fragment_label">Second Fragment</string>
-    <string name="next">Next</string>
-    <string name="previous">Previous</string>
+    <string name="app_tagline">Smart Insulin Calculator</string>
 
-    <string name="lorem_ipsum">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris
-        volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus
-        dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad
-        litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse blandit eleifend
-        diam, vel rutrum tellus vulputate quis. Aliquam eget libero aliquet, imperdiet nisl a,
-        ornare ex. Sed rhoncus est ut libero porta lobortis. Fusce in dictum tellus.\n\n
-        Suspendisse interdum ornare ante. Aliquam nec cursus lorem. Morbi id magna felis. Vivamus
-        egestas, est a condimentum egestas, turpis nisl iaculis ipsum, in dictum tellus dolor sed
-        neque. Morbi tellus erat, dapibus ut sem a, iaculis tincidunt dui. Interdum et malesuada
-        fames ac ante ipsum primis in faucibus. Curabitur et eros porttitor, ultricies urna vitae,
-        molestie nibh. Phasellus at commodo eros, non aliquet metus. Sed maximus nisl nec dolor
-        bibendum, vel congue leo egestas.\n\n
-        Sed interdum tortor nibh, in sagittis risus mollis quis. Curabitur mi odio, condimentum sit
-        amet auctor at, mollis non turpis. Nullam pretium libero vestibulum, finibus orci vel,
-        molestie quam. Fusce blandit tincidunt nulla, quis sollicitudin libero facilisis et. Integer
-        interdum nunc ligula, et fermentum metus hendrerit id. Vestibulum lectus felis, dictum at
-        lacinia sit amet, tristique id quam. Cras eu consequat dui. Suspendisse sodales nunc ligula,
-        in lobortis sem porta sed. Integer id ultrices magna, in luctus elit. Sed a pellentesque
-        est.\n\n
-        Aenean nunc velit, lacinia sed dolor sed, ultrices viverra nulla. Etiam a venenatis nibh.
-        Morbi laoreet, tortor sed facilisis varius, nibh orci rhoncus nulla, id elementum leo dui
-        non lorem. Nam mollis ipsum quis auctor varius. Quisque elementum eu libero sed commodo. In
-        eros nisl, imperdiet vel imperdiet et, scelerisque a mauris. Pellentesque varius ex nunc,
-        quis imperdiet eros placerat ac. Duis finibus orci et est auctor tincidunt. Sed non viverra
-        ipsum. Nunc quis augue egestas, cursus lorem at, molestie sem. Morbi a consectetur ipsum, a
-        placerat diam. Etiam vulputate dignissim convallis. Integer faucibus mauris sit amet finibus
-        convallis.\n\n
-        Phasellus in aliquet mi. Pellentesque habitant morbi tristique senectus et netus et
-        malesuada fames ac turpis egestas. In volutpat arcu ut felis sagittis, in finibus massa
-        gravida. Pellentesque id tellus orci. Integer dictum, lorem sed efficitur ullamcorper,
-        libero justo consectetur ipsum, in mollis nisl ex sed nisl. Donec maximus ullamcorper
-        sodales. Praesent bibendum rhoncus tellus nec feugiat. In a ornare nulla. Donec rhoncus
-        libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
-        vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
-    </string>
+    <!-- ==================== Common Actions ==================== -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_ok">OK</string>
+    <string name="action_done">Done</string>
+    <string name="action_close">Close</string>
+    <string name="action_back">Back</string>
+    <string name="action_next">Next</string>
+    <string name="action_skip">Skip</string>
+
+    <!-- ==================== Navigation ==================== -->
+    <string name="nav_home">Home</string>
+    <string name="nav_history">History</string>
+    <string name="nav_scan">Scan Meal</string>
+    <string name="nav_profile">Profile</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- ==================== Authentication ==================== -->
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_sign_up">Sign Up</string>
+    <string name="auth_sign_out">Sign Out</string>
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_confirm_password">Confirm Password</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_with_google">Sign in with Google</string>
+    <string name="auth_create_account">Create Account</string>
+
+    <!-- ==================== Camera & Scanning ==================== -->
+    <string name="scan_take_photo">Take Photo</string>
+    <string name="scan_analyzing">Analyzing meal...</string>
+    <string name="scan_place_syringe">Place insulin syringe for scale reference</string>
+    <string name="scan_hold_steady">Hold steady...</string>
+    <string name="scan_processing">Processing image...</string>
+    <string name="scan_detecting_food">Detecting food items...</string>
+
+    <!-- ==================== Meal Details ==================== -->
+    <string name="meal_name">Meal Name</string>
+    <string name="meal_type">Meal Type</string>
+    <string name="meal_breakfast">Breakfast</string>
+    <string name="meal_lunch">Lunch</string>
+    <string name="meal_dinner">Dinner</string>
+    <string name="meal_snack">Snack</string>
+    <string name="meal_date">Date</string>
+    <string name="meal_time">Time</string>
+
+    <!-- ==================== Nutritional Info ==================== -->
+    <string name="nutrition_carbs">Carbohydrates</string>
+    <string name="nutrition_carbs_short">Carbs</string>
+    <string name="nutrition_protein">Protein</string>
+    <string name="nutrition_fat">Fat</string>
+    <string name="nutrition_calories">Calories</string>
+    <string name="nutrition_fiber">Fiber</string>
+    <string name="nutrition_serving_size">Serving Size</string>
+
+    <!-- ==================== Units ==================== -->
+    <string name="unit_grams">g</string>
+    <string name="unit_grams_full">grams</string>
+    <string name="unit_ml">ml</string>
+    <string name="unit_units">units</string>
+    <string name="unit_mgdl">mg/dL</string>
+    <string name="unit_mmol">mmol/L</string>
+    <string name="unit_kcal">kcal</string>
+
+    <!-- ==================== Insulin Calculation ==================== -->
+    <string name="insulin_recommended_dose">Recommended Dose</string>
+    <string name="insulin_dose">Insulin Dose</string>
+    <string name="insulin_units">%d units</string>
+    <string name="insulin_carb_ratio">Carb Ratio</string>
+    <string name="insulin_sensitivity">Insulin Sensitivity</string>
+    <string name="insulin_target_glucose">Target Glucose</string>
+    <string name="insulin_correction_factor">Correction Factor</string>
+
+    <!-- ==================== Glucose Monitoring ==================== -->
+    <string name="glucose_current">Current Glucose</string>
+    <string name="glucose_reading">Glucose Reading</string>
+    <string name="glucose_target">Target Range</string>
+    <string name="glucose_normal">Normal</string>
+    <string name="glucose_high">High</string>
+    <string name="glucose_low">Low</string>
+
+    <!-- ==================== Activity Level ==================== -->
+    <string name="activity_level">Activity Level</string>
+    <string name="activity_sedentary">Sedentary</string>
+    <string name="activity_light">Light Activity</string>
+    <string name="activity_moderate">Moderate Activity</string>
+    <string name="activity_heavy">Heavy Activity</string>
+    <string name="activity_intense">Intense Activity</string>
+
+    <!-- ==================== Profile & Settings ==================== -->
+    <string name="profile_personal_info">Personal Information</string>
+    <string name="profile_medical_info">Medical Information</string>
+    <string name="profile_name">Full Name</string>
+    <string name="profile_age">Age</string>
+    <string name="profile_weight">Weight</string>
+    <string name="profile_height">Height</string>
+    <string name="profile_diabetes_type">Diabetes Type</string>
+    <string name="profile_type_1">Type 1</string>
+    <string name="profile_type_2">Type 2</string>
+
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_units">Units Preference</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_about">About</string>
+    <string name="settings_version">Version</string>
+
+    <!-- ==================== History ==================== -->
+    <string name="history_meal_history">Meal History</string>
+    <string name="history_recent">Recent</string>
+    <string name="history_today">Today</string>
+    <string name="history_yesterday">Yesterday</string>
+    <string name="history_this_week">This Week</string>
+    <string name="history_filter">Filter</string>
+    <string name="history_no_meals">No meals recorded yet</string>
+
+    <!-- ==================== Error Messages ==================== -->
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_network">No internet connection</string>
+    <string name="error_camera">Camera access denied</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_weak_password">Password too weak</string>
+    <string name="error_login_failed">Login failed. Check credentials.</string>
+    <string name="error_food_detection">Could not detect food. Try again.</string>
+    <string name="error_no_syringe">Syringe not detected. Please include in photo.</string>
+    <string name="error_invalid_input">Invalid input. Please check and try again.</string>
+
+    <!-- ==================== Success Messages ==================== -->
+    <string name="success_meal_saved">Meal saved successfully</string>
+    <string name="success_profile_updated">Profile updated</string>
+    <string name="success_dose_calculated">Dose calculated</string>
+    <string name="success_login">Welcome back!</string>
+
+    <!-- ==================== Confirmation Messages ==================== -->
+    <string name="confirm_delete_meal">Delete this meal?</string>
+    <string name="confirm_sign_out">Are you sure you want to sign out?</string>
+    <string name="confirm_high_dose">This is a higher dose than usual. Confirm?</string>
+
+    <!-- ==================== Loading Messages ==================== -->
+    <string name="loading_please_wait">Please wait...</string>
+    <string name="loading_analyzing">Analyzing...</string>
+    <string name="loading_calculating">Calculating dose...</string>
+    <string name="loading_saving">Saving...</string>
+
+    <!-- ==================== Empty States ==================== -->
+    <string name="empty_history">No meal history yet.\nTap the camera to scan your first meal!</string>
+    <string name="empty_search">No results found</string>
+
+    <!-- ==================== Hints ==================== -->
+    <string name="hint_search">Search meals...</string>
+    <string name="hint_notes">Add notes (optional)</string>
+    <string name="hint_meal_name">e.g., Pasta with chicken</string>
+
+    <!-- ==================== Medical Warnings ==================== -->
+    <string name="warning_high_glucose">Glucose level is high</string>
+    <string name="warning_low_glucose">Glucose level is low</string>
+    <string name="warning_high_dose">High insulin dose - please verify</string>
+    <string name="warning_consult_doctor">Always consult your healthcare provider</string>
+
+    <!-- ==================== Accessibility ==================== -->
+    <string name="content_desc_profile_image">Profile picture</string>
+    <string name="content_desc_meal_image">Meal photo</string>
+    <string name="content_desc_take_photo">Take photo</string>
+    <string name="content_desc_back_button">Go back</string>
+    <string name="content_desc_menu">Menu</string>
+
+    <!-- ==================== Formats ==================== -->
+    <!-- Use these with String.format() -->
+    <string name="format_carbs_amount">%d g carbs</string>
+    <string name="format_insulin_units">%d units</string>
+    <string name="format_glucose_reading">%d mg/dL</string>
+    <string name="format_date">%s</string>
+    <string name="format_time">%s</string>
+
+    <string name="app_subtitle">Smart Insulin Calculator</string>
+    <string name="auth_continue_google">Continue with Google</string>
+    <string name="action_add">Add</string>
+    <string name="action_settings">Settings</string>
+    <string name="scan_save">Save Meal</string>
+    <string name="scan_confirm_save">Confirm and Save</string>
+    <!-- Dialog: Add Custom Food -->
+    <string name="dialog_add_food_title">Add Custom Food</string>
+    <string name="dialog_add_food_subtitle">Enter nutritional info manually</string>
+    <string name="hint_food_name">Food name</string>
+    <string name="hint_weight_grams">Weight (grams)</string>
+    <string name="hint_carbs_per_100g">Carbs per 100g</string>
+    <string name="format_total_carbs">Total carbs: %dg</string>
+
+    <!-- Dialog: Select Food -->
+    <string name="dialog_select_food_title">Select the best match</string>
+    <string name="dialog_results_for">Results for: %s</string>
+    <string name="dialog_manual_entry_hint">Can\'t find it? Enter manually</string>
+    <string name="action_manual_entry">📝 Manual Entry</string>
+
+    <!-- Content Descriptions -->
+    <string name="content_desc_scanned_meal">Scanned meal image</string>
+    <!--    <string name="action_settings">Settings</string>-->
+    <!--    &lt;!&ndash; Strings used for fragments for navigation &ndash;&gt;-->
+    <!--    <string name="first_fragment_label">First Fragment</string>-->
+    <!--    <string name="second_fragment_label">Second Fragment</string>-->
+    <!--    <string name="next">Next</string>-->
+    <!--    <string name="previous">Previous</string>-->
+
+    <!--    <string name="lorem_ipsum">-->
+    <!--        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam in scelerisque sem. Mauris-->
+    <!--        volutpat, dolor id interdum ullamcorper, risus dolor egestas lectus, sit amet mattis purus-->
+    <!--        dui nec risus. Maecenas non sodales nisi, vel dictum dolor. Class aptent taciti sociosqu ad-->
+    <!--        litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse blandit eleifend-->
+    <!--        diam, vel rutrum tellus vulputate quis. Aliquam eget libero aliquet, imperdiet nisl a,-->
+    <!--        ornare ex. Sed rhoncus est ut libero porta lobortis. Fusce in dictum tellus.\n\n-->
+    <!--        Suspendisse interdum ornare ante. Aliquam nec cursus lorem. Morbi id magna felis. Vivamus-->
+    <!--        egestas, est a condimentum egestas, turpis nisl iaculis ipsum, in dictum tellus dolor sed-->
+    <!--        neque. Morbi tellus erat, dapibus ut sem a, iaculis tincidunt dui. Interdum et malesuada-->
+    <!--        fames ac ante ipsum primis in faucibus. Curabitur et eros porttitor, ultricies urna vitae,-->
+    <!--        molestie nibh. Phasellus at commodo eros, non aliquet metus. Sed maximus nisl nec dolor-->
+    <!--        bibendum, vel congue leo egestas.\n\n-->
+    <!--        Sed interdum tortor nibh, in sagittis risus mollis quis. Curabitur mi odio, condimentum sit-->
+    <!--        amet auctor at, mollis non turpis. Nullam pretium libero vestibulum, finibus orci vel,-->
+    <!--        molestie quam. Fusce blandit tincidunt nulla, quis sollicitudin libero facilisis et. Integer-->
+    <!--        interdum nunc ligula, et fermentum metus hendrerit id. Vestibulum lectus felis, dictum at-->
+    <!--        lacinia sit amet, tristique id quam. Cras eu consequat dui. Suspendisse sodales nunc ligula,-->
+    <!--        in lobortis sem porta sed. Integer id ultrices magna, in luctus elit. Sed a pellentesque-->
+    <!--        est.\n\n-->
+    <!--        Aenean nunc velit, lacinia sed dolor sed, ultrices viverra nulla. Etiam a venenatis nibh.-->
+    <!--        Morbi laoreet, tortor sed facilisis varius, nibh orci rhoncus nulla, id elementum leo dui-->
+    <!--        non lorem. Nam mollis ipsum quis auctor varius. Quisque elementum eu libero sed commodo. In-->
+    <!--        eros nisl, imperdiet vel imperdiet et, scelerisque a mauris. Pellentesque varius ex nunc,-->
+    <!--        quis imperdiet eros placerat ac. Duis finibus orci et est auctor tincidunt. Sed non viverra-->
+    <!--        ipsum. Nunc quis augue egestas, cursus lorem at, molestie sem. Morbi a consectetur ipsum, a-->
+    <!--        placerat diam. Etiam vulputate dignissim convallis. Integer faucibus mauris sit amet finibus-->
+    <!--        convallis.\n\n-->
+    <!--        Phasellus in aliquet mi. Pellentesque habitant morbi tristique senectus et netus et-->
+    <!--        malesuada fames ac turpis egestas. In volutpat arcu ut felis sagittis, in finibus massa-->
+    <!--        gravida. Pellentesque id tellus orci. Integer dictum, lorem sed efficitur ullamcorper,-->
+    <!--        libero justo consectetur ipsum, in mollis nisl ex sed nisl. Donec maximus ullamcorper-->
+    <!--        sodales. Praesent bibendum rhoncus tellus nec feugiat. In a ornare nulla. Donec rhoncus-->
+    <!--        libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus-->
+    <!--        vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.-->
+    <!--    </string>-->
 </resources>

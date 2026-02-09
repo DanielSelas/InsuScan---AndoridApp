@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Filter
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.example.insuscan.R
 
 class FoodSearchAdapter(
@@ -53,10 +54,10 @@ class FoodSearchAdapter(
             
             // Color badge based on score
             val backgroundColor = when {
-                item.relevanceScore >= 90 -> 0xFF4CAF50.toInt() // Green - excellent match
-                item.relevanceScore >= 70 -> 0xFF8BC34A.toInt() // Light green - good match
-                item.relevanceScore >= 50 -> 0xFFFFC107.toInt() // Amber - moderate match
-                else -> 0xFFFF9800.toInt() // Orange - weak match
+                item.relevanceScore >= 90 -> ContextCompat.getColor(context, R.color.success) // Green - excellent match
+                item.relevanceScore >= 70 -> ContextCompat.getColor(context, R.color.secondary_light) // Light green - good match
+                item.relevanceScore >= 50 -> ContextCompat.getColor(context, R.color.warning) // Amber - moderate match
+                else -> ContextCompat.getColor(context, R.color.error) // Orange/Red - weak match
             }
             scoreView.setBackgroundColor(backgroundColor)
         } else {

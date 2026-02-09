@@ -132,9 +132,9 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
                     // Color based on level
                     val level = (meal.glucoseLevel ?: 0f).toFloat()
                     val colorRes = when {
-                        level < 70f -> R.color.glucose_low
-                        level > 180f -> R.color.glucose_high
-                        else -> R.color.glucose_normal
+                        level < 70f -> R.color.status_critical
+                        level > 180f -> R.color.status_warning
+                        else -> R.color.status_normal
                     }
                     glucoseValue.setTextColor(ContextCompat.getColor(itemView.context, colorRes))
                 }
@@ -162,30 +162,30 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
                 // 3. Receipt with color-coded values
                 receiptCarbLabel.text = item.carbDoseLabel
                 receiptCarbValue.text = item.carbDoseValue
-                receiptCarbValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_primary))
+                receiptCarbValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.primary))
 
                 rowCorrection.isVisible = item.isCorrectionVisible
                 if (item.isCorrectionVisible) {
                     receiptCorrectionValue.text = item.correctionDoseValue
-                    receiptCorrectionValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_correction))
+                    receiptCorrectionValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.status_warning))
                 }
 
                 rowExercise.isVisible = item.isExerciseVisible
                 if (item.isExerciseVisible) {
                     receiptExerciseValue.text = item.exerciseDoseValue
-                    receiptExerciseValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_adjustment))
+                    receiptExerciseValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.secondary))
                 }
 
                 rowSick.isVisible = item.isSickVisible
                 if (item.isSickVisible) {
                     receiptSickValue.text = item.sickDoseValue
-                    receiptSickValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_sick))
+                    receiptSickValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.status_critical))
                 }
 
                 rowStress.isVisible = item.isStressVisible
                 if (item.isStressVisible) {
                     receiptStressValue.text = item.stressDoseValue
-                    receiptStressValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.dose_stress))
+                    receiptStressValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.status_warning))
                 }
 
                 receiptTotalValue.text = item.totalDoseValue

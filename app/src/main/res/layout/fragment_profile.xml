@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/background">
 
     <!-- Top bar -->
     <include
@@ -34,10 +34,10 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@android:color/white">
+                android:layout_marginBottom="@dimen/spacing_medium"
+                app:cardCornerRadius="@dimen/corner_radius_card"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -57,7 +57,7 @@
                             android:layout_height="72dp"
                             android:src="@drawable/ic_person"
                             android:background="@drawable/circle_background"
-                            android:padding="16dp"
+                            android:padding="@dimen/spacing_medium"
                             android:scaleType="centerCrop" />
 
                         <!-- Camera icon overlay -->
@@ -86,7 +86,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Your name"
-                            android:textSize="18sp"
+                            android:textSize="@dimen/text_h3"
                             android:textStyle="bold"
                             android:inputType="textPersonName"
                             android:background="@android:color/transparent" />
@@ -97,9 +97,9 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="email@example.com"
-                            android:textSize="14sp"
-                            android:textColor="#666666"
-                            android:layout_marginTop="4dp" />
+                            android:textSize="@dimen/text_body2"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="@dimen/spacing_xs" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -110,19 +110,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="👤 Personal Info"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
-                android:textColor="#666666"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="4dp" />
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@android:color/white">
+                android:layout_marginBottom="@dimen/spacing_medium"
+                app:cardCornerRadius="@dimen/corner_radius_card"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -142,7 +142,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Age"
-                            android:textSize="16sp" />
+                            android:textSize="@dimen/text_body1" />
 
                         <EditText
                             android:id="@+id/et_user_age"
@@ -156,9 +156,9 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#EEEEEE"
-                        android:layout_marginVertical="12dp" />
+                        android:layout_height="@dimen/divider_height"
+                        android:background="@color/divider"
+                        android:layout_marginVertical="@dimen/spacing_medium" />
 
                     <!-- Gender -->
                     <LinearLayout
@@ -250,19 +250,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🏥 Medical Info"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
-                android:textColor="#666666"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="4dp" />
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@android:color/white">
+                android:layout_marginBottom="@dimen/spacing_medium"
+                app:cardCornerRadius="@dimen/corner_radius_card"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -369,8 +369,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="1 unit per X grams"
-                                android:textSize="12sp"
-                                android:textColor="#999999" />
+                                android:textSize="@dimen/text_caption"
+                                android:textColor="@color/text_hint" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -432,8 +432,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="mg/dL drop per 1 unit"
-                                android:textSize="12sp"
-                                android:textColor="#999999" />
+                                android:textSize="@dimen/text_caption"
+                                android:textColor="@color/text_hint" />
                         </LinearLayout>
 
                         <EditText
@@ -476,8 +476,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="mg/dL"
-                                android:textSize="12sp"
-                                android:textColor="#999999" />
+                                android:textSize="@dimen/text_caption"
+                                android:textColor="@color/text_hint" />
                         </LinearLayout>
 
                         <EditText
@@ -492,9 +492,9 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#EEEEEE"
-                        android:layout_marginVertical="12dp" />
+                        android:layout_height="@dimen/divider_height"
+                        android:background="@color/divider"
+                        android:layout_marginVertical="@dimen/spacing_medium" />
 
                     <!-- Active Insulin Time -->
                     <LinearLayout
@@ -519,8 +519,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Auto-set by insulin type"
-                                android:textSize="12sp"
-                                android:textColor="#999999" />
+                                android:textSize="@dimen/text_caption"
+                                android:textColor="@color/text_hint" />
                         </LinearLayout>
 
                         <TextView
@@ -541,11 +541,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="📏 Reference Object"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
-                android:textColor="#666666"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="4dp" />
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -630,9 +630,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Measure your cutlery (fork/knife) for better accuracy."
-                            android:textSize="12sp"
-                            android:textColor="#999999"
-                            android:layout_marginTop="4dp" />
+                            android:textSize="@dimen/text_caption"
+                            android:textColor="@color/text_hint"
+                            android:layout_marginTop="@dimen/spacing_xs" />
                     </LinearLayout>
 
                     <View
@@ -670,11 +670,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="⚡ Adjustment Factors"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
-                android:textColor="#666666"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="4dp" />
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -835,16 +835,16 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ============== PREFERENCES ============== -->
+            <!-- ============== UNITS ============== -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="⚙️ Preferences"
-                android:textSize="14sp"
+                android:text="📏 Units"
+                android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
-                android:textColor="#666666"
-                android:layout_marginBottom="8dp"
-                android:layout_marginStart="4dp" />
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
