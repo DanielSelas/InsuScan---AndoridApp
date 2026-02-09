@@ -7,9 +7,9 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     android:layout_marginHorizontal="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/card_background">
+    app:cardCornerRadius="@dimen/corner_radius_card"
+    app:cardElevation="@dimen/elevation_card"
+    app:cardBackgroundColor="@color/surface">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp"
+            android:padding="@dimen/spacing_medium"
             android:background="?attr/selectableItemBackground">
 
             <!-- Top Row: Title + Dose Badge -->
@@ -44,7 +44,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="Banana, Apple"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/text_h3"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/text_primary"
                         android:letterSpacing="0.01"
@@ -56,10 +56,10 @@
                         android:id="@+id/tv_meal_subtitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="3dp"
-                        tools:text="Good glucose • Light activity"
-                        android:textSize="12sp"
-                        android:textColor="@color/text_tertiary"
+                        android:layout_marginTop="@dimen/spacing_xs"
+                        tools:text="Good glucose - Light activity"
+                        android:textSize="@dimen/text_caption"
+                        android:textColor="@color/text_secondary"
                         android:fontFamily="sans-serif"
                         android:letterSpacing="0.02"
                         android:maxLines="1"
@@ -77,22 +77,22 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             tools:text="45g"
-                            android:textSize="13sp"
+                            android:textSize="@dimen/text_body2"
                             android:textColor="@color/text_secondary" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=" • "
-                            android:textSize="13sp"
-                            android:textColor="@color/text_tertiary" />
+                            android:textSize="@dimen/text_body2"
+                            android:textColor="@color/text_secondary" />
 
                         <TextView
                             android:id="@+id/tv_meal_time"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             tools:text="14:30"
-                            android:textSize="13sp"
+                            android:textSize="@dimen/text_body2"
                             android:textColor="@color/text_secondary" />
 
                         <!-- Context Indicators -->
@@ -101,8 +101,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=" 🤒"
-                            android:textSize="14sp"
                             android:visibility="gone"
+                            android:textSize="14sp"
                             android:layout_marginStart="6dp" />
 
                         <TextView
@@ -110,7 +110,6 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text=" 😰"
-                            android:textSize="14sp"
                             android:visibility="gone" />
                     </LinearLayout>
 
@@ -140,15 +139,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone"
-            android:background="@color/expanded_background"
-            android:paddingHorizontal="18dp"
-            android:paddingBottom="18dp">
+            android:background="@color/background_secondary"
+            android:paddingHorizontal="@dimen/spacing_large"
+            android:paddingBottom="@dimen/spacing_large">
 
             <!-- Warm divider -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider_warm"
+                android:layout_height="@dimen/divider_height"
+                android:background="@color/divider"
                 android:layout_marginBottom="16dp" />
 
             <!-- Context Row -->
@@ -170,9 +169,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="GLUCOSE"
-                        android:textSize="10sp"
+                        android:textSize="@dimen/text_label"
                         android:textStyle="bold"
-                        android:textColor="@color/text_tertiary"
+                        android:textColor="@color/text_secondary"
                         android:letterSpacing="0.05"
                         android:layout_marginBottom="4dp"/>
 
@@ -181,7 +180,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="✓ 120 mg/dL"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/text_primary" />
                 </LinearLayout>
@@ -198,9 +197,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="ACTIVITY"
-                        android:textSize="10sp"
+                        android:textSize="@dimen/text_label"
                         android:textStyle="bold"
-                        android:textColor="@color/text_tertiary"
+                        android:textColor="@color/text_secondary"
                         android:letterSpacing="0.05"
                         android:layout_marginBottom="4dp"/>
 
@@ -209,7 +208,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="🚶 Light activity"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/text_primary" />
                 </LinearLayout>
@@ -226,9 +225,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="STATUS"
-                        android:textSize="10sp"
+                        android:textSize="@dimen/text_label"
                         android:textStyle="bold"
-                        android:textColor="@color/text_tertiary"
+                        android:textColor="@color/text_secondary"
                         android:letterSpacing="0.05"
                         android:layout_marginBottom="4dp"/>
 
@@ -242,8 +241,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="🤒 Sick"
-                            android:textSize="13sp"
-                            android:textColor="#E65100"
+                            android:textSize="@dimen/text_body2"
+                            android:textColor="@color/status_critical"
                             android:fontFamily="sans-serif-medium"
                             android:visibility="gone" />
 
@@ -252,10 +251,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="😰 Stress"
-                            android:textSize="13sp"
-                            android:textColor="#F57C00"
+                            android:textSize="@dimen/text_body2"
+                            android:textColor="@color/status_warning"
                             android:fontFamily="sans-serif-medium"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="@dimen/spacing_small"
                             android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
@@ -267,9 +266,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Missing Profile"
-                android:textColor="#D32F2F"
+                android:textColor="@color/status_error"
                 android:fontFamily="sans-serif-medium"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:visibility="gone" />
 
             <!-- Profile Warning Box -->
@@ -319,9 +318,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="FOOD ITEMS"
-                android:textSize="10sp"
+                android:textSize="@dimen/text_label"
                 android:textStyle="bold"
-                android:textColor="@color/text_tertiary"
+                android:textColor="@color/text_secondary"
                 android:letterSpacing="0.05"
                 android:layout_marginBottom="8dp"/>
 
@@ -331,18 +330,18 @@
                 android:layout_height="wrap_content"
                 tools:text="Rice (150g) ... 35g carbs\nChicken ... 0g carbs"
                 android:lineSpacingExtra="6dp"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_body2"
                 android:textColor="@color/text_primary"
-                android:layout_marginBottom="20dp"/>
+                android:layout_marginBottom="@dimen/spacing_large"/>
 
             <!-- Dose Calculation Receipt -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="DOSE CALCULATION"
-                android:textSize="10sp"
+                android:textSize="@dimen/text_label"
                 android:textStyle="bold"
-                android:textColor="@color/text_tertiary"
+                android:textColor="@color/text_secondary"
                 android:letterSpacing="0.05"
                 android:layout_marginBottom="8dp"/>
 
@@ -363,7 +362,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         tools:text="Insulin for Food (45g)"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_carb_value"
@@ -371,7 +370,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         tools:text="4.5u"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/text_primary"/>
                 </RelativeLayout>
@@ -387,7 +386,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Correction"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_correction_value"
@@ -395,9 +394,9 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         tools:text="+0.5u"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/dose_correction"/>
+                        android:textColor="@color/status_warning"/>
                 </RelativeLayout>
 
                 <!-- Sick -->
@@ -411,7 +410,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="🤒 Sick Day Adj."
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_sick_value"
@@ -419,9 +418,9 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         tools:text="+1.2u"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/dose_sick"/>
+                        android:textColor="@color/status_critical"/>
                 </RelativeLayout>
 
                 <!-- Stress -->
@@ -435,7 +434,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="😰 Stress Adj."
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_stress_value"
@@ -443,9 +442,9 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         tools:text="+0.8u"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/dose_stress"/>
+                        android:textColor="@color/status_warning"/>
                 </RelativeLayout>
 
                 <!-- Exercise -->
@@ -459,7 +458,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="🏃 Exercise Adj."
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:textColor="@color/text_secondary"/>
                     <TextView
                         android:id="@+id/tv_receipt_exercise_value"
@@ -467,17 +466,17 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         tools:text="-0.5u"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="@color/dose_adjustment"/>
+                        android:textColor="@color/secondary"/>
                 </RelativeLayout>
 
                 <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/divider_warm"
-                    android:layout_marginVertical="8dp" />
+                    android:layout_height="@dimen/divider_height"
+                    android:background="@color/divider"
+                    android:layout_marginVertical="@dimen/spacing_medium" />
 
                 <!-- Total -->
                 <RelativeLayout
@@ -487,7 +486,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Final Dose"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_body1"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/text_primary"/>
                     <TextView
@@ -496,9 +495,9 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         tools:text="5.2u"
-                        android:textSize="16sp"
+                        android:textSize="@dimen/text_h3"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="#1976D2"/>
+                        android:textColor="@color/primary"/>
                 </RelativeLayout>
 
             </LinearLayout>

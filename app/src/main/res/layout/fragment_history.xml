@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/background">
 
     <include
         android:id="@+id/top_bar"
@@ -20,11 +20,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="📋 Your Meals"
-        android:textSize="20sp"
+        android:textSize="@dimen/text_h2"
         android:textStyle="bold"
-        android:textColor="#333333"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
+        android:textColor="@color/text_primary"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:layout_marginStart="@dimen/spacing_medium"
         app:layout_constraintTop_toBottomOf="@id/top_bar"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -35,9 +35,9 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="@drawable/bg_filter_button"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="8dp"
-        android:layout_marginEnd="16dp"
+        android:paddingHorizontal="@dimen/spacing_medium"
+        android:paddingVertical="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_medium"
         android:clickable="true"
         android:focusable="true"
         app:layout_constraintBottom_toBottomOf="@+id/tv_history_title"
@@ -48,16 +48,16 @@
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@android:drawable/ic_menu_my_calendar"
-            app:tint="#1976D2"
-            android:layout_marginEnd="8dp"/>
+            app:tint="@color/primary"
+            android:layout_marginEnd="@dimen/spacing_small"/>
 
         <TextView
             android:id="@+id/tv_filter_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Filter by Date"
-            android:textColor="#1976D2"
-            android:textSize="14sp"
+            android:textColor="@color/primary"
+            android:textSize="@dimen/text_body2"
             android:textStyle="bold" />
 
     </LinearLayout>
@@ -80,11 +80,11 @@
         android:id="@+id/card_latest_meal"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#FFFFFF"
+        android:layout_marginHorizontal="@dimen/spacing_medium"
+        android:layout_marginTop="@dimen/spacing_medium"
+        app:cardCornerRadius="@dimen/corner_radius_card"
+        app:cardElevation="@dimen/elevation_card"
+        app:cardBackgroundColor="@color/surface"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/tv_history_title"
         app:layout_constraintStart_toStartOf="parent"
@@ -100,8 +100,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="✨ Latest Scan"
-                android:textColor="#1976D2"
-                android:textSize="12sp"
+                android:textColor="@color/primary"
+                android:textSize="@dimen/text_caption"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -111,8 +111,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="19:24"
-                android:textColor="#757575"
-                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:textSize="@dimen/text_caption"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -121,10 +121,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Meal Name"
-                android:textSize="18sp"
+                android:textSize="@dimen/text_h3"
                 android:textStyle="bold"
-                android:textColor="#333333"
-                android:layout_marginTop="8dp"
+                android:textColor="@color/text_primary"
+                android:layout_marginTop="@dimen/spacing_small"
                 app:layout_constraintTop_toBottomOf="@id/tv_latest_label"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -134,9 +134,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="45g carbs | 6.5 units"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginTop="4dp"
+                android:textSize="@dimen/text_body2"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="@dimen/spacing_xs"
                 app:layout_constraintTop_toBottomOf="@id/tv_latest_title"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
@@ -150,11 +150,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Previous Meals"
-        android:textSize="14sp"
-        android:textColor="#999999"
+        android:textSize="@dimen/text_body2"
+        android:textColor="@color/text_hint"
         android:textStyle="bold"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="@dimen/spacing_medium"
+        android:layout_marginTop="@dimen/spacing_medium"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/card_latest_meal"
         app:layout_constraintStart_toStartOf="parent" />
@@ -205,10 +205,12 @@
     <Button
         android:id="@+id/btn_scan_next"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="📷 Scan Next Meal"
+        android:layout_height="@dimen/button_height_large"
+        android:layout_marginHorizontal="@dimen/spacing_medium"
+        android:layout_marginBottom="@dimen/spacing_medium"
+        android:text="@string/scan_take_photo"
+        android:textColor="@color/text_on_primary"
+        android:background="@drawable/button_primary"
         android:textAllCaps="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

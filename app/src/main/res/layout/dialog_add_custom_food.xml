@@ -10,18 +10,18 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Add Custom Food"
-        android:textSize="20sp"
+        android:textSize="@dimen/text_h2"
         android:textStyle="bold"
-        android:textColor="#424242" />
+        android:textColor="@color/text_primary" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Enter nutritional info manually"
-        android:textSize="14sp"
-        android:textColor="#757575"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="20dp" />
+        android:textSize="@dimen/text_body2"
+        android:textColor="@color/text_secondary"
+        android:layout_marginTop="@dimen/spacing_xs"
+        android:layout_marginBottom="@dimen/spacing_large" />
 
     <!-- Food name -->
     <com.google.android.material.textfield.TextInputLayout
@@ -79,9 +79,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Total carbs: 0g"
-        android:textSize="14sp"
-        android:textColor="#1976D2"
+        android:textSize="@dimen/text_body2"
+        android:textColor="@color/primary"
         android:textStyle="bold"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="@dimen/spacing_medium" />
 
 </LinearLayout>

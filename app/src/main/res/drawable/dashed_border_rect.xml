@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- White dashed border - typically used for camera viewfinder overlay -->
     <stroke
-        android:width="2dp"
-        android:color="#FFFFFF"
+        android:width="@dimen/stroke_medium"
+        android:color="@color/text_on_primary"
         android:dashWidth="10dp"
         android:dashGap="10dp" />
-    <corners android:radius="8dp" />
+    <corners android:radius="@dimen/corner_radius_input" />
 </shape>
