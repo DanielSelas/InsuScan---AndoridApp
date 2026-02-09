@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="12dp"
+    android:padding="@dimen/spacing_medium"
     android:background="?android:attr/selectableItemBackground"
     android:gravity="center_vertical">
 
@@ -19,8 +19,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="White Rice"
-            android:textSize="15sp"
-            android:textColor="#212121"
+            android:textSize="@dimen/text_body1"
+            android:textColor="@color/text_primary"
             android:textStyle="bold" />
 
         <TextView
@@ -28,8 +28,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Rice, white, cooked"
-            android:textSize="12sp"
-            android:textColor="#757575"
+            android:textSize="@dimen/text_caption"
+            android:textColor="@color/text_secondary"
             android:maxLines="1"
             android:ellipsize="end" />
 
@@ -40,9 +40,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="28g"
-        android:textSize="14sp"
-        android:textColor="#1976D2"
+        android:textSize="@dimen/text_body2"
+        android:textColor="@color/primary"
         android:textStyle="bold"
-        android:layout_marginStart="8dp" />
+        android:layout_marginStart="@dimen/spacing_small" />
 
 </LinearLayout>

@@ -142,7 +142,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Add Text Label
             val label = TextView(context).apply {
                 text = "Reference\nObject\nZone"
-                setTextColor(android.graphics.Color.WHITE)
+                setTextColor(ContextCompat.getColor(context, R.color.white))
                 textSize = 14f
                 gravity = android.view.Gravity.CENTER
                 layoutParams = FrameLayout.LayoutParams(
@@ -179,8 +179,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Update legacy quality status (bottom bar)
             qualityStatusText.text = quality.getValidationMessage()
             qualityStatusText.setBackgroundColor(
-                if (quality.isValid) android.graphics.Color.parseColor("#C8E6C9") // Green
-                else android.graphics.Color.parseColor("#FFCDD2") // Red
+                ContextCompat.getColor(requireContext(), if (quality.isValid) R.color.secondary_light else R.color.error)
             )
             captureButton.isEnabled = quality.isValid || true // Allow capture anyway for now (debug)
 
@@ -317,7 +316,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             !isPlateFound -> {
                 isImageQualityOk = false
                 qualityStatusText.text = "Plate not detected. Center the food."
-                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.holo_orange_light))
+                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning))
                 captureButton.isEnabled = false
                 captureButton.alpha = 0.5f
             }
@@ -326,7 +325,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 isImageQualityOk = true // Allow capture (Logic handled in click listener)
                 val debugInfo = cameraManager.lastQualityResult?.debugInfo ?: ""
                 qualityStatusText.text = "Ref Obj Missing. $debugInfo"
-                qualityStatusText.setBackgroundColor(android.graphics.Color.parseColor("#FFD700")) // Use yellow
+                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning)) // Use yellow
                 
                 // Allow capture but maybe show a dialog on click
                 captureButton.isEnabled = true
@@ -336,7 +335,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             isPlateFound && isRefFound -> {
                 isImageQualityOk = true
                 qualityStatusText.text = "Perfect! Ready to capture."
-                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.holo_green_light))
+                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.secondary_light))
                 captureButton.isEnabled = true
                 captureButton.alpha = 1f
             }
@@ -397,7 +396,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         // Update status bar
         qualityStatusText.text = "Image captured"
         qualityStatusText.setBackgroundColor(
-            ContextCompat.getColor(requireContext(), android.R.color.holo_blue_light)
+            ContextCompat.getColor(requireContext(), R.color.primary_light)
         )
     }
 
@@ -419,7 +418,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         // Reset status
         qualityStatusText.text = "Ready to capture"
         qualityStatusText.setBackgroundColor(
-            ContextCompat.getColor(requireContext(), android.R.color.holo_green_light)
+            ContextCompat.getColor(requireContext(), R.color.secondary_light)
         )
     }
 

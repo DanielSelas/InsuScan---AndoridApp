@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/background">
 
     <!-- Scrollable content for small screens -->
     <ScrollView
@@ -21,20 +21,20 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:padding="16dp">
+            android:padding="@dimen/spacing_medium">
 
             <!-- Spacer for top padding -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="24dp" />
+                android:layout_height="@dimen/spacing_large" />
 
             <!-- Avatar -->
             <ImageView
                 android:id="@+id/iv_home_avatar"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="@dimen/icon_profile"
+                android:layout_height="@dimen/icon_profile"
                 android:src="@drawable/duck"
-                android:contentDescription="User avatar"
+                android:contentDescription="@string/content_desc_profile_image"
                 android:scaleType="centerCrop" />
 
             <!-- Greeting -->
@@ -43,9 +43,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Hello, Daniel"
-                android:textSize="22sp"
+                android:textSize="@dimen/text_h1"
+                android:textColor="@color/text_primary"
                 android:textStyle="bold"
-                android:layout_marginTop="12dp" />
+                android:layout_marginTop="@dimen/spacing_medium" />
 
             <!-- Subtitle -->
             <TextView
@@ -53,34 +54,34 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Ready to scan your next meal?"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginTop="4dp" />
+                android:textSize="@dimen/text_body2"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="@dimen/spacing_xs" />
 
             <!-- ============== TEMPORARY MODES CARD ============== -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_temporary_modes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@android:color/white">
+                android:layout_marginTop="@dimen/spacing_large"
+                app:cardCornerRadius="@dimen/corner_radius_card"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="@dimen/padding_card">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="⚡ Temporary Adjustments"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_body2"
                         android:textStyle="bold"
-                        android:textColor="#666666"
-                        android:layout_marginBottom="12dp" />
+                        android:textColor="@color/text_secondary"
+                        android:layout_marginBottom="@dimen/spacing_medium" />
 
                     <!-- Sick Day Mode -->
                     <LinearLayout
@@ -88,14 +89,15 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
+                        android:paddingVertical="@dimen/spacing_small">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="🤒 Sick day mode"
-                            android:textSize="16sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_body1" />
 
                         <androidx.appcompat.widget.SwitchCompat
                             android:id="@+id/switch_sick_mode"
@@ -105,8 +107,8 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#EEEEEE" />
+                        android:layout_height="@dimen/divider_height"
+                        android:background="@color/divider" />
 
                     <!-- Stress Mode -->
                     <LinearLayout
@@ -114,14 +116,15 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
+                        android:paddingVertical="@dimen/spacing_small">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="😰 High stress mode"
-                            android:textSize="16sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_body1" />
 
                         <androidx.appcompat.widget.SwitchCompat
                             android:id="@+id/switch_stress_mode"
@@ -131,8 +134,8 @@
 
                     <View
                         android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="#EEEEEE" />
+                        android:layout_height="@dimen/divider_height"
+                        android:background="@color/divider" />
 
                     <!-- Exercise Mode -->
                     <LinearLayout
@@ -140,14 +143,15 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
+                        android:paddingVertical="@dimen/spacing_small">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="🏃 Exercise planned"
-                            android:textSize="16sp" />
+                            android:textColor="@color/text_primary"
+                            android:textSize="@dimen/text_body1" />
 
                         <androidx.appcompat.widget.SwitchCompat
                             android:id="@+id/switch_exercise_mode"
@@ -163,9 +167,9 @@
                 android:id="@+id/card_sick_warning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/spacing_medium"
                 android:visibility="gone"
-                app:cardCornerRadius="8dp"
+                app:cardCornerRadius="@dimen/corner_radius_input"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="#FFF3E0">
 
@@ -173,15 +177,15 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="12dp"
+                    android:padding="@dimen/padding_input_horizontal"
                     android:gravity="center_vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="⚠️"
-                        android:textSize="18sp"
-                        android:layout_marginEnd="8dp" />
+                        android:textSize="@dimen/text_h3"
+                        android:layout_marginEnd="@dimen/spacing_small" />
 
                     <TextView
                         android:id="@+id/tv_sick_warning"
@@ -189,7 +193,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Sick mode has been ON for 3 days. Consider consulting your doctor."
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_caption"
                         android:textColor="#E65100" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -199,17 +203,17 @@
                 android:id="@+id/tv_active_modes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/spacing_medium"
                 android:text=""
-                android:textSize="13sp"
-                android:textColor="#1976D2"
+                android:textSize="@dimen/text_caption"
+                android:textColor="@color/primary"
                 android:textAlignment="center"
                 android:visibility="gone" />
 
             <!-- Bottom spacer -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="16dp" />
+                android:layout_height="@dimen/spacing_medium" />
 
         </LinearLayout>
     </ScrollView>
@@ -218,13 +222,15 @@
     <Button
         android:id="@+id/btn_start_scan"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="📷 Start Scan"
-        android:textSize="18sp"
+        android:layout_height="@dimen/button_height_large"
+        android:text="@string/nav_scan"
+        android:textSize="@dimen/text_button"
+        android:textColor="@color/text_on_primary"
+        android:background="@drawable/button_primary"
         android:textAllCaps="false"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="@dimen/spacing_medium"
+        android:layout_marginEnd="@dimen/spacing_medium"
+        android:layout_marginBottom="@dimen/spacing_medium"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

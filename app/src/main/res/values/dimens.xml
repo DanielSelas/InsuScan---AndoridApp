@@ -1,3 +1,98 @@
 <resources>
-    <dimen name="fab_margin">16dp</dimen>
+
+    <!-- ==================== Corner Radius ==================== -->
+    <dimen name="corner_radius_card">16dp</dimen>           <!-- Cards and large containers -->
+    <dimen name="corner_radius_button">12dp</dimen>         <!-- Buttons -->
+    <dimen name="corner_radius_input">8dp</dimen>           <!-- Input fields -->
+    <dimen name="corner_radius_small">4dp</dimen>           <!-- Small elements -->
+    <dimen name="corner_radius_badge">12dp</dimen>          <!-- Badges and pills -->
+
+    <!-- ==================== Elevation (Shadows) ==================== -->
+    <dimen name="elevation_card">4dp</dimen>                <!-- Standard cards -->
+    <dimen name="elevation_card_raised">8dp</dimen>         <!-- Emphasized cards -->
+    <dimen name="elevation_fab">6dp</dimen>                 <!-- Floating action button -->
+    <dimen name="elevation_dialog">24dp</dimen>             <!-- Dialogs -->
+    <dimen name="elevation_bottom_sheet">16dp</dimen>       <!-- Bottom sheets -->
+    <dimen name="elevation_app_bar">4dp</dimen>             <!-- App bar -->
+
+    <!-- ==================== Spacing & Margins ==================== -->
+    <dimen name="spacing_xs">4dp</dimen>                    <!-- Extra small spacing -->
+    <dimen name="spacing_small">8dp</dimen>                 <!-- Small spacing -->
+    <dimen name="spacing_medium">16dp</dimen>               <!-- Medium spacing (most common) -->
+    <dimen name="spacing_large">24dp</dimen>                <!-- Large spacing -->
+    <dimen name="spacing_xl">32dp</dimen>                   <!-- Extra large spacing -->
+    <dimen name="spacing_xxl">48dp</dimen>                  <!-- Section separators -->
+    <dimen name="spacing_xlarge">40dp</dimen>       <!-- Extra extra large spacing -->
+    <dimen name="spacing_xxlarge">56dp</dimen>      <!-- Massive spacing -->
+
+    <!-- ==================== Padding ==================== -->
+    <dimen name="padding_card">16dp</dimen>                 <!-- Inside cards -->
+    <dimen name="padding_screen">16dp</dimen>               <!-- Screen edges -->
+    <dimen name="padding_input_horizontal">12dp</dimen>     <!-- Input field sides -->
+    <dimen name="padding_input_vertical">8dp</dimen>        <!-- Input field top/bottom -->
+    <dimen name="padding_button_horizontal">16dp</dimen>    <!-- Button sides -->
+    <dimen name="padding_button_vertical">12dp</dimen>      <!-- Button top/bottom -->
+
+    <!-- ==================== Text Sizes ==================== -->
+    <dimen name="text_h1">24sp</dimen>                      <!-- Page titles -->
+    <dimen name="text_h2">20sp</dimen>                      <!-- Section titles -->
+    <dimen name="text_h3">18sp</dimen>                      <!-- Subsection titles -->
+    <dimen name="text_body1">16sp</dimen>                   <!-- Main body text -->
+    <dimen name="text_body2">14sp</dimen>                   <!-- Secondary body text -->
+    <dimen name="text_caption">12sp</dimen>                 <!-- Small labels, captions -->
+    <dimen name="text_button">14sp</dimen>                  <!-- Button text -->
+    <dimen name="text_h1_large">28sp</dimen>        <!-- Extra large titles -->
+    <dimen name="text_label">12sp</dimen>           <!-- Label text (same as caption) -->
+
+    <!-- ==================== Specific Medical UI Elements ==================== -->
+    <dimen name="glucose_display_size">32sp</dimen>         <!-- Large glucose reading -->
+    <dimen name="insulin_dose_size">28sp</dimen>            <!-- Insulin dose display -->
+    <dimen name="carbs_display_size">20sp</dimen>           <!-- Carbs amount -->
+
+    <!-- ==================== Icon Sizes ==================== -->
+    <dimen name="icon_small">16dp</dimen>                   <!-- Small inline icons -->
+    <dimen name="icon_standard">24dp</dimen>                <!-- Standard icons -->
+    <dimen name="icon_large">32dp</dimen>                   <!-- Large feature icons -->
+    <dimen name="icon_xl">48dp</dimen>                      <!-- Extra large icons -->
+    <dimen name="icon_profile">80dp</dimen>                 <!-- Profile picture -->
+
+    <!-- ==================== Stroke/Border Widths ==================== -->
+    <dimen name="stroke_thin">1dp</dimen>                   <!-- Thin borders -->
+    <dimen name="stroke_medium">2dp</dimen>                 <!-- Medium borders (selected) -->
+    <dimen name="stroke_thick">3dp</dimen>                  <!-- Thick borders (emphasis) -->
+
+    <!-- ==================== Button Heights ==================== -->
+    <dimen name="button_height_small">36dp</dimen>          <!-- Small buttons -->
+    <dimen name="button_height_medium">48dp</dimen>         <!-- Standard buttons -->
+    <dimen name="button_height_large">56dp</dimen>          <!-- Large primary buttons -->
+
+    <!-- ==================== Touch Target Sizes ==================== -->
+    <!-- Minimum 48dp for accessibility -->
+    <dimen name="touch_target_min">48dp</dimen>             <!-- Minimum touch area -->
+    <dimen name="touch_target_icon">48dp</dimen>            <!-- Icon button size -->
+
+    <!-- ==================== Meal Card Specific ==================== -->
+    <dimen name="meal_image_height">200dp</dimen>           <!-- Meal photo height -->
+    <dimen name="meal_badge_size">24dp</dimen>              <!-- Relevance badges -->
+
+    <!-- ==================== Input Field Heights ==================== -->
+    <dimen name="input_height_single">48dp</dimen>          <!-- Single line inputs -->
+    <dimen name="input_height_multi">120dp</dimen>          <!-- Multi-line inputs -->
+
+    <!-- ==================== Bottom Navigation ==================== -->
+    <dimen name="bottom_nav_height">56dp</dimen>            <!-- Bottom nav bar -->
+    <dimen name="bottom_nav_icon_size">24dp</dimen>         <!-- Nav icons -->
+
+    <!-- ==================== Camera Overlay ==================== -->
+    <dimen name="camera_viewfinder_size">300dp</dimen>      <!-- Camera guide overlay -->
+    <dimen name="syringe_marker_size">100dp</dimen>         <!-- Syringe detection box -->
+
+    <!-- ==================== Progress Indicators ==================== -->
+    <dimen name="progress_size_small">24dp</dimen>          <!-- Small spinner -->
+    <dimen name="progress_size_medium">48dp</dimen>         <!-- Medium spinner -->
+    <dimen name="progress_size_large">72dp</dimen>          <!-- Large spinner -->
+
+    <!-- ==================== Divider ==================== -->
+    <dimen name="divider_height">1dp</dimen>                <!-- Standard divider -->
+    <dimen name="divider_thick">2dp</dimen>                 <!-- Thick divider -->
 </resources>
