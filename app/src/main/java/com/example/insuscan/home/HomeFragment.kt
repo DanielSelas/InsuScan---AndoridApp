@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
+    private lateinit var profileImage: android.widget.ImageView
     private lateinit var startScanButton: Button
     private lateinit var greetingText: TextView
     private lateinit var subtitleText: TextView
@@ -34,6 +35,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
         findViews(view)
         renderGreeting()
+        loadProfileImage()
         loadTemporaryModes()
         initializeListeners()
         fetchUserProfile()
@@ -44,9 +46,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         // Refresh modes when returning to home
         loadTemporaryModes()
         renderGreeting()
+        loadProfileImage()
     }
 
     private fun findViews(view: View) {
+        profileImage = view.findViewById(R.id.iv_home_avatar)
         startScanButton = view.findViewById(R.id.btn_start_scan)
         greetingText = view.findViewById(R.id.tv_home_greeting)
         subtitleText = view.findViewById(R.id.tv_home_subtitle)
@@ -58,6 +62,25 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         sickWarningCard = view.findViewById(R.id.card_sick_warning)
         sickWarningText = view.findViewById(R.id.tv_sick_warning)
         activeModesText = view.findViewById(R.id.tv_active_modes)
+    }
+
+    private fun loadProfileImage() {
+        val photoUrl = UserProfileManager.getProfilePhotoUrl(ctx)
+        
+        if (!photoUrl.isNullOrEmpty()) {
+            com.bumptech.glide.Glide.with(this)
+                .load(photoUrl)
+                .circleCrop()
+                .placeholder(R.drawable.duck)
+                .error(R.drawable.duck)
+                .into(profileImage)
+        } else {
+             // Load default
+             com.bumptech.glide.Glide.with(this)
+                .load(R.drawable.duck)
+                .circleCrop()
+                .into(profileImage)
+        }
     }
 
     private fun fetchUserProfile() {
@@ -73,6 +96,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     if (userDto != null) {
                         UserProfileManager.syncFromServer(ctx, userDto)
                         renderGreeting()
+                        loadProfileImage()
                     }
                 } else {
                     try {
