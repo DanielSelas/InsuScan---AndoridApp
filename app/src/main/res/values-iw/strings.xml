@@ -17,6 +17,12 @@
     <string name="action_back">חזור</string>
     <string name="action_next">הבא</string>
     <string name="action_skip">דלג</string>
+    <string name="action_gallery">גלריה</string>
+    <string name="action_tap_to_enlarge">לחץ להגדלה</string>
+    <string name="action_select_date">בחר תאריך</string>
+    <string name="action_save_changes">שמור שינויים</string>
+    <string name="action_logout">התנתק</string>
+    <string name="action_rescan">סרוק שוב</string>
 
     <!-- ==================== Navigation ==================== -->
     <string name="nav_home">בית</string>
@@ -43,6 +49,9 @@
     <string name="scan_hold_steady">החזק יציב...</string>
     <string name="scan_processing">מעבד תמונה...</string>
     <string name="scan_detecting_food">מזהה מזון...</string>
+    <string name="scan_instruction_frame">מסגר את הארוחה במצלמה</string>
+    <string name="scan_coach_too_dark">חשוך מדי - הוסף תאורה</string>
+    <string name="scan_validating_preview">מאמת תצוגה מקדימה...</string>
 
     <!-- ==================== Meal Details ==================== -->
     <string name="meal_name">שם הארוחה</string>
@@ -71,6 +80,8 @@
     <string name="unit_mgdl">mg/dL</string>
     <string name="unit_mmol">mmol/L</string>
     <string name="unit_kcal">קלוריות</string>
+    <string name="unit_percent">%</string>
+    <string name="unit_cm">ס״מ</string>
 
     <!-- ==================== Insulin Calculation ==================== -->
     <string name="insulin_recommended_dose">מינון מומלץ</string>
@@ -80,12 +91,20 @@
     <string name="insulin_sensitivity">רגישות לאינסולין</string>
     <string name="insulin_target_glucose">ערך גלוקוז יעד</string>
     <string name="insulin_correction_factor">גורם תיקון</string>
+    <string name="insulin_dose_title">מינון אינסולין</string>
+    <string name="insulin_carb_dose">מינון פחמימות</string>
+    <string name="insulin_correction">תיקון</string>
+    <string name="insulin_sick_mode">מצב מחלה</string>
+    <string name="insulin_stress_mode">מצב סטרס</string>
+    <string name="insulin_exercise_mode">מצב פעילות</string>
 
     <!-- ==================== Glucose Monitoring ==================== -->
     <string name="glucose_current">רמת גלוקוז נוכחית</string>
     <string name="glucose_reading">קריאת גלוקוז</string>
     <string name="glucose_target">טווח יעד</string>
     <string name="glucose_normal">תקין</string>
+    <string name="glucose_current_title">רמת גלוקוז נוכחית</string>
+    <string name="glucose_input_hint">הזן קריאת גלוקוז</string>
     <string name="glucose_high">גבוה</string>
     <string name="glucose_low">נמוך</string>
 
@@ -96,6 +115,11 @@
     <string name="activity_moderate">פעילות בינונית</string>
     <string name="activity_heavy">פעילות כבדה</string>
     <string name="activity_intense">פעילות אינטנסיבית</string>
+    <string name="activity_level_title">רמת פעילות</string>
+    <string name="activity_level_desc">התאם לפעילות מתוכננת</string>
+    <string name="activity_normal_desc">רגיל</string>
+    <string name="activity_light_desc">פעילות קלה מתוכננת</string>
+    <string name="activity_intense_desc">פעילות אינטנסיבית מתוכננת</string>
 
     <!-- ==================== Profile & Settings ==================== -->
     <string name="profile_personal_info">מידע אישי</string>
@@ -107,6 +131,31 @@
     <string name="profile_diabetes_type">סוג סוכרת</string>
     <string name="profile_type_1">סוג 1</string>
     <string name="profile_type_2">סוג 2</string>
+    <string name="profile_gender">מגדר</string>
+    <string name="profile_pregnant_question">האם את בהריון?</string>
+    <string name="profile_due_date">תאריך לידה משוער</string>
+    <string name="profile_insulin_type">סוג אינסולין</string>
+    <string name="profile_insulin_parameters">פרמטרי אינסולין</string>
+    <string name="profile_icr">ICR</string>
+    <string name="profile_icr_desc">יחס אינסולין לפחמימות</string>
+    <string name="profile_isf">ISF</string>
+    <string name="profile_isf_desc">מקדם רגישות לאינסולין</string>
+    <string name="profile_target_glucose">גלוקוז יעד</string>
+    <string name="profile_active_insulin_time">זמן אינסולין פעיל</string>
+    <string name="profile_active_insulin_auto">חושב אוטומטית</string>
+    <string name="profile_reference_object">אובייקט התייחסות</string>
+    <string name="profile_reference_hint">הנח אובייקט בגודל ידוע בתמונה לקנה מידה</string>
+    <string name="profile_object_type">סוג אובייקט</string>
+    <string name="profile_length_cm">אורך</string>
+    <string name="profile_dose_rounding">עיגול מינון</string>
+    <string name="profile_adj_factors">גורמי התאמה</string>
+    <string name="profile_adj_sick">יום מחלה</string>
+    <string name="profile_adj_stress">סטרס</string>
+    <string name="profile_adj_exercise_decrease">פעילות קלה (הפחתה)</string>
+    <string name="profile_adj_intense_exercise">פעילות אינטנסיבית (הפחתה)</string>
+    <string name="profile_units_section">יחידות</string>
+    <string name="profile_units_glucose">יחידות גלוקוז</string>
+    <string name="hint_your_name">השם שלך</string>
 
     <string name="settings_notifications">התראות</string>
     <string name="settings_units">העדפת יחידות</string>
@@ -123,6 +172,20 @@
     <string name="history_this_week">השבוע</string>
     <string name="history_filter">סינון</string>
     <string name="history_no_meals">אין ארוחות שנרשמו עדיין</string>
+    <string name="history_label_glucose">גלוקוז</string>
+    <string name="history_label_activity">פעילות</string>
+    <string name="history_label_status">סטטוס</string>
+    <string name="history_label_food_items">פריטי מזון</string>
+    <string name="history_label_dose_calc">חישוב מינון</string>
+    <string name="history_status_sick">חולה</string>
+    <string name="history_status_stress">סטרס</string>
+    <string name="history_adj_sick">התאמת מחלה</string>
+    <string name="history_adj_stress">התאמת סטרס</string>
+    <string name="history_adj_exercise">התאמת פעילות</string>
+    <string name="history_final_dose">מינון סופי</string>
+    <string name="history_error_missing_profile">פרופיל חסר</string>
+    <string name="history_error_insulin_not_calc">אינסולין לא חושב</string>
+    <string name="history_error_profile_incomplete">פרופיל לא מלא</string>
 
     <!-- ==================== Error Messages ==================== -->
     <string name="error_generic">משהו השתבש. אנא נסה שוב.</string>
@@ -151,6 +214,18 @@
     <string name="loading_analyzing">מנתח...</string>
     <string name="loading_calculating">מחשב מינון...</string>
     <string name="loading_saving">שומר...</string>
+    <string name="loading_searching_data">מחפש נתונים תזונתיים...</string>
+
+    <!-- ==================== Summary ==================== -->
+    <string name="summary_total_carbs">סה״כ פחמימות</string>
+    <string name="summary_active_insulin_title">אינסולין פעיל</string>
+    <string name="summary_active_insulin_desc">אינסולין שעדיין פעיל ממינון קודם</string>
+    <string name="summary_portion_analysis">ניתוח מנה</string>
+    <string name="summary_est_weight">משקל משוער</string>
+    <string name="summary_plate">צלחת</string>
+    <string name="summary_confidence">רמת ביטחון</string>
+    <string name="summary_reference_object">אובייקט התייחסות</string>
+    <string name="empty_state_humor">אין נתונים עדיין - הארוחה הבאה שלך מחכה!</string>
 
     <!-- ==================== Empty States ==================== -->
     <string name="empty_history">אין עדיין היסטוריית ארוחות.\nלחץ על המצלמה כדי לסרוק את הארוחה הראשונה שלך!</string>
@@ -205,5 +280,7 @@
 
     <!-- Content Descriptions -->
     <string name="content_desc_scanned_meal">תמונת ארוחה סרוקה</string>
+    <string name="history_sick_mode">מצב מחלה פעיל</string>
+    <string name="history_high_stress">נרשמה רמת סטרס גבוהה</string>
 
 </resources>

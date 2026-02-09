@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
@@ -43,6 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Hello, Daniel"
+                tools:text="Hello, Daniel"
                 android:textSize="@dimen/text_h1"
                 android:textColor="@color/text_primary"
                 android:textStyle="bold"
@@ -53,7 +55,7 @@
                 android:id="@+id/tv_home_subtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ready to scan your next meal?"
+                android:text="@string/app_tagline"
                 android:textSize="@dimen/text_body2"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="@dimen/spacing_xs" />
@@ -77,7 +79,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="⚡ Temporary Adjustments"
+                        android:text="Temporary Modes"
                         android:textSize="@dimen/text_body2"
                         android:textStyle="bold"
                         android:textColor="@color/text_secondary"
@@ -95,7 +97,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🤒 Sick day mode"
+                            android:text="Sick Day Mode"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_body1" />
 
@@ -122,7 +124,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="😰 High stress mode"
+                            android:text="High Stress Mode"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_body1" />
 
@@ -149,7 +151,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="🏃 Exercise planned"
+                            android:text="Exercise Planned"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_body1" />
 
@@ -192,7 +194,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Sick mode has been ON for 3 days. Consider consulting your doctor."
+                        android:text="Sick mode increases insulin resistance. Monitor glucose closely."
                         android:textSize="@dimen/text_caption"
                         android:textColor="#E65100" />
                 </LinearLayout>

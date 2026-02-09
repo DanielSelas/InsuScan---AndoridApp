@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/tv_header_date"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -7,7 +8,7 @@
     android:paddingEnd="@dimen/spacing_medium"
     android:paddingTop="@dimen/spacing_medium"
     android:paddingBottom="@dimen/spacing_small"
-    android:text="Today"
+    tools:text="@string/date_today"
     android:textSize="@dimen/text_body2"
     android:textStyle="bold"
     android:textColor="@color/primary"

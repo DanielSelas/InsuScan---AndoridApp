@@ -2,6 +2,7 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/spacing_medium"
@@ -27,7 +28,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Meal Title"
+                tools:text="Meal Title"
                 android:textSize="@dimen/text_h3"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary" />
@@ -36,7 +37,7 @@
                 android:id="@+id/tv_item_meal_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="12:30"
+                tools:text="12:30"
                 android:textSize="@dimen/text_caption"
                 android:textColor="@color/text_hint" />
         </LinearLayout>
@@ -45,7 +46,7 @@
             android:id="@+id/tv_item_meal_details"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Carbs: 0g | Insulin: 0u"
+            tools:text="Carbs: 0g | Insulin: 0u"
             android:textSize="@dimen/text_body2"
             android:textColor="@color/text_secondary"
             android:layout_marginTop="@dimen/spacing_xs" />
@@ -61,7 +62,7 @@
                 android:id="@+id/tv_item_sick_indicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🤒 Sick mode"
+                android:text="@string/history_sick_mode"
                 android:textSize="@dimen/text_caption"
                 android:textColor="@color/status_warning"
                 android:visibility="gone"
@@ -71,7 +72,7 @@
                 android:id="@+id/tv_item_stress_indicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="😰 High stress"
+                android:text="@string/history_high_stress"
                 android:textSize="@dimen/text_caption"
                 android:textColor="@color/status_error"
                 android:visibility="gone"
@@ -81,7 +82,7 @@
                 android:id="@+id/tv_item_glucose_indicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🩸 Glucose: --"
+                tools:text="🩸 Glucose: --"
                 android:textSize="@dimen/text_caption"
                 android:textColor="@color/primary"
                 android:visibility="gone" />

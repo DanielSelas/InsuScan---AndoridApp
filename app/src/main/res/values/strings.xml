@@ -17,6 +17,12 @@
     <string name="action_back">Back</string>
     <string name="action_next">Next</string>
     <string name="action_skip">Skip</string>
+    <string name="action_gallery">Gallery</string>
+    <string name="action_tap_to_enlarge">Tap to enlarge</string>
+    <string name="action_select_date">Select Date</string>
+    <string name="action_save_changes">Save Changes</string>
+    <string name="action_logout">Log Out</string>
+    <string name="action_rescan">Rescan</string>
 
     <!-- ==================== Navigation ==================== -->
     <string name="nav_home">Home</string>
@@ -43,6 +49,9 @@
     <string name="scan_hold_steady">Hold steady...</string>
     <string name="scan_processing">Processing image...</string>
     <string name="scan_detecting_food">Detecting food items...</string>
+    <string name="scan_instruction_frame">Frame your meal in the camera</string>
+    <string name="scan_coach_too_dark">Too dark - add more light</string>
+    <string name="scan_validating_preview">Validating preview...</string>
 
     <!-- ==================== Meal Details ==================== -->
     <string name="meal_name">Meal Name</string>
@@ -71,6 +80,8 @@
     <string name="unit_mgdl">mg/dL</string>
     <string name="unit_mmol">mmol/L</string>
     <string name="unit_kcal">kcal</string>
+    <string name="unit_percent">%</string>
+    <string name="unit_cm">cm</string>
 
     <!-- ==================== Insulin Calculation ==================== -->
     <string name="insulin_recommended_dose">Recommended Dose</string>
@@ -80,14 +91,52 @@
     <string name="insulin_sensitivity">Insulin Sensitivity</string>
     <string name="insulin_target_glucose">Target Glucose</string>
     <string name="insulin_correction_factor">Correction Factor</string>
+    <string name="insulin_dose_title">Insulin Dose</string>
+    <string name="insulin_carb_dose">Carb Dose</string>
+    <string name="insulin_correction">Correction</string>
+    <string name="insulin_sick_mode">Sick Mode</string>
+    <string name="insulin_stress_mode">Stress Mode</string>
+    <string name="insulin_exercise_mode">Exercise Mode</string>
 
     <!-- ==================== Glucose Monitoring ==================== -->
     <string name="glucose_current">Current Glucose</string>
     <string name="glucose_reading">Glucose Reading</string>
     <string name="glucose_target">Target Range</string>
     <string name="glucose_normal">Normal</string>
+    <string name="glucose_current_title">Current Glucose</string>
+    <string name="glucose_input_hint">Enter glucose reading</string>
     <string name="glucose_high">High</string>
     <string name="glucose_low">Low</string>
+
+    <!-- ==================== Summary ==================== -->
+    <string name="summary_total_carbs">Total Carbs</string>
+    <string name="summary_active_insulin_title">Active Insulin</string>
+    <string name="summary_active_insulin_desc">Insulin still active from previous dose</string>
+    <string name="summary_portion_analysis">Portion Analysis</string>
+    <string name="summary_est_weight">Est. Weight</string>
+    <string name="summary_plate">Plate</string>
+    <string name="summary_confidence">Confidence</string>
+    <string name="summary_reference_object">Reference Object</string>
+    <string name="empty_state_humor">No data yet - your next meal awaits!</string>
+
+    <!-- ==================== History Labels ==================== -->
+    <string name="history_label_glucose">Glucose</string>
+    <string name="history_label_activity">Activity</string>
+    <string name="history_label_status">Status</string>
+    <string name="history_label_food_items">Food Items</string>
+    <string name="history_label_dose_calc">Dose Calculation</string>
+    <string name="history_status_sick">Sick</string>
+    <string name="history_status_stress">Stress</string>
+    <string name="history_adj_sick">Sick Adjustment</string>
+    <string name="history_adj_stress">Stress Adjustment</string>
+    <string name="history_adj_exercise">Exercise Adjustment</string>
+    <string name="history_final_dose">Final Dose</string>
+    <string name="history_error_missing_profile">Profile missing</string>
+    <string name="history_error_insulin_not_calc">Insulin not calculated</string>
+    <string name="history_error_profile_incomplete">Profile incomplete</string>
+
+    <!-- ==================== Loading Messages ==================== -->
+    <string name="loading_searching_data">Searching nutritional data...</string>
 
     <!-- ==================== Activity Level ==================== -->
     <string name="activity_level">Activity Level</string>
@@ -96,6 +145,11 @@
     <string name="activity_moderate">Moderate Activity</string>
     <string name="activity_heavy">Heavy Activity</string>
     <string name="activity_intense">Intense Activity</string>
+    <string name="activity_level_title">Activity Level</string>
+    <string name="activity_level_desc">Adjust for planned activity</string>
+    <string name="activity_normal_desc">Normal</string>
+    <string name="activity_light_desc">Light exercise planned</string>
+    <string name="activity_intense_desc">Intense exercise planned</string>
 
     <!-- ==================== Profile & Settings ==================== -->
     <string name="profile_personal_info">Personal Information</string>
@@ -107,6 +161,31 @@
     <string name="profile_diabetes_type">Diabetes Type</string>
     <string name="profile_type_1">Type 1</string>
     <string name="profile_type_2">Type 2</string>
+    <string name="profile_gender">Gender</string>
+    <string name="profile_pregnant_question">Are you pregnant?</string>
+    <string name="profile_due_date">Due Date</string>
+    <string name="profile_insulin_type">Insulin Type</string>
+    <string name="profile_insulin_parameters">Insulin Parameters</string>
+    <string name="profile_icr">ICR</string>
+    <string name="profile_icr_desc">Insulin to Carb Ratio</string>
+    <string name="profile_isf">ISF</string>
+    <string name="profile_isf_desc">Insulin Sensitivity Factor</string>
+    <string name="profile_target_glucose">Target Glucose</string>
+    <string name="profile_active_insulin_time">Active Insulin Time</string>
+    <string name="profile_active_insulin_auto">Auto-calculated</string>
+    <string name="profile_reference_object">Reference Object</string>
+    <string name="profile_reference_hint">Place a known-size object in photo for scale</string>
+    <string name="profile_object_type">Object Type</string>
+    <string name="profile_length_cm">Length</string>
+    <string name="profile_dose_rounding">Dose Rounding</string>
+    <string name="profile_adj_factors">Adjustment Factors</string>
+    <string name="profile_adj_sick">Sick Day</string>
+    <string name="profile_adj_stress">Stress</string>
+    <string name="profile_adj_exercise_decrease">Light Exercise (Decrease)</string>
+    <string name="profile_adj_intense_exercise">Intense Exercise (Decrease)</string>
+    <string name="profile_units_section">Units</string>
+    <string name="profile_units_glucose">Glucose Units</string>
+    <string name="hint_your_name">Your Name</string>
 
     <string name="settings_notifications">Notifications</string>
     <string name="settings_units">Units Preference</string>
@@ -188,6 +267,7 @@
     <string name="action_settings">Settings</string>
     <string name="scan_save">Save Meal</string>
     <string name="scan_confirm_save">Confirm and Save</string>
+
     <!-- Dialog: Add Custom Food -->
     <string name="dialog_add_food_title">Add Custom Food</string>
     <string name="dialog_add_food_subtitle">Enter nutritional info manually</string>
@@ -204,6 +284,9 @@
 
     <!-- Content Descriptions -->
     <string name="content_desc_scanned_meal">Scanned meal image</string>
+    <string name="history_sick_mode">Sick Mode Active</string>
+    <string name="history_high_stress">High Stress Recorded</string>
+
     <!--    <string name="action_settings">Settings</string>-->
     <!--    &lt;!&ndash; Strings used for fragments for navigation &ndash;&gt;-->
     <!--    <string name="first_fragment_label">First Fragment</string>-->

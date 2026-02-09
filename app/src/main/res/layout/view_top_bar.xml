@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingStart="@dimen/spacing_medium"
@@ -11,8 +12,8 @@
 
     <ImageButton
         android:id="@+id/btn_back_home"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/spacing_xlarge"
+        android:layout_height="@dimen/spacing_xlarge"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Back"
         android:padding="0dp"
@@ -23,7 +24,7 @@
         android:id="@+id/tv_top_title"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Title"
+        tools:text="Title"
         android:textSize="@dimen/text_h2"
         android:textStyle="bold"
         android:gravity="center"
