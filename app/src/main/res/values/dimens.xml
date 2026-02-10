@@ -22,8 +22,6 @@
     <dimen name="spacing_large">24dp</dimen>                <!-- Large spacing -->
     <dimen name="spacing_xl">32dp</dimen>                   <!-- Extra large spacing -->
     <dimen name="spacing_xxl">48dp</dimen>                  <!-- Section separators -->
-    <dimen name="spacing_xlarge">40dp</dimen>       <!-- Extra extra large spacing -->
-    <dimen name="spacing_xxlarge">56dp</dimen>      <!-- Massive spacing -->
 
     <!-- ==================== Padding ==================== -->
     <dimen name="padding_card">16dp</dimen>                 <!-- Inside cards -->
@@ -42,7 +40,6 @@
     <dimen name="text_caption">12sp</dimen>                 <!-- Small labels, captions -->
     <dimen name="text_button">14sp</dimen>                  <!-- Button text -->
     <dimen name="text_h1_large">28sp</dimen>        <!-- Extra large titles -->
-    <dimen name="text_label">12sp</dimen>           <!-- Label text (same as caption) -->
 
     <!-- ==================== Specific Medical UI Elements ==================== -->
     <dimen name="glucose_display_size">32sp</dimen>         <!-- Large glucose reading -->
@@ -95,8 +92,5 @@
     <!-- ==================== Divider ==================== -->
     <dimen name="divider_height">1dp</dimen>                <!-- Standard divider -->
     <dimen name="divider_thick">2dp</dimen>                 <!-- Thick divider -->
-
-    <dimen name="size_60">60dp</dimen>
-    <dimen name="size_100">100dp</dimen>
 
 </resources>

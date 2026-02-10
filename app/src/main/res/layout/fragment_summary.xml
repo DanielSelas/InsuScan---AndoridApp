@@ -184,7 +184,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/glucose_current_title"
+                        android:text="@string/glucose_current"
                         android:textSize="@dimen/text_body1"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
@@ -206,7 +206,7 @@
 
                         <EditText
                             android:id="@+id/et_current_glucose"
-                            android:layout_width="@dimen/size_100"
+                            android:layout_width="@dimen/layout_width"
                             android:layout_height="@dimen/input_height_single"
                             android:hint="120"
                             android:inputType="number"
@@ -386,7 +386,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/insulin_dose_title"
+                        android:text="@string/insulin_dose"
                         android:textSize="@dimen/text_body1"
                         android:textStyle="bold"
                         android:textColor="@color/text_primary" />
@@ -690,7 +690,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🍽️"
-            android:textSize="@dimen/size_60"
+            android:textSize="@dimen/textSize"
             android:layout_marginBottom="@dimen/spacing_medium"/>
 
         <TextView
@@ -712,7 +712,7 @@
             android:textSize="@dimen/text_button"
             android:textColor="@color/text_on_primary"
             android:background="@drawable/button_primary"
-            android:paddingHorizontal="@dimen/spacing_xlarge"
+            android:paddingHorizontal="@dimen/spacing_xl"
             android:paddingVertical="@dimen/spacing_medium"/>
 
     </LinearLayout>

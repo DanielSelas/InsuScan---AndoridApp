@@ -22,7 +22,7 @@
             android:textSize="@dimen/text_h1_large"
             android:textStyle="bold"
             android:textColor="@color/primary"
-            android:layout_marginTop="@dimen/spacing_xxlarge"
+            android:layout_marginTop="@dimen/spacing_xxl"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -31,7 +31,7 @@
             android:id="@+id/tv_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/app_subtitle"
+            android:text="@string/app_tagline"
             android:textSize="@dimen/text_body1"
             android:textColor="@color/text_secondary"
             android:layout_marginTop="@dimen/spacing_small"
@@ -48,7 +48,7 @@
             android:textSize="@dimen/text_h2"
             android:textStyle="bold"
             android:textColor="@color/text_primary"
-            android:layout_marginTop="@dimen/spacing_xlarge"
+            android:layout_marginTop="@dimen/spacing_xl"
             app:layout_constraintTop_toBottomOf="@id/tv_subtitle"
             app:layout_constraintStart_toStartOf="parent" />
 
