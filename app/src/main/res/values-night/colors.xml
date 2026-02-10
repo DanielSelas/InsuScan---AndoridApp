@@ -17,9 +17,6 @@
     <color name="secondary_dark">#66BB6A</color>       <!-- Medium green -->
     <color name="secondary_light">#A5D6A7</color>      <!-- Very light green -->
 
-    <!-- Alias for backward compatibility -->
-    <color name="light_blue">@color/primary</color>
-
     <!-- ==================== Status Colors ==================== -->
     <!-- Brighter status colors for dark background visibility -->
     <color name="status_normal">#81C784</color>        <!-- Lighter green: glucose in range -->
@@ -33,7 +30,6 @@
     <color name="background">#121212</color>           <!-- Almost black main background -->
     <color name="surface">#1E1E1E</color>              <!-- Dark gray for cards/containers -->
     <color name="background_secondary">#2C2C2C</color> <!-- Lighter dark gray -->
-    <color name="background_light">#2C2C2C</color>     <!-- Alternative light background -->
 
     <!-- ==================== Text Colors ==================== -->
     <!-- Light text for dark backgrounds -->

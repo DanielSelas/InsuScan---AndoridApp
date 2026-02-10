@@ -47,11 +47,11 @@
     <!-- Target Zone Overlay (Dashed Pen Outline on Right) -->
     <View
         android:id="@+id/view_target_zone"
-        android:layout_width="@dimen/spacing_xlarge"
+        android:layout_width="@dimen/spacing_xl"
         android:layout_height="@dimen/meal_image_height"
         android:background="@drawable/dashed_border_rect"
         android:alpha="0.3"
-        android:layout_marginEnd="@dimen/spacing_xlarge"
+        android:layout_marginEnd="@dimen/spacing_xl"
         app:layout_constraintEnd_toEndOf="@id/camera_preview"
         app:layout_constraintTop_toTopOf="@id/camera_preview"
         app:layout_constraintBottom_toBottomOf="@id/camera_preview" />
@@ -165,7 +165,7 @@
             android:textColor="@color/text_on_primary"
             android:textSize="@dimen/text_body1"
             android:layout_gravity="center"
-            android:layout_marginTop="@dimen/size_60" />
+            android:layout_marginTop="@dimen/layout_marginTop" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
