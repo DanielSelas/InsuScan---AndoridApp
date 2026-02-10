@@ -43,7 +43,6 @@
                 android:id="@+id/tv_home_greeting"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hello, Daniel"
                 tools:text="Hello, Daniel"
                 android:textSize="@dimen/text_h1"
                 android:textColor="@color/text_primary"
@@ -79,7 +78,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Temporary Modes"
+                        android:text="@string/home_temporary_modes"
                         android:textSize="@dimen/text_body2"
                         android:textStyle="bold"
                         android:textColor="@color/text_secondary"
@@ -97,7 +96,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Sick Day Mode"
+                            android:text="@string/home_sick_day_mode"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_body1" />
 
@@ -124,7 +123,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="High Stress Mode"
+                            android:text="@string/home_stress_mode"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_body1" />
 
@@ -151,7 +150,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="Exercise Planned"
+                            android:text="@string/home_exercise_planned"
                             android:textColor="@color/text_primary"
                             android:textSize="@dimen/text_body1" />
 
@@ -173,7 +172,7 @@
                 android:visibility="gone"
                 app:cardCornerRadius="@dimen/corner_radius_input"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFF3E0">
+                app:cardBackgroundColor="@color/warning_background">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -194,9 +193,9 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Sick mode increases insulin resistance. Monitor glucose closely."
+                        android:text="@string/home_sick_warning"
                         android:textSize="@dimen/text_caption"
-                        android:textColor="#E65100" />
+                        android:textColor="@color/warning_text_dark" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

@@ -91,6 +91,34 @@
 
     <!-- ==================== Divider ==================== -->
     <dimen name="divider_height">1dp</dimen>                <!-- Standard divider -->
-    <dimen name="divider_thick">2dp</dimen>                 <!-- Thick divider -->
+    <dimen name="divider_thick">2dp</dimen>
+
+    <!-- ==================== Tiny spacing for tightly packed elements ==================== -->
+    <dimen name="spacing_xxs">2dp</dimen>                 <!-- Thick divider -->
+
+    <!-- ==================== Spinner and dropdown widths ==================== -->
+    <dimen name="spinner_width_small">120dp</dimen>
+    <dimen name="spinner_width_medium">150dp</dimen>
+    <dimen name="spinner_width_large">160dp</dimen>
+
+    <!-- ==================== Profile input field widths ==================== -->
+    <dimen name="input_width_small">60dp</dimen>
+    <dimen name="input_width_medium">80dp</dimen>
+
+    <!-- ==================== Meal image preview height ==================== -->
+    <dimen name="meal_preview_height">180dp</dimen>
+
+    <!-- ==================== Radio button row height ==================== -->
+    <dimen name="radio_button_height">44dp</dimen>
+    <dimen name="scroll_padding_bottom_nav">80dp</dimen>
+    <dimen name="text_emoji_medium">48sp</dimen>
+    <dimen name="input_width_weight">70dp</dimen>
+
+    <dimen name="glucose_input_width">100dp</dimen>
+    <dimen name="loading_text_margin_top">60dp</dimen>
+
+    <!-- ==================== Large emoji for empty states ==================== -->
+    <dimen name="text_emoji_large">60sp</dimen>
+    <dimen name="input_width_icr">50dp</dimen>
 
 </resources>
