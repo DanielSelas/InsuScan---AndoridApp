@@ -12,8 +12,8 @@
 
     <ImageButton
         android:id="@+id/btn_back_home"
-        android:layout_width="@dimen/spacing_xlarge"
-        android:layout_height="@dimen/spacing_xlarge"
+        android:layout_width="@dimen/spacing_xl"
+        android:layout_height="@dimen/spacing_xl"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Back"
         android:padding="0dp"
