@@ -283,5 +283,28 @@
     <string name="content_desc_scanned_meal">Scanned meal image</string>
     <string name="history_sick_mode">Sick Mode Active</string>
     <string name="history_high_stress">High Stress Recorded</string>
+    <string name="content_desc_delete_item">Delete item</string>
+    <string name="content_desc_decrease_weight">Decrease weight</string>
+    <string name="content_desc_increase_weight">Increase weight</string>
+
+    <!-- Home screen -->
+    <string name="home_temporary_modes">Temporary Modes</string>
+    <string name="home_sick_day_mode">Sick Day Mode</string>
+    <string name="home_stress_mode">High Stress Mode</string>
+    <string name="home_exercise_planned">Exercise Planned</string>
+    <string name="home_sick_warning">Sick mode increases insulin resistance. Monitor glucose closely.</string>
+    <string name="home_previous_meals">Previous Meals</string>
+    <!-- Login screen -->
+    <string name="auth_password_hint">At least 6 characters</string>
+    <string name="auth_no_account">Don\'t have an account?</string>
+    <string name="auth_or_divider">OR</string>
+    <!-- Manual entry -->
+    <string name="manual_searching_usda">Searching USDA database...</string>
+    <string name="manual_food_items">Food Items</string>
+    <string name="manual_no_items">No items added yet</string>
+    <!-- Profile labels -->
+    <string name="profile_label_age">Age</string>
+    <!-- Content descriptions -->
+    <string name="content_desc_scanned_meal_image">Scanned meal</string>
 
 </resources>

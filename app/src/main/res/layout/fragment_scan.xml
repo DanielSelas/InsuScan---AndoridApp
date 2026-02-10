@@ -165,7 +165,7 @@
             android:textColor="@color/text_on_primary"
             android:textSize="@dimen/text_body1"
             android:layout_gravity="center"
-            android:layout_marginTop="@dimen/layout_marginTop" />
+            android:layout_marginTop="@dimen/loading_text_margin_top" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
