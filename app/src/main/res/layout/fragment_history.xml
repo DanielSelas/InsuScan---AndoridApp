@@ -70,7 +70,7 @@
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="@dimen/spacing_small"
-        app:tint="#757575"
+        app:tint="@color/text_secondary"
         android:visibility="gone"
         android:layout_marginEnd="@dimen/spacing_xs"
         app:layout_constraintEnd_toStartOf="@id/btn_filter_container"
@@ -111,7 +111,7 @@
                 android:id="@+id/tv_latest_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="19:24"
+                tools:text="19:24"
                 android:textColor="@color/text_secondary"
                 android:textSize="@dimen/text_caption"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -121,7 +121,7 @@
                 android:id="@+id/tv_latest_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Meal Name"
+                tools:text="Meal Name"
                 android:textSize="@dimen/text_h3"
                 android:textStyle="bold"
                 android:textColor="@color/text_primary"
@@ -134,7 +134,7 @@
                 android:id="@+id/tv_latest_details"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="45g carbs | 6.5 units"
+                tools:text="45g carbs | 6.5 units"
                 android:textSize="@dimen/text_body2"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="@dimen/spacing_xs"
@@ -150,7 +150,7 @@
         android:id="@+id/tv_previous_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Previous Meals"
+        android:text="@string/home_previous_meals"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/text_hint"
         android:textStyle="bold"
@@ -167,7 +167,7 @@
         android:layout_marginTop="@dimen/spacing_small"
         android:layout_marginHorizontal="@dimen/spacing_medium"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"
+        android:paddingBottom="@dimen/scroll_padding_bottom_nav"
         app:layout_constraintTop_toBottomOf="@id/tv_previous_label"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -189,17 +189,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🍽️"
-            android:textSize="48sp" />
+            android:textSize="@dimen/text_emoji_medium" />
 
         <TextView
             android:id="@+id/tv_empty_history"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/history_no_meals"
-            android:textSize="15sp"
-            android:textColor="#999999"
+            android:textSize="@dimen/text_body1"
+            android:textColor="@color/text_hint"
             android:textAlignment="center"
-            android:layout_marginTop="8dp" />
+            android:layout_marginTop="@dimen/spacing_small" />
 
     </LinearLayout>
 

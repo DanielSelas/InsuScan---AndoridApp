@@ -66,11 +66,11 @@
 
                 <EditText
                     android:id="@+id/et_weight"
-                    android:layout_width="70dp"
+                    android:layout_width="@dimen/input_width_weight"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/spacing_small"
                     android:hint="g"
-                    android:text="100"
+                    tools:text="100"
                     android:inputType="number"
                     android:padding="@dimen/padding_input_horizontal"
                     android:gravity="center"
@@ -112,9 +112,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/spacing_small"
-                    android:text="Searching USDA database..."
+                    android:text="@string/manual_searching_usda"
                     android:textSize="@dimen/text_caption"
-                    android:textColor="#1976D2"
+                    android:textColor="@color/primary_dark"
                     android:visibility="gone" />
 
             </LinearLayout>
@@ -134,7 +134,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:maxHeight="@dimen/meal_image_height"
-                    android:background="@android:color/white"
+                    android:background="@color/surface"
                     android:nestedScrollingEnabled="true" />
 
             </androidx.cardview.widget.CardView>
@@ -147,7 +147,7 @@
         android:id="@+id/tv_items_header"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Food Items"
+        android:text="@string/manual_food_items"
         android:textSize="@dimen/text_h3"
         android:textStyle="bold"
         android:textColor="@color/text_primary"
@@ -161,7 +161,7 @@
         android:id="@+id/tv_empty_state"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="No items added yet"
+        android:text="@string/manual_no_items"
         android:textSize="@dimen/text_body2"
         android:textColor="@color/text_hint"
         android:textAlignment="center"
@@ -234,7 +234,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="@dimen/padding_card"
-        android:background="@android:color/white"
+        android:background="@color/surface"
         android:elevation="@dimen/elevation_card_raised"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

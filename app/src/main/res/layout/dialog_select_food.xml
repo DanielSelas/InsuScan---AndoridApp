@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="@dimen/spacing_large">
 
     <TextView
         android:layout_width="wrap_content"
@@ -34,9 +34,9 @@
             android:id="@+id/option_1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:padding="@dimen/padding_input_horizontal"
             android:background="@drawable/radio_item_background"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="@dimen/spacing_small"
             android:textSize="@dimen/text_body2"
             android:textColor="@color/text_primary" />
 
@@ -44,9 +44,9 @@
             android:id="@+id/option_2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:padding="@dimen/padding_input_horizontal"
             android:background="@drawable/radio_item_background"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="@dimen/spacing_small"
             android:textSize="@dimen/text_body2"
             android:textColor="@color/text_primary" />
 
@@ -54,9 +54,9 @@
             android:id="@+id/option_3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
+            android:padding="@dimen/padding_input_horizontal"
             android:background="@drawable/radio_item_background"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="@dimen/spacing_small"
             android:textSize="@dimen/text_body2"
             android:textColor="@color/text_primary" />
 

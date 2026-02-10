@@ -41,7 +41,7 @@
                 android:layout_height="@dimen/button_height_small"
                 android:src="@android:drawable/ic_menu_delete"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete item"
+                android:contentDescription="@string/content_desc_delete_item"
                 app:tint="@color/status_error" />
         </LinearLayout>
 
@@ -57,7 +57,7 @@
                 android:id="@+id/tv_weight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="100g"
+                tools:text="100g"
                 android:textSize="@dimen/text_body2"
                 android:textColor="@color/text_secondary"
                 android:background="@color/background_secondary"
@@ -67,7 +67,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" → "
+                tools:text=" → "
                 android:textSize="@dimen/text_body2"
                 android:textColor="@color/text_hint" />
 
@@ -75,7 +75,7 @@
                 android:id="@+id/tv_carbs"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="25g carbs"
+                tools:text="25g carbs"
                 android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
                 android:textColor="@color/primary" />
@@ -105,7 +105,7 @@
                 android:layout_height="@dimen/spacing_xl"
                 android:src="@android:drawable/ic_menu_revert"
                 android:background="@drawable/btn_circle_outline"
-                android:contentDescription="Decrease weight" />
+                android:contentDescription="@string/content_desc_decrease_weight" />
 
             <com.google.android.material.slider.Slider
                 android:id="@+id/slider_weight"
@@ -126,7 +126,7 @@
                 android:layout_height="@dimen/spacing_xl"
                 android:src="@android:drawable/ic_input_add"
                 android:background="@drawable/btn_circle_outline"
-                android:contentDescription="Increase weight" />
+                android:contentDescription="@string/content_desc_increase_weight" />
         </LinearLayout>
 
     </LinearLayout>
