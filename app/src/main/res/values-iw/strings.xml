@@ -91,7 +91,6 @@
     <string name="insulin_sensitivity">רגישות לאינסולין</string>
     <string name="insulin_target_glucose">ערך גלוקוז יעד</string>
     <string name="insulin_correction_factor">גורם תיקון</string>
-    <string name="insulin_dose_title">מינון אינסולין</string>
     <string name="insulin_carb_dose">מינון פחמימות</string>
     <string name="insulin_correction">תיקון</string>
     <string name="insulin_sick_mode">מצב מחלה</string>
@@ -103,7 +102,6 @@
     <string name="glucose_reading">קריאת גלוקוז</string>
     <string name="glucose_target">טווח יעד</string>
     <string name="glucose_normal">תקין</string>
-    <string name="glucose_current_title">רמת גלוקוז נוכחית</string>
     <string name="glucose_input_hint">הזן קריאת גלוקוז</string>
     <string name="glucose_high">גבוה</string>
     <string name="glucose_low">נמוך</string>
@@ -257,7 +255,6 @@
     <string name="format_date">%s</string>
     <string name="format_time">%s</string>
 
-    <string name="app_subtitle">מחשבון אינסולין חכם</string>
     <string name="auth_continue_google">המשך עם Google</string>
     <string name="action_add">הוסף</string>
     <string name="action_settings">הגדרות</string>
