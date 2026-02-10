@@ -147,7 +147,7 @@
 
                         <EditText
                             android:id="@+id/et_user_age"
-                            android:layout_width="80dp"
+                            android:layout_width="@dimen/input_width_medium"
                             android:layout_height="wrap_content"
                             tools:hint="30"
                             android:inputType="number"
@@ -177,8 +177,8 @@
 
                         <Spinner
                             android:id="@+id/spinner_gender"
-                            android:layout_width="150dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/spinner_width_medium"
+                            android:layout_height="@dimen/input_height_single"
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
@@ -287,8 +287,8 @@
 
                         <Spinner
                             android:id="@+id/spinner_diabetes_type"
-                            android:layout_width="150dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/spinner_width_medium"
+                            android:layout_height="@dimen/input_height_single"
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
@@ -314,8 +314,8 @@
 
                         <Spinner
                             android:id="@+id/spinner_insulin_type"
-                            android:layout_width="150dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/spinner_width_medium"
+                            android:layout_height="@dimen/input_height_single"
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
@@ -327,7 +327,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/profile_insulin_parameters"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body2"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="@dimen/spacing_small"
@@ -389,17 +389,17 @@
                                 tools:text="1 :"
                                 android:textSize="@dimen/text_body1"
                                 android:textColor="@color/text_primary"
-                                android:layout_marginEnd="4dp"/>
+                                android:layout_marginEnd="@dimen/spacing_xs"/>
 
                             <EditText
                                 android:id="@+id/et_insulin_carb_ratio"
-                                android:layout_width="50dp"
+                                android:layout_width="@dimen/input_width_icr"
                                 android:layout_height="wrap_content"
                                 android:hint="10"
                                 android:inputType="number"
                                 android:textAlignment="viewStart"
                                 android:background="@android:color/transparent"
-                                android:padding="8dp"/>
+                                android:padding="@dimen/spacing_small"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -439,7 +439,7 @@
 
                         <EditText
                             android:id="@+id/et_correction_factor"
-                            android:layout_width="80dp"
+                            android:layout_width="@dimen/input_width_medium"
                             android:layout_height="wrap_content"
                             android:hint="50"
                             android:inputType="number"
@@ -483,7 +483,7 @@
 
                         <EditText
                             android:id="@+id/et_target_glucose"
-                            android:layout_width="80dp"
+                            android:layout_width="@dimen/input_width_medium"
                             android:layout_height="wrap_content"
                             android:hint="100"
                             android:inputType="number"
@@ -526,7 +526,7 @@
 
                         <TextView
                             android:id="@+id/tv_active_insulin_time"
-                            android:layout_width="80dp"
+                            android:layout_width="@dimen/input_width_medium"
                             android:layout_height="wrap_content"
                             tools:text="4h"
                             android:textAlignment="center"
@@ -578,8 +578,8 @@
 
                         <Spinner
                             android:id="@+id/spinner_reference_type"
-                            android:layout_width="160dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/spinner_width_large"
+                            android:layout_height="@dimen/input_height_single"
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
@@ -612,7 +612,7 @@
 
                             <EditText
                                 android:id="@+id/et_custom_length"
-                                android:layout_width="80dp"
+                                android:layout_width="@dimen/input_width_medium"
                                 android:layout_height="wrap_content"
                                 android:hint="15.0"
                                 android:inputType="numberDecimal"
@@ -658,8 +658,8 @@
 
                         <Spinner
                             android:id="@+id/spinner_dose_rounding"
-                            android:layout_width="120dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/spinner_width_small"
+                            android:layout_height="@dimen/input_height_single"
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
@@ -707,7 +707,7 @@
 
                         <EditText
                             android:id="@+id/et_sick_adjustment"
-                            android:layout_width="60dp"
+                            android:layout_width="@dimen/input_width_small"
                             android:layout_height="wrap_content"
                             android:hint="15"
                             android:inputType="number"
@@ -744,7 +744,7 @@
 
                         <EditText
                             android:id="@+id/et_stress_adjustment"
-                            android:layout_width="60dp"
+                            android:layout_width="@dimen/input_width_small"
                             android:layout_height="wrap_content"
                             android:hint="10"
                             android:inputType="number"
@@ -781,7 +781,7 @@
 
                         <EditText
                             android:id="@+id/et_light_exercise_adjustment"
-                            android:layout_width="60dp"
+                            android:layout_width="@dimen/input_width_small"
                             android:layout_height="wrap_content"
                             android:hint="15"
                             android:inputType="number"
@@ -818,7 +818,7 @@
 
                         <EditText
                             android:id="@+id/et_intense_exercise_adjustment"
-                            android:layout_width="60dp"
+                            android:layout_width="@dimen/input_width_small"
                             android:layout_height="wrap_content"
                             android:hint="30"
                             android:inputType="number"
@@ -850,10 +850,10 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@android:color/white">
+                android:layout_marginBottom="@dimen/spacing_large"
+                app:cardCornerRadius="@dimen/corner_radius_card"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -877,8 +877,8 @@
 
                         <Spinner
                             android:id="@+id/spinner_glucose_units"
-                            android:layout_width="120dp"
-                            android:layout_height="48dp"
+                            android:layout_width="@dimen/spinner_width_small"
+                            android:layout_height="@dimen/input_height_single"
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
@@ -909,8 +909,7 @@
         android:text="@string/action_logout"
         android:textAllCaps="false"
         android:backgroundTint="@color/error"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginHorizontal="@dimen/spacing_medium"
         android:layout_marginBottom="@dimen/spacing_medium"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
