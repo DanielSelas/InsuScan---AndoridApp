@@ -121,12 +121,12 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_dose_badge"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="8dp"
+                    android:paddingHorizontal="@dimen/padding_button_horizontal"
+                    android:paddingVertical="@dimen/spacing_small"
                     tools:text="4.5u"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/text_on_primary"
                     android:fontFamily="sans-serif-medium"
-                    android:textSize="15sp" />
+                    android:textSize="@dimen/text_body2" />
 
             </LinearLayout>
 
@@ -277,7 +277,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="#FFF3E0"
+                android:background="@color/warning_background"
                 android:padding="@dimen/padding_input_horizontal"
                 android:layout_marginBottom="@dimen/spacing_medium"
                 android:visibility="gone">
@@ -300,15 +300,15 @@
                         android:layout_height="wrap_content"
                         android:text="@string/history_error_insulin_not_calc"
                         android:fontFamily="sans-serif-medium"
-                        android:textColor="#E65100"
+                        android:textColor="@color/warning_text_dark"
                         android:textSize="@dimen/text_caption"/>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/history_error_profile_incomplete"
-                        android:textSize="12sp"
-                        android:textColor="#666666"
+                        android:textSize="@dimen/text_caption"
+                        android:textColor="@color/text_secondary"
                         android:layout_marginTop="@dimen/spacing_xs"/>
                 </LinearLayout>
             </LinearLayout>

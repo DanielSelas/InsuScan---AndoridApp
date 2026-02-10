@@ -280,4 +280,27 @@
     <string name="history_sick_mode">מצב מחלה פעיל</string>
     <string name="history_high_stress">נרשמה רמת סטרס גבוהה</string>
 
+    <string name="content_desc_delete_item">מחיקת פריט</string>
+    <string name="content_desc_decrease_weight">הפחתת משקל</string>
+    <string name="content_desc_increase_weight">הוספת משקל</string>
+
+    <string name="home_temporary_modes">מצבים זמניים</string>
+    <string name="home_sick_day_mode">מצב יום מחלה</string>
+    <string name="home_stress_mode">מצב לחץ גבוה</string>
+    <string name="home_exercise_planned">פעילות גופנית מתוכננת</string>
+    <string name="home_sick_warning">מצב מחלה מגביר עמידות לאינסולין. עקוב מקרוב אחר רמות הסוכר.</string>
+    <string name="home_previous_meals">ארוחות קודמות</string>
+
+    <string name="auth_password_hint">לפחות 6 תווים</string>
+    <string name="auth_no_account">אין לך חשבון?</string>
+    <string name="auth_or_divider">או</string>
+
+    <string name="manual_searching_usda">מחפש במאגר USDA...</string>
+    <string name="manual_food_items">פריטי מזון</string>
+    <string name="manual_no_items">טרם נוספו פריטים</string>
+
+    <string name="profile_label_age">גיל</string>
+
+    <string name="content_desc_scanned_meal_image">ארוחה סרוקה</string>
+
 </resources>

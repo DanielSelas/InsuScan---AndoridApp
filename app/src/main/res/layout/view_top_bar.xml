@@ -15,7 +15,7 @@
         android:layout_width="@dimen/spacing_xl"
         android:layout_height="@dimen/spacing_xl"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Back"
+        android:contentDescription="@string/action_back"
         android:padding="0dp"
         app:srcCompat="@drawable/arrow"
         android:scaleType="centerInside" />

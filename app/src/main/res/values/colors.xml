@@ -57,6 +57,16 @@
     <!-- ==================== Specific Component Colors ==================== -->
     <color name="dose_badge">@color/primary</color>       <!-- Insulin dose badge -->
     <color name="relevance_badge">@color/secondary</color>   <!-- Relevance indicator -->
-    <color name="activity_indicator">@color/warning</color> <!-- Activity level indicator -->
+    <color name="activity_indicator">@color/warning</color>
+
+    <!-- ==================== Warning box colors ==================== -->
+    <color name="warning_background">#FFF3E0</color>
+    <color name="warning_text_dark">#E65100</color> <!-- Activity level indicator -->
+
+    <!-- ==================== Loading overlay (semi-transparent white) ==================== -->
+    <color name="overlay_white">#80FFFFFF</color>
+
+    <!-- ==================== Profile dividers (light gray) ==================== -->
+    <color name="divider_profile">#EEEEEE</color>
 
 </resources>
