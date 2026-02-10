@@ -119,5 +119,6 @@
 
     <!-- ==================== Large emoji for empty states ==================== -->
     <dimen name="text_emoji_large">60sp</dimen>
+    <dimen name="input_width_icr">50dp</dimen>
 
 </resources>
