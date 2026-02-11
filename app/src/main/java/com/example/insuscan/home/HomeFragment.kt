@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.insuscan.MainActivity
 import com.example.insuscan.R
 import com.example.insuscan.network.repository.UserRepositoryImpl
@@ -17,6 +18,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var profileImage: android.widget.ImageView
     private lateinit var startScanButton: Button
+    private lateinit var openChatButton: Button
     private lateinit var greetingText: TextView
     private lateinit var subtitleText: TextView
 
@@ -52,6 +54,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun findViews(view: View) {
         profileImage = view.findViewById(R.id.iv_home_avatar)
         startScanButton = view.findViewById(R.id.btn_start_scan)
+        openChatButton = view.findViewById(R.id.btn_open_chat)
         greetingText = view.findViewById(R.id.tv_home_greeting)
         subtitleText = view.findViewById(R.id.tv_home_subtitle)
 
@@ -149,6 +152,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         // Scan button
         startScanButton.setOnClickListener {
             (activity as? MainActivity)?.selectScanTab()
+        }
+
+        // Chat button
+        openChatButton.setOnClickListener {
+            findNavController().navigate(R.id.action_home_to_chat)
         }
 
         // Sick mode toggle
