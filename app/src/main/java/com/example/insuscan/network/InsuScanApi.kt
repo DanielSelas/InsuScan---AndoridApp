@@ -124,4 +124,11 @@ interface InsuScanApi {
     suspend fun aiSearchFood(
         @Body request: AiSearchRequestDto
     ): Response<AiSearchResponseDto>
+
+    // ===== Chat Parse (LLM free-text) =====
+
+    @POST("chat/parse")
+    suspend fun parseChatText(
+        @Body request: ChatParseRequestDto
+    ): Response<ChatParseResponseDto>
 }

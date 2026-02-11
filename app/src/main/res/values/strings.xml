@@ -307,4 +307,25 @@
     <!-- Content descriptions -->
     <string name="content_desc_scanned_meal_image">Scanned meal</string>
 
+    <!-- ==================== Chat ==================== -->
+    <string name="nav_chat">Chat</string>
+    <string name="chat_title">Chat Assistant</string>
+    <string name="chat_input_hint">Type a message…</string>
+    <string name="chat_send_desc">Send message</string>
+    <string name="chat_camera_desc">Take or select photo</string>
+    <string name="chat_welcome">Hey! 👋 I\'m your meal assistant.\nTake a photo of your meal or type something to get started.</string>
+    <string name="chat_analyzing">Analyzing your meal…</string>
+    <string name="chat_scan_error">Something went wrong analyzing the image. Try again.</string>
+    <string name="chat_confirm_food">Does this look right? Tap Confirm or edit the items.</string>
+    <string name="chat_ask_glucose">What\'s your current glucose level?</string>
+    <string name="chat_ask_activity">Any activity adjustments?</string>
+    <string name="chat_calculating">Calculating your dose…</string>
+    <string name="chat_saved">Meal saved successfully! ✅</string>
+    <string name="chat_btn_confirm">Confirm</string>
+    <string name="chat_btn_edit">Edit</string>
+    <string name="chat_btn_save">Save Meal</string>
+    <string name="chat_btn_sport">After Sport</string>
+    <string name="chat_btn_sick">Sick Day</string>
+    <string name="chat_btn_continue">Continue</string>
+
 </resources>
