@@ -242,7 +242,6 @@
 
     <!-- ==================== Accessibility ==================== -->
     <string name="content_desc_profile_image">תמונת פרופיל</string>
-    <string name="content_desc_meal_image">תמונת ארוחה</string>
     <string name="content_desc_take_photo">צלם תמונה</string>
     <string name="content_desc_back_button">חזור אחורה</string>
     <string name="content_desc_menu">תפריט</string>
@@ -302,5 +301,27 @@
     <string name="profile_label_age">גיל</string>
 
     <string name="content_desc_scanned_meal_image">ארוחה סרוקה</string>
+
+    <string name="content_desc_meal_image">תמונת ארוחה</string>
+
+    <string name="nav_chat">צ\'אט</string>
+    <string name="chat_title">עוזר צ\'אט</string>
+    <string name="chat_input_hint">הקלדת הודעה…</string>
+    <string name="chat_send_desc">שליחת הודעה</string>
+    <string name="chat_camera_desc">צילום או בחירת תמונה</string>
+    <string name="chat_welcome">היי! 👋 אני עוזר הארוחות שלך.\nכדי להתחיל, צלם תמונה של הארוחה או הקלד משהו.</string>
+    <string name="chat_analyzing">מנתח את הארוחה…</string>
+    <string name="chat_scan_error">משהו השתבש בניתוח התמונה. כדאי לנסות שוב.</string>
+    <string name="chat_confirm_food">זה נראה תקין? לחץ על אישור או ערוך את הפריטים.</string>
+    <string name="chat_ask_glucose">מהי רמת הגלוקוז הנוכחית שלך?</string>
+    <string name="chat_ask_activity">יש התאמות לפעילות גופנית?</string>
+    <string name="chat_calculating">מחשב את המינון…</string>
+    <string name="chat_saved">הארוחה נשמרה בהצלחה! ✅</string>
+    <string name="chat_btn_confirm">אישור</string>
+    <string name="chat_btn_edit">עריכה</string>
+    <string name="chat_btn_save">שמירת ארוחה</string>
+    <string name="chat_btn_sport">אחרי ספורט</string>
+    <string name="chat_btn_sick">יום מחלה</string>
+    <string name="chat_btn_continue">המשך</string>
 
 </resources>
