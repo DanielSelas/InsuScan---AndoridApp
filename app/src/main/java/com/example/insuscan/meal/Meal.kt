@@ -54,5 +54,7 @@ data class FoodItem(
     val nameHebrew: String? = null,
     val carbsGrams: Float? = null,
     val weightGrams: Float? = null,
-    val confidence: Float? = null
+    val confidence: Float? = null,
+    val quantity: Float? = null,
+    val quantityUnit: String? = null
 )
