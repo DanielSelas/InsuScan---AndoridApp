@@ -190,12 +190,25 @@ class CameraManager(private val context: Context) {
             val bitmap = imageProxy.toBitmap() 
             
             // 1. Reference Object Detection
-            // Determine Mode from Profile (Pen vs Other)
+            // Determine Mode from Profile (Pen vs Card vs Other)
             val syringeType = com.example.insuscan.profile.UserProfileManager.getSyringeSize(context).lowercase()
-            val mode = if (syringeType.contains("syringe") || syringeType.contains("pen")) {
-                 com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
-            } else {
-                 com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+            
+            val mode = when {
+                syringeType.contains("card") || syringeType.contains("id") -> {
+                    com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD
+                }
+                syringeType.contains("syringe") || syringeType.contains("pen") -> {
+                    com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
+                }
+                else -> {
+                    com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+                }
+            }
+            
+            // Set expected length if CARD (although logic handles it, good for logging)
+            if (mode == com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD) {
+                // Card detection uses fixed constant inside detector, no need to setExpectedObjectLength
+                // But if user sets custom length for "Other", we would set it here.
             }
             
             val detectionResult = referenceObjectDetector.detectReferenceObject(bitmap, null, mode)

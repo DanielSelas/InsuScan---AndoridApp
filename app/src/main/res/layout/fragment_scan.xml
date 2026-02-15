@@ -143,6 +143,14 @@
 
     </LinearLayout>
 
+    <!-- AR Guidance Overlay -->
+    <include
+        android:id="@+id/ar_guidance_overlay"
+        layout="@layout/layout_ar_guidance"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
     <FrameLayout
         android:id="@+id/loading_overlay"
         android:layout_width="match_parent"

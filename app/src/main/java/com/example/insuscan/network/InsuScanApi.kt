@@ -109,7 +109,8 @@ interface InsuScanApi {
         @Query("email") email: String,
         @Query("estimatedWeightGrams") estimatedWeightGrams: Float? = null,
         @Query("volumeCm3") volumeCm3: Float? = null,
-        @Query("portionConfidence") portionConfidence: Float? = null
+        @Query("portionConfidence") portionConfidence: Float? = null,
+        @Query("referenceObjectType") referenceObjectType: String? = null
     ): Response<MealDto>
 
     // Search USDA food database

@@ -9,6 +9,7 @@ interface ScanRepository {
         email: String,
         estimatedWeight: Float? = null,
         volumeCm3: Float? = null,
-        confidence: Float? = null
+        confidence: Float? = null,
+        referenceObjectType: String? = null
     ): Result<MealDto>
 }
