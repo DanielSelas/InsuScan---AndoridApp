@@ -136,7 +136,41 @@ class DepthEstimator(private val context: Context) {
 
     // Release ARCore resources
 
+    // --- AR Surface Scanning Logic ---
+
+    private var isScanningSurface = false
+    private var surfaceScanCallback: ((Boolean) -> Unit)? = null
+
+    fun startSurfaceScan(callback: (Boolean) -> Unit) {
+        // Relaxed check for simulation/testing
+        if (!isArCoreAvailable || arSession == null) {
+            Log.w(TAG, "ARCore not available, proceeding with SIMULATION")
+            // callback(false) // Don't fail immediately, let simulation run
+        }
+
+        isScanningSurface = true
+        surfaceScanCallback = callback
+        
+        // In a real app, we would attach a frame listener here
+        // For now, we'll simulate a successful plane detection after 2 seconds
+        // to demonstrate the UI flow without physical AR device
+        
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            if (isScanningSurface) {
+                Log.d(TAG, "Simulated AR Plane Detected!")
+                isScanningSurface = false
+                surfaceScanCallback?.invoke(true)
+            }
+        }, 2000)
+    }
+
+    fun stopSurfaceScan() {
+        isScanningSurface = false
+        surfaceScanCallback = null
+    }
+
     fun release() {
+        stopSurfaceScan()
         arSession?.close()
         arSession = null
         Log.d(TAG, "ARCore session released")

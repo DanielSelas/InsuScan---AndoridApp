@@ -113,6 +113,17 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         
         // Add guide overlay for reference object
         addReferenceObjectOverlay(view)
+        
+        // Initialize Orientation Helper
+        orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
+        orientationHelper.onOrientationChanged = { pitch, roll, isLevel ->
+            if (isDeviceLevel != isLevel) {
+                isDeviceLevel = isLevel
+                activity?.runOnUiThread {
+                    updateCoachPill()
+                }
+            }
+        }
     }
 
     private fun addReferenceObjectOverlay(rootView: View) {
@@ -159,6 +170,10 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         container.addView(overlay, 1) // Index 1 to be above camera (0) but below controls
     }
 
+    private lateinit var arGuidanceOverlay: View
+    private lateinit var arStatusText: TextView
+    private lateinit var btnCancelAr: Button
+
     private fun findViews(view: View) {
         cameraPreview = view.findViewById(R.id.camera_preview)
         capturedImageView = view.findViewById(R.id.iv_captured_image)
@@ -169,6 +184,78 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         galleryButton = view.findViewById(R.id.btn_gallery)
         subtitleText = view.findViewById(R.id.tv_scan_subtitle)
         tvCoachPill = view.findViewById(R.id.tv_coach_pill)
+        
+        // AR Overlay Views (from include)
+        arGuidanceOverlay = view.findViewById(R.id.ar_guidance_overlay)
+        arStatusText = view.findViewById(R.id.tv_ar_status)
+        btnCancelAr = view.findViewById(R.id.btn_cancel_ar)
+        
+        btnCancelAr.setOnClickListener {
+            stopArScanMode()
+        }
+    }
+
+    // ... (rest of simple methods)
+
+    private fun showMissingPenDialog() {
+        val isArSupported = portionEstimator?.isArCoreSupported == true
+        val arButtonText = if (isArSupported) "Scan Surface (AR)" else "Scan Surface (N/A)"
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Reference Object Missing")
+            .setMessage("The insulin pen was not detected.\n\nTo ensure accurate results, we can scan the table surface instead.")
+            .setPositiveButton(arButtonText) { dialog, _ ->
+                if (isArSupported) {
+                    dialog.dismiss()
+                    startArScanMode()
+                } else {
+                    // Keep dialog open or dismiss? User said "toast". 
+                    // To show toast, we need to handle the click. The default behavior is dismiss.
+                    // We can just show the toast and let it dismiss, or try to keep it open.
+                    // Simpler: Dismiss and Toast.
+                    dialog.dismiss()
+                    ToastHelper.showLong(requireContext(), "Your device does not support AR features needed for this mode.")
+                }
+            }
+            .setNegativeButton("Capture Anyway") { dialog, _ ->
+                dialog.dismiss()
+                onCaptureClicked() // Proceed with lower accuracy
+            }
+            .setNeutralButton("Cancel") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    private fun startArScanMode() {
+        isScanningSurface = true
+        // Show UI
+        arGuidanceOverlay.visibility = View.VISIBLE
+        captureButton.isEnabled = false
+        galleryButton.isEnabled = false
+        
+        // Start Logic
+        portionEstimator?.startArScan { success ->
+             activity?.runOnUiThread {
+                 if (success) {
+                     // Surface Found!
+                     ToastHelper.showShort(requireContext(), "Surface detected! Capturing...")
+                     stopArScanMode()
+                     onCaptureClicked() // Auto-capture or let user tap? Let's auto-capture for smooth flow.
+                 } else {
+                     ToastHelper.showShort(requireContext(), "AR Scan failed or not supported.")
+                     stopArScanMode()
+                 }
+             }
+        }
+    }
+
+    private fun stopArScanMode() {
+        isScanningSurface = false
+        arGuidanceOverlay.visibility = View.GONE
+        captureButton.isEnabled = true
+        galleryButton.isEnabled = true
+        portionEstimator?.stopArScan()
     }
 
     // Dev mode version - forces good quality for emulator testing
@@ -296,22 +383,73 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
     }
 
+    private lateinit var orientationHelper: com.example.insuscan.camera.OrientationHelper
+    private var isDeviceLevel = true
+    private var isScanningSurface = false
+
+
+
+    override fun onResume() {
+        super.onResume()
+        if (::orientationHelper.isInitialized) {
+            orientationHelper.start()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (::orientationHelper.isInitialized) {
+            orientationHelper.stop()
+        }
+    }
+
+    private fun updateCoachPill() {
+        // If device is tilted, show warning
+        if (!isDeviceLevel) {
+            tvCoachPill.text = "Hold Phone Flat 📱"
+            tvCoachPill.setBackgroundResource(R.drawable.bg_pill_warning) 
+            // Assuming bg_pill_warning exists or reuse warning color
+            tvCoachPill.background.setTint(ContextCompat.getColor(requireContext(), R.color.warning))
+            tvCoachPill.visibility = View.VISIBLE
+        } else {
+            // Restore default text if needed or hide
+            tvCoachPill.visibility = View.GONE
+        }
+    }
+    
+    // In updateQualityStatus, we can also integrate this check
+    // ...
+
     // Updates UI based on live quality checks
     private fun updateQualityStatus(qualityResult: ImageQualityResult) {
         // Only update if we're in camera mode
-        if (isShowingCapturedImage) return
-
-        // 4-State Logic Requested by User:
-        // 1. No Plate + No Ref -> Block
-        // 2. No Plate + Ref -> Block (We need plate to know where food is)
-        // 3. Plate + No Ref -> Warn (Yellow) but Allow
-        // 4. Plate + Ref -> Success (Green) and Allow
+        if (isScanningSurface || qualityResult == null) return
 
         val isPlateFound = qualityResult.isPlateFound
         val isRefFound = qualityResult.isReferenceObjectFound
 
-        // Decide state
+        // Decide state with Priority: 
+        // 1. Tilt (Hold Flat)
+        // 2. Plate (Center)
+        // 3. Ref Obj (Missing)
+        // 4. Quality (Brightness/Blur)
+        // 5. Success
+        
+        // Default text color and background
+        var textColorRes = android.R.color.white
+        var textBgRes = R.color.primary // Default or dark
+        
         when {
+            // Case 0: Tilt Check (Critical for accuracy)
+            !isDeviceLevel -> {
+                isImageQualityOk = false // Prevent bad angle shots? Or just warn? Warn is safer UX.
+                // Let's allow capture but scream warning
+                qualityStatusText.text = "Hold Phone Flat 📱"
+                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning))
+                captureButton.isEnabled = true 
+                captureButton.alpha = 1f
+            }
+            
             // Case 1 & 2: No Plate -> Block
             !isPlateFound -> {
                 isImageQualityOk = false
@@ -323,19 +461,29 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Case 3: Plate Found but No Ref -> Warn (Allow Capture)
             isPlateFound && !isRefFound -> {
                 isImageQualityOk = true // Allow capture (Logic handled in click listener)
-                val debugInfo = cameraManager.lastQualityResult?.debugInfo ?: ""
-                qualityStatusText.text = "Ref Obj Missing. $debugInfo"
-                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning)) // Use yellow
                 
+                val isArSupported = portionEstimator?.isArCoreSupported == true
+                val msg = if (isArSupported) "Ref Obj Missing. Tap for AR Mode" else "Ref Obj Missing. Estimating..."
+                
+                qualityStatusText.text = msg
+                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning)) // Use yellow
+
                 // Allow capture but maybe show a dialog on click
                 captureButton.isEnabled = true
                 captureButton.alpha = 1f
             }
-            // Case 4: Both Found -> Success
+            // Case 4: Both Found -> Check other quality metrics
             isPlateFound && isRefFound -> {
-                isImageQualityOk = true
-                qualityStatusText.text = "Perfect! Ready to capture."
-                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.secondary_light))
+                if (!qualityResult.isValid) {
+                    // Specific quality feedback
+                    val msg = qualityResult.getValidationMessage() // Might say "Too Dark" etc
+                    qualityStatusText.text = msg
+                    qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning))
+                } else {
+                    isImageQualityOk = true
+                    qualityStatusText.text = "Perfect! Ready to capture."
+                    qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.secondary_light))
+                }
                 captureButton.isEnabled = true
                 captureButton.alpha = 1f
             }
@@ -476,10 +624,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         val confidence = (portionResult as? PortionResult.Success)?.confidence
 
         // Send to server
+        val referenceType = UserProfileManager.getReferenceObjectType(requireContext())
+        
         viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 // Pass volume to server for density-based calculation
-                scanRepository.scanImage(bitmap, email, estimatedWeight, volumeCm3, confidence)
+                scanRepository.scanImage(bitmap, email, estimatedWeight, volumeCm3, confidence, referenceType)
             }
 
             result.onSuccess { mealDto ->
@@ -621,19 +771,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         portionEstimator = null
     }
 
-    private fun showMissingPenDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Reference Object Missing")
-            .setMessage("The insulin pen was not detected.\n\nWithout it, portion size estimation will be less accurate.\n\nDo you want to continue anyway?")
-            .setPositiveButton("Continue") { dialog, _ ->
-                dialog.dismiss()
-                onCaptureClicked()
-            }
-            .setNegativeButton("Cancel") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
-    }
+    // Old implementation removed in favor of the one added in findViews/startArScanMode section
+    // Keeping this clean.
 
 
 

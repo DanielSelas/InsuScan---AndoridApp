@@ -303,6 +303,18 @@ object UserProfileManager {
         return prefs(context).getFloat(KEY_DOSE_ROUNDING, 0.5f)
     }
 
+    /**
+     * Determines if the user prefers a Credit Card or standard Pen/Measurement
+     * Returns: "Card", "Pen", or "Unknown"
+     */
+    fun getReferenceObjectType(context: Context): String {
+        val size = getSyringeSize(context).lowercase()
+        return when {
+            size.contains("card") || size.contains("id") || size.contains("credit") -> "Card"
+            else -> "Pen"
+        }
+    }
+
     // ============== Glucose Units ==============
     fun saveGlucoseUnits(context: Context, units: String) {
         prefs(context).edit().putString(KEY_GLUCOSE_UNITS, units).apply()

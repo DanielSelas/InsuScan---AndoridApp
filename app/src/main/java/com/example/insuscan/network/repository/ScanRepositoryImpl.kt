@@ -21,11 +21,12 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         email: String,
         estimatedWeight: Float?,
         volumeCm3: Float?,
-        confidence: Float?
+        confidence: Float?,
+        referenceObjectType: String?
     ): Result<MealDto> {
         return try {
             val part = createImagePart(bitmap)
-            val response = api.analyzeImage(part, email, estimatedWeight, volumeCm3, confidence)
+            val response = api.analyzeImage(part, email, estimatedWeight, volumeCm3, confidence, referenceObjectType)
 
             when {
                 response.isSuccessful && response.body() != null -> {

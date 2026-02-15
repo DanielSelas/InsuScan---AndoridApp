@@ -27,9 +27,22 @@ class PortionEstimator(private val context: Context) {
 
     private var isInitialized = false
 
+    // Expose AR status for UI
+    var isArCoreSupported: Boolean = false
+        private set
+
     // Initialize both estimators
     fun initialize(): InitializationResult {
         val arCoreStatus = depthEstimator.checkArCoreAvailability()
+        
+        isArCoreSupported = (arCoreStatus == ArCoreStatus.SUPPORTED)
+
+        // Initialize AR Session if supported
+        if (isArCoreSupported) {
+            val arInitialized = depthEstimator.initializeSession()
+            Log.d(TAG, "AR Session initialized: $arInitialized")
+        }
+        
         val openCvReady = referenceDetector.initialize()
         isInitialized = openCvReady // OpenCV is required, ARCore is optional
 
@@ -44,7 +57,7 @@ class PortionEstimator(private val context: Context) {
 
     // Configure Syringe
     fun configureSyringe(lengthCm: Float) {
-        referenceDetector.setSyringeLength(lengthCm)
+        referenceDetector.setExpectedObjectLength(lengthCm)
     }
 
     // Refresh settings from profile before scanning
@@ -52,6 +65,17 @@ class PortionEstimator(private val context: Context) {
         // Get custom length from profile (e.g. 15cm fork)
         val customLength = com.example.insuscan.profile.UserProfileManager.getCustomSyringeLength(context)
         configureSyringe(customLength)
+        configureSyringe(customLength)
+    }
+
+    // Start ARCore scanning for surfaces
+    fun startArScan(callback: (Boolean) -> Unit) {
+        depthEstimator.startSurfaceScan(callback)
+    }
+
+    // Stop ARCore scanning
+    fun stopArScan() {
+        depthEstimator.stopSurfaceScan()
     }
 
     fun estimatePortion(bitmap: Bitmap): PortionResult {
