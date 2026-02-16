@@ -10,9 +10,11 @@ enum class ChatState {
     EDITING_MEDICAL,    // user is typing new medical values
     ASKING_GLUCOSE,     // asking for current glucose level
     ASKING_ACTIVITY,    // asking about exercise level
+    ASKING_ADJUSTMENTS, // asking about sick/stress mode
     CALCULATING,        // running insulin calc
     SHOWING_RESULT,     // showing dose result + adjustment toggles
     ADJUSTING_ACTIVITY, // sub-menu for picking activity level
+    CHOOSING_EDIT_STEP, // user chose to edit a specific step (food/medical/glucose/activity)
     SAVING,             // saving meal to server
     DONE                // flow complete
 }

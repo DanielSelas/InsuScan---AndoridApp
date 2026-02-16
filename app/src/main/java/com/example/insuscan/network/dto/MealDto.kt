@@ -66,10 +66,14 @@ data class InsulinCalculationDto(
     val totalCarbs: Float?,
     val carbDose: Float?,
     val correctionDose: Float?,
+    @SerializedName(value = "recommendedDose", alternate = ["totalRecommendedDose"])
     val recommendedDose: Float?,
+    @SerializedName(value = "insulinCarbRatio", alternate = ["insulinCarbRatioUsed"])
     val insulinCarbRatio: String?,
     val currentGlucose: Int?,
+    @SerializedName(value = "targetGlucose", alternate = ["targetGlucoseUsed"])
     val targetGlucose: Int?,
+    @SerializedName(value = "correctionFactor", alternate = ["correctionFactorUsed"])
     val correctionFactor: Float?,
 
     // added: adjustment values from server
