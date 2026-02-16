@@ -69,6 +69,26 @@ sealed class ChatMessage(
         val ts: Long = System.currentTimeMillis()
     ) : ChatMessage(msgId, ts)
 
+    // Bot shows a detailed summary card before save
+    data class BotSummaryCard(
+        val foodItems: List<FoodItem>,
+        val totalCarbs: Float,
+        val glucoseLevel: Int?,
+        val activityLevel: String,
+        val isSick: Boolean,
+        val isStress: Boolean,
+        val icr: Float,
+        val isf: Float,
+        val targetGlucose: Int,
+        val glucoseUnits: String,
+        val sickPct: Int,
+        val stressPct: Int,
+        val exercisePct: Int,
+        val doseResult: InsulinCalculatorUtil.DoseResult,
+        val msgId: String = UUID.randomUUID().toString(),
+        val ts: Long = System.currentTimeMillis()
+    ) : ChatMessage(msgId, ts)
+
     // Bot confirms meal was saved
     data class BotSaved(
         val text: String = "Meal saved successfully! ✅",
@@ -80,5 +100,6 @@ sealed class ChatMessage(
 // Simple button model for action chips
 data class ActionButton(
     val actionId: String, // key used by ConversationManager to handle the tap
-    val label: String
+    val label: String,
+    val row: Int = 0      // visual row grouping (0, 1, 2…)
 )
