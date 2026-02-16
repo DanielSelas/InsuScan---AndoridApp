@@ -13,6 +13,7 @@ enum class ChatState {
     CALCULATING,        // running insulin calc
     SHOWING_RESULT,     // showing dose result + adjustment toggles
     ADJUSTING_ACTIVITY, // sub-menu for picking activity level
+    CHOOSING_EDIT_STEP, // user chose to edit a specific step (food/medical/glucose/activity)
     SAVING,             // saving meal to server
     DONE                // flow complete
 }

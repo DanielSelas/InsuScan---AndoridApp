@@ -44,6 +44,16 @@ data class Meal(
     // added: separate recommended from actual
     val recommendedDose: Float? = null,
 
+    // medical settings used at calculation time (for history display)
+    val savedIcr: Float? = null,
+    val savedIsf: Float? = null,
+    val savedTargetGlucose: Int? = null,
+
+    // adjustment percentages at calculation time (for history display)
+    val savedSickPct: Int = 0,
+    val savedStressPct: Int = 0,
+    val savedExercisePct: Int = 0,
+
     val profileComplete: Boolean = false,
     val missingProfileFields: List<String> = emptyList(),
     val insulinMessage: String? = null,
