@@ -313,6 +313,90 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Medical Settings Section -->
+            <LinearLayout
+                android:id="@+id/layout_medical_settings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/spacing_medium">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚕️ SETTINGS"
+                    android:textSize="@dimen/text_caption"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="@dimen/spacing_small"/>
+
+                <TextView
+                    android:id="@+id/tv_medical_settings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_body2"
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingExtra="@dimen/spacing_xs" />
+            </LinearLayout>
+
+            <!-- Glucose Section -->
+            <LinearLayout
+                android:id="@+id/layout_glucose_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/spacing_medium">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🩸 GLUCOSE"
+                    android:textSize="@dimen/text_caption"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="@dimen/spacing_small"/>
+
+                <TextView
+                    android:id="@+id/tv_glucose_section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_body2"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/text_primary" />
+            </LinearLayout>
+
+            <!-- Adjustments Section -->
+            <LinearLayout
+                android:id="@+id/layout_adjustments_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                android:layout_marginBottom="@dimen/spacing_medium">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔧 ADJUSTMENTS"
+                    android:textSize="@dimen/text_caption"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:letterSpacing="0.05"
+                    android:layout_marginBottom="@dimen/spacing_small"/>
+
+                <TextView
+                    android:id="@+id/tv_adjustments_section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_body2"
+                    android:textColor="@color/text_primary"
+                    android:lineSpacingExtra="@dimen/spacing_xs" />
+            </LinearLayout>
+
             <!-- Food List -->
             <TextView
                 android:layout_width="wrap_content"

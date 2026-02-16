@@ -81,6 +81,14 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
         // Warning Box
         private val profileWarningLayout: LinearLayout = itemView.findViewById(R.id.layout_profile_warning)
 
+        // Medical Settings, Glucose & Adjustments
+        private val medicalSettingsLayout: LinearLayout = itemView.findViewById(R.id.layout_medical_settings)
+        private val medicalSettingsText: TextView = itemView.findViewById(R.id.tv_medical_settings)
+        private val glucoseSectionLayout: LinearLayout = itemView.findViewById(R.id.layout_glucose_section)
+        private val glucoseSectionText: TextView = itemView.findViewById(R.id.tv_glucose_section)
+        private val adjustmentsSectionLayout: LinearLayout = itemView.findViewById(R.id.layout_adjustments_section)
+        private val adjustmentsSectionText: TextView = itemView.findViewById(R.id.tv_adjustments_section)
+
         // Food List
         private val foodListText: TextView = itemView.findViewById(R.id.tv_food_list_formatted)
 
@@ -155,6 +163,45 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
 
                 // Warning Box
                 profileWarningLayout.isVisible = item.hasProfileError
+
+                // Medical Settings
+                val icr = meal.savedIcr
+                val isf = meal.savedIsf
+                val target = meal.savedTargetGlucose
+                val hasMedical = icr != null || isf != null || target != null
+                medicalSettingsLayout.isVisible = hasMedical
+                if (hasMedical) {
+                    val parts = mutableListOf<String>()
+                    if (icr != null) parts.add("ICR: 1u per ${String.format("%.1f", icr)}g")
+                    if (isf != null) parts.add("ISF: ${String.format("%.0f", isf)} mg/dL per 1u")
+                    if (target != null) parts.add("Target: $target mg/dL")
+                    medicalSettingsText.text = parts.joinToString("\n")
+                }
+
+                // Glucose Section
+                val glucose = meal.glucoseLevel
+                glucoseSectionLayout.isVisible = glucose != null
+                if (glucose != null) {
+                    val units = meal.glucoseUnits ?: "mg/dL"
+                    glucoseSectionText.text = "$glucose $units"
+                }
+
+                // Adjustments Section
+                val adjParts = mutableListOf<String>()
+                if (meal.wasSickMode && meal.savedSickPct > 0) adjParts.add("🤒 Sick: +${meal.savedSickPct}%")
+                if (meal.wasStressMode && meal.savedStressPct > 0) adjParts.add("😫 Stress: +${meal.savedStressPct}%")
+                if (meal.savedExercisePct > 0) {
+                    val actLabel = when (meal.activityLevel) {
+                        "light" -> "🏃 Light"
+                        "intense" -> "🏋️ Intense"
+                        else -> "🏃 Exercise"
+                    }
+                    adjParts.add("$actLabel: -${meal.savedExercisePct}%")
+                }
+                adjustmentsSectionLayout.isVisible = adjParts.isNotEmpty()
+                if (adjParts.isNotEmpty()) {
+                    adjustmentsSectionText.text = adjParts.joinToString("\n")
+                }
 
                 // 2. Food List
                 foodListText.text = item.receiptFoodList
