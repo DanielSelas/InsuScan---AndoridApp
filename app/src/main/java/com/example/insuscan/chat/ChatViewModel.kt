@@ -13,19 +13,21 @@ import com.example.insuscan.network.RetrofitClient
 import com.example.insuscan.network.dto.ChatParseRequestDto
 import com.example.insuscan.network.repository.MealRepositoryImpl
 import com.example.insuscan.network.repository.ScanRepositoryImpl
+import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.FileLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.insuscan.network.dto.ChatParseResponseDto
 
 // Holds chat messages and drives the conversation via ConversationManager.
-// Handles camera/image results, scan API calls, and all user actions.
+// Single source of truth for the message list + sticky buttons.
 class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _messages = MutableLiveData<List<ChatMessage>>(emptyList())
     val messages: LiveData<List<ChatMessage>> = _messages
-    
+
     private val _stickyActions = MutableLiveData<List<ActionButton>?>(null)
     val stickyActions: LiveData<List<ActionButton>?> = _stickyActions
 
@@ -33,8 +35,27 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val scanRepository = ScanRepositoryImpl()
     private val mealRepository = MealRepositoryImpl()
 
-    // Expose current state for UI decisions
     val currentState: ChatState get() = conversationManager.currentState
+
+    // Events for the Fragment to observe (camera, navigation, edit dialog)
+    private val _imagePickEvent = MutableLiveData<String?>()
+    val imagePickEvent: LiveData<String?> = _imagePickEvent
+
+    private val _editFoodEvent = MutableLiveData<Boolean>()
+    val editFoodEvent: LiveData<Boolean> = _editFoodEvent
+    // triggers the medical edit bottom sheet
+    private val _editMedicalEvent = MutableLiveData<Boolean>()
+    val editMedicalEvent: LiveData<Boolean> get() = _editMedicalEvent
+
+    private val _navigationEvent = MutableLiveData<String?>()
+    val navigationEvent: LiveData<String?> = _navigationEvent
+
+    // New events for edit sheets and adjustment dialog
+    private val _addFoodItemsEvent = MutableLiveData<List<FoodItem>?>()
+    val addFoodItemsEvent: LiveData<List<FoodItem>?> = _addFoodItemsEvent
+
+    private val _editAdjustmentsEvent = MutableLiveData<Boolean>()
+    val editAdjustmentsEvent: LiveData<Boolean> = _editAdjustmentsEvent
 
     init {
         conversationManager.callback = object : ConversationManager.Callback {
@@ -49,40 +70,58 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
             override fun onNeedLlmParse(text: String, state: ChatState) {
                 parseFreeTextWithLlm(text, state)
             }
-            
+
             override fun onStickyAction(actions: List<ActionButton>?) {
                 _stickyActions.postValue(actions)
             }
-        }
 
+            override fun onRequestEditMealSheet() {
+                // trigger the edit sheet to open automatically
+                _editFoodEvent.postValue(true)
+            }
+
+            override fun onRequestEditMedicalSheet() {
+                _editMedicalEvent.postValue(true)
+            }
+
+            override fun onFoodItemsAddedToSheet(items: List<FoodItem>) {
+                _addFoodItemsEvent.postValue(items)
+            }
+
+            override fun onRequestEditAdjustmentsDialog() {
+                _editAdjustmentsEvent.postValue(true)
+            }
+        }
         conversationManager.startConversation()
     }
 
-    // Called when user taps send
+    // -- User input --
+
     fun onUserSendText(text: String) {
         if (text.isBlank()) return
         addMessage(ChatMessage.UserText(text = text))
-
-        // Route through ConversationManager
         conversationManager.handleFreeText(text)
     }
+    fun updateMedicalSettings(icr: Double?, isf: Double?, target: Int?) {
+        conversationManager.onMedicalParamsUpdated(icr, isf, target)
+    }
 
-    // Called when user picks or captures an image
+    // -- Image handling --
+
     fun onImageReceived(imagePath: String) {
         addMessage(ChatMessage.UserImage(imagePath = imagePath))
-
         val loadingMsg = ChatMessage.BotLoading(text = "Analyzing your meal…")
         addMessage(loadingMsg)
 
+        // Immediately start medical/glucose/activity questions while scan runs
+        conversationManager.beginParallelQuestions()
+
         viewModelScope.launch {
             try {
-                val bitmap = withContext(Dispatchers.IO) {
-                    BitmapFactory.decodeFile(imagePath)
-                }
-
+                val bitmap = withContext(Dispatchers.IO) { BitmapFactory.decodeFile(imagePath) }
                 if (bitmap == null) {
                     removeMessage(loadingMsg.id)
-                    conversationManager.onScanError("Could not read the image file.")
+                    conversationManager.onScanError("Could not read image file.")
                     return@launch
                 }
 
@@ -90,14 +129,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     ?: UserProfileManager.getUserEmail(getApplication())
                     ?: "unknown"
 
-                val result = withContext(Dispatchers.IO) {
-                    scanRepository.scanImage(bitmap, email)
-                }
-
+                val result = withContext(Dispatchers.IO) { scanRepository.scanImage(bitmap, email) }
                 removeMessage(loadingMsg.id)
 
                 result.onSuccess { mealDto ->
-                    val meal = MealDtoMapper.map(mealDto).copy(imagePath = imagePath)
+                    val meal = com.example.insuscan.mapping.MealDtoMapper.map(mealDto).copy(imagePath = imagePath)
                     conversationManager.onScanSuccess(meal)
                 }.onFailure { error ->
                     conversationManager.onScanError(error.message ?: "Unknown error")
@@ -109,215 +145,212 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // Called when user taps Confirm on food card
-    fun onFoodConfirmed() {
-        addMessage(ChatMessage.UserText(text = "✅ Confirmed"))
-        conversationManager.onFoodConfirmed()
-    }
+    // -- Button actions (all routed from ChatFragment) --
 
-    // Called when user taps Edit on food card
-    fun onFoodEdit() {
-        _editFoodEvent.value = true // Trigger dialog in Fragment
-        _editFoodEvent.value = false // Reset immediately
-    }
-
-    // Called when user updates items via EditMealBottomSheet
-    fun updateMealItems(items: List<com.example.insuscan.meal.FoodItem>) {
-        val currentMeal = MealSessionManager.currentMeal ?: return
-        
-        // Sum up carbs
-        val totalCarbs = items.sumOf { (it.carbsGrams ?: 0f).toDouble() }.toFloat()
-        
-        val updatedMeal = currentMeal.copy(
-            foodItems = items,
-            carbs = totalCarbs
-        )
-        MealSessionManager.updateCurrentMeal(updatedMeal)
-        
-        addMessage(ChatMessage.UserText(text = "✏️ Edited meal items"))
-        conversationManager.onMealUpdated()
-    }
-
-    // Called when user manually updates total carbs from dialog (legacy/fallback)
-    fun updateMealCarbs(newTotalCarbs: Float) {
-        val currentMeal = MealSessionManager.currentMeal ?: return
-        
-        val updatedMeal = currentMeal.copy(carbs = newTotalCarbs)
-        MealSessionManager.updateCurrentMeal(updatedMeal)
-        
-        addMessage(ChatMessage.UserText(text = "✏️ Edit: ${newTotalCarbs}g"))
-        conversationManager.onMealUpdated()
-    }
-
-    // Called when user taps Confirm on medical card
-    fun onMedicalConfirmed() {
-        addMessage(ChatMessage.UserText(text = "✅ Settings confirmed"))
-        conversationManager.onMedicalConfirmed()
-    }
-
-    // Event to trigger camera, gallery, or edit dialog
-    private val _imagePickEvent = MutableLiveData<String?>()
-    val imagePickEvent: LiveData<String?> = _imagePickEvent
-
-    private val _editFoodEvent = MutableLiveData<Boolean>()
-    val editFoodEvent: LiveData<Boolean> = _editFoodEvent
-
-    private val _navigationEvent = MutableLiveData<String?>()
-    val navigationEvent: LiveData<String?> = _navigationEvent
-
-    fun onMedicalEdit() {
-        _navigationEvent.value = "profile"
-        _navigationEvent.value = null
-    }
-
-    // Called when user taps an action button (activity level, photo, gallery)
     fun onActionButton(actionId: String) {
         when (actionId) {
-            "take_photo" -> {
-                _imagePickEvent.value = "camera"
-                _imagePickEvent.value = null // reset
-                return
-            }
-            "pick_gallery" -> {
-                _imagePickEvent.value = "gallery"
-                _imagePickEvent.value = null // reset
-                return
-            }
-            "skip" -> {
-                addMessage(ChatMessage.UserText(text = "Skip"))
-                conversationManager.onGlucoseProvided(null)
-                return
-            }
-            "new_scan" -> {
-                _messages.value = emptyList() // Clear chat
-                conversationManager.startConversation()
-                return
-            }
-            "history" -> {
-                _navigationEvent.value = "history"
-                _navigationEvent.value = null
-                return
-            }
+            // Photo/gallery
+            "take_photo" -> { fireEvent(_imagePickEvent, "camera"); return }
+            "pick_gallery" -> { fireEvent(_imagePickEvent, "gallery"); return }
+
+            // Food review
             "confirm_food" -> {
+                addMessage(ChatMessage.UserText(text = "✅ Confirmed"))
                 conversationManager.onFoodConfirmed()
-                return
             }
             "edit_food" -> {
                 _editFoodEvent.value = true
-                _editFoodEvent.value = false // Reset? Or handle in Fragment
-                return
+                _editFoodEvent.value = false
             }
+
+            // Medical review
             "confirm_medical" -> {
+                addMessage(ChatMessage.UserText(text = "✅ Settings confirmed"))
                 conversationManager.onMedicalConfirmed()
-                return
             }
             "edit_medical" -> {
                 conversationManager.onRequestMedicalEdit()
-                return
             }
-            "save_meal" -> {
-                onSaveMeal()
-                return
+            "cancel_edit_medical" -> {
+                addMessage(ChatMessage.UserText(text = "Cancel"))
+                conversationManager.onCancelMedicalEdit()
             }
-            "sick_toggle" -> {
-                conversationManager.toggleSickMode()
-                return
+            "open_profile" -> {
+                fireEvent(_navigationEvent, "profile")
             }
-            "stress_toggle" -> {
-                conversationManager.toggleStressMode()
-                return
-            }
-            "activity_menu" -> {
-                conversationManager.onShowActivityMenu()
-                return
-            }
-            "back_to_result" -> {
-                conversationManager.onBackToResult()
-                return
-            }
-        }
 
-        val label = when (actionId) {
-            "normal" -> "No adjustment"
-            "light" -> "Light exercise"
-            "intense" -> "Intense exercise"
-            else -> actionId
+            // Glucose
+            "skip_glucose" -> {
+                addMessage(ChatMessage.UserText(text = "Skip"))
+                conversationManager.onGlucoseProvided(null)
+            }
+
+            // Activity (during flow)
+            "activity_none" -> {
+                addMessage(ChatMessage.UserText(text = "No exercise"))
+                if (currentState == ChatState.ADJUSTING_ACTIVITY) {
+                    conversationManager.onActivityAdjusted("normal")
+                } else {
+                    conversationManager.onActivitySelected("normal")
+                }
+            }
+            "activity_light" -> {
+                addMessage(ChatMessage.UserText(text = "Light exercise"))
+                if (currentState == ChatState.ADJUSTING_ACTIVITY) {
+                    conversationManager.onActivityAdjusted("light")
+                } else {
+                    conversationManager.onActivitySelected("light")
+                }
+            }
+            "activity_intense" -> {
+                addMessage(ChatMessage.UserText(text = "Intense exercise"))
+                if (currentState == ChatState.ADJUSTING_ACTIVITY) {
+                    conversationManager.onActivityAdjusted("intense")
+                } else {
+                    conversationManager.onActivitySelected("intense")
+                }
+            }
+
+            // Result screen adjustments
+            "activity_menu" -> conversationManager.onAdjustActivity()
+            "sick_toggle" -> conversationManager.toggleSickMode()
+            "stress_toggle" -> conversationManager.toggleStressMode()
+            "edit_adjustments" -> conversationManager.onEditAdjustments()
+            "back_to_result" -> conversationManager.onBackToResult()
+
+            // Save
+            "save_meal" -> onSaveMeal()
+
+            // Post-save: adjustment percentages were updated
+            "adjustments_updated" -> conversationManager.onAdjustmentPercentagesUpdated()
+
+            // Done screen
+            "new_scan" -> {
+                _messages.value = emptyList()
+                conversationManager.resetForNewScan()
+            }
+            "history" -> fireEvent(_navigationEvent, "history")
         }
-        addMessage(ChatMessage.UserText(text = label))
-        conversationManager.onActivitySelected(actionId)
     }
 
-    // Called when user taps Save Meal
+    // Convenience wrappers for Fragment callbacks
+    fun onFoodConfirmed() { onActionButton("confirm_food") }
+    fun onMedicalConfirmed() { onActionButton("confirm_medical") }
+    fun onMedicalEdit() { onActionButton("edit_medical") }
+    fun onFoodEdit() { onActionButton("edit_food") }
+
+    // -- Save meal --
+
     fun onSaveMeal() {
-        val meal = MealSessionManager.currentMeal
-        if (meal == null) {
-            addMessage(ChatMessage.BotText(text = "Error: No meal to save."))
+        val meal = MealSessionManager.currentMeal ?: run {
+            addMessage(ChatMessage.BotText(text = "No meal to save."))
             return
         }
-
-        addMessage(ChatMessage.UserText(text = "💾 Save Meal"))
-        addMessage(ChatMessage.BotLoading(text = "Saving your meal…"))
-
-        // Build updated meal with dose result (mirrors SummaryFragment.buildUpdatedMeal)
         val doseResult = conversationManager.lastDoseResult
-        val updatedMeal = if (doseResult != null) {
-            val exerciseAdjValue = if (doseResult.exerciseAdj > 0) -doseResult.exerciseAdj else 0f
-            val pm = UserProfileManager
-            val ctx = getApplication<Application>()
-            meal.copy(
-                insulinDose = doseResult.roundedDose,
-                recommendedDose = doseResult.roundedDose,
-                glucoseLevel = conversationManager.collectedGlucose,
-                glucoseUnits = pm.getGlucoseUnits(ctx),
-                activityLevel = conversationManager.collectedActivityLevel,
-                carbDose = doseResult.carbDose,
-                correctionDose = doseResult.correctionDose,
-                exerciseAdjustment = exerciseAdjValue,
-                sickAdjustment = doseResult.sickAdj,
-                stressAdjustment = doseResult.stressAdj,
-                wasSickMode = pm.isSickModeEnabled(ctx),
-                wasStressMode = pm.isStressModeEnabled(ctx),
-                activeInsulin = 0f
-            )
-        } else {
-            meal
-        }
-
-        MealSessionManager.updateCurrentMeal(updatedMeal)
+        val loadingMsg = ChatMessage.BotLoading(text = "Saving…")
+        addMessage(loadingMsg)
 
         viewModelScope.launch {
             try {
-                val mealDto = MealDtoMapper.mapToDto(updatedMeal)
-                val email = AuthManager.getUserEmail() ?: ""
+                val email = AuthManager.getUserEmail()
+                    ?: UserProfileManager.getUserEmail(getApplication())
+                    ?: "unknown"
 
-                val result = withContext(Dispatchers.IO) {
-                    mealRepository.saveScannedMeal(email, mealDto)
-                }
+// Set collected data on the meal before converting to DTO
+                val mealToSave = meal.copy(
+                    glucoseLevel = conversationManager.collectedGlucose,
+                    activityLevel = conversationManager.collectedActivityLevel,
+                    carbDose = doseResult?.carbDose,
+                    correctionDose = doseResult?.correctionDose,
+                    recommendedDose = doseResult?.roundedDose,
+                    sickAdjustment = doseResult?.sickAdj,
+                    stressAdjustment = doseResult?.stressAdj,
+                    exerciseAdjustment = doseResult?.exerciseAdj
+                )
+                val dto = MealDtoMapper.mapToDto(mealToSave)
 
-                // Remove loading message
-                val msgs = _messages.value.orEmpty().toMutableList()
-                msgs.removeAll { it is ChatMessage.BotLoading }
-                _messages.value = msgs
+                val result = withContext(Dispatchers.IO) { mealRepository.saveScannedMeal(email, dto) }
+                removeMessage(loadingMsg.id)
 
-                if (result.isSuccess) {
+                result.onSuccess {
                     conversationManager.onMealSaved()
-                } else {
-                    val errorMsg = result.exceptionOrNull()?.message ?: "Unknown error"
-                    addMessage(ChatMessage.BotText(text = "❌ Failed to save: $errorMsg\nTry again with the Save button."))
+                }.onFailure { error ->
+                    val msg = error.message ?: "Unknown error"
+                    addMessage(ChatMessage.BotText(text = "❌ Failed to save: $msg"))
                 }
             } catch (e: Exception) {
-                // Remove loading message
-                val msgs = _messages.value.orEmpty().toMutableList()
-                msgs.removeAll { it is ChatMessage.BotLoading }
-                _messages.value = msgs
-
+                removeMessage(loadingMsg.id)
                 addMessage(ChatMessage.BotText(text = "❌ Error: ${e.message}"))
                 FileLogger.log("CHAT_VM", "Save error: ${e.message}")
             }
         }
     }
 
-    // --- helpers ---
+    // -- Edit meal items (from bottom sheet) --
+
+    fun updateMealItems(items: List<com.example.insuscan.meal.FoodItem>) {
+        val currentMeal = MealSessionManager.currentMeal ?: return
+        val totalCarbs = items.sumOf { (it.carbsGrams ?: 0f).toDouble() }.toFloat()
+        MealSessionManager.updateCurrentMeal(currentMeal.copy(foodItems = items, carbs = totalCarbs))
+        addMessage(ChatMessage.UserText(text = "✏️ Edited meal items"))
+        conversationManager.onMealUpdated()
+    }
+
+    fun updateMealCarbs(newTotalCarbs: Float) {
+        val currentMeal = MealSessionManager.currentMeal ?: return
+        MealSessionManager.updateCurrentMeal(currentMeal.copy(carbs = newTotalCarbs))
+        addMessage(ChatMessage.UserText(text = "✏️ Carbs: ${newTotalCarbs}g"))
+        conversationManager.onMealUpdated()
+    }
+
+    // -- LLM free-text parsing --
+
+    private fun parseFreeTextWithLlm(text: String, state: ChatState) {
+        addMessage(ChatMessage.BotLoading(text = "Thinking…"))
+
+        viewModelScope.launch {
+            try {
+                val request = ChatParseRequestDto(text = text, state = state.name)
+                val response = withContext(Dispatchers.IO) {
+                    RetrofitClient.api.parseChatText(request)
+                }
+                removeAllLoading()
+
+                if (response.isSuccessful && response.body() != null) {
+                    conversationManager.handleLlmResponse(response.body()!!)
+                } else {
+                    addMessage(ChatMessage.BotText(text = "I couldn't understand that. Try the buttons or rephrase."))
+                    // Make sure we restore buttons so the user isn't stuck
+                    conversationManager.handleLlmResponse(
+                        com.example.insuscan.network.dto.ChatParseResponseDto(
+                            action = "unknown", items = null, glucose = null,
+                            activity = null, icr = null, isf = null,
+                            targetGlucose = null, message = null
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                removeAllLoading()
+                addMessage(ChatMessage.BotText(text = "I couldn't understand that. Try the buttons or rephrase."))
+                FileLogger.log("CHAT_VM", "LLM error: ${e.message}")
+                // Restore buttons on error too
+                conversationManager.handleLlmResponse(
+                    ChatParseResponseDto(
+                        action = "unknown",
+                        items = null,
+                        glucose = null,
+                        activity = null,
+                        icr = null,
+                        isf = null,
+                        targetGlucose = null,
+                        message = null
+                    )
+                )
+            }
+        }
+    }
+
+    // -- Helpers --
 
     private fun addMessage(message: ChatMessage) {
         val current = _messages.value.orEmpty().toMutableList()
@@ -331,100 +364,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         _messages.value = current
     }
 
-    // --- LLM free-text parsing via server ---
-
-    private fun parseFreeTextWithLlm(text: String, state: ChatState) {
-        addMessage(ChatMessage.BotLoading(text = "Thinking…"))
-
-        viewModelScope.launch {
-            try {
-                val request = ChatParseRequestDto(text = text, state = state.name)
-                val response = withContext(Dispatchers.IO) {
-                    RetrofitClient.api.parseChatText(request)
-                }
-
-                // Remove loading
-                val msgs = _messages.value.orEmpty().toMutableList()
-                msgs.removeAll { it is ChatMessage.BotLoading }
-                _messages.value = msgs
-
-                if (response.isSuccessful) {
-                    val body = response.body()
-                    if (body != null) {
-                        handleLlmResponse(body)
-                    } else {
-                        addMessage(ChatMessage.BotText(text = "I couldn't understand that. Try describing your meal or take a photo!"))
-                    }
-                } else {
-                    addMessage(ChatMessage.BotText(text = "I couldn't understand that. Try describing your meal or take a photo!"))
-                }
-            } catch (e: Exception) {
-                // Remove loading
-                val msgs = _messages.value.orEmpty().toMutableList()
-                msgs.removeAll { it is ChatMessage.BotLoading }
-                _messages.value = msgs
-
-                addMessage(ChatMessage.BotText(text = "I couldn't understand that. Try describing your meal or take a photo!"))
-                FileLogger.log("CHAT_VM", "LLM parse error: ${e.message}")
-            }
-        }
+    private fun removeAllLoading() {
+        val current = _messages.value.orEmpty().toMutableList()
+        current.removeAll { it is ChatMessage.BotLoading }
+        _messages.value = current
     }
 
-    private fun handleLlmResponse(response: com.example.insuscan.network.dto.ChatParseResponseDto) {
-        when (response.action) {
-            "add_food" -> {
-                val items = response.items?.map { entry ->
-                    com.example.insuscan.meal.FoodItem(
-                        // Append quantity to name if > 1 for clarity, e.g. "Apple (2)"
-                        name = if ((entry.quantity ?: 1) > 1) "${entry.name} (${entry.quantity})" else entry.name,
-                        carbsGrams = entry.estimatedCarbsGrams,
-                        weightGrams = null, // AI provides carbs directly
-                        confidence = 0.7f
-                    )
-                } ?: emptyList()
-
-                if (items.isNotEmpty()) {
-                    val state = conversationManager.currentState
-                    val shouldMerge = (state == ChatState.REVIEWING_FOOD || state == ChatState.REVIEWING_MEDICAL) &&
-                            com.example.insuscan.meal.MealSessionManager.currentMeal != null
-                    
-                    conversationManager.onLlmFoodItems(items, merge = shouldMerge)
-                } else {
-                    addMessage(ChatMessage.BotText(text = response.message ?: "No food items found."))
-                }
-            }
-            "set_medical_params" -> {
-                conversationManager.onMedicalParamsUpdated(
-                    icr = response.icr,
-                    isf = response.isf,
-                    target = response.targetGlucose
-                )
-            }
-            "clarify" -> {
-                addMessage(ChatMessage.BotText(text = response.message ?: "Could you please clarify?"))
-            }
-            "set_glucose" -> {
-                val glucose = response.glucose
-                if (glucose != null) {
-                    conversationManager.handleFreeText(glucose.toString())
-                } else {
-                    addMessage(ChatMessage.BotText(text = response.message ?: "Could not determine glucose level."))
-                }
-            }
-            "set_activity" -> {
-                val activity = response.activity
-                if (activity != null) {
-                    conversationManager.handleFreeText(activity)
-                } else {
-                    addMessage(ChatMessage.BotText(text = response.message ?: "Could not determine activity level."))
-                }
-            }
-            "confirm" -> {
-                conversationManager.handleFreeText("confirm")
-            }
-            else -> {
-                addMessage(ChatMessage.BotText(text = response.message ?: "I couldn't understand that. Try describing your meal or take a photo!"))
-            }
-        }
+    // Fire a one-shot event (set value, then null)
+    private fun fireEvent(liveData: MutableLiveData<String?>, value: String) {
+        liveData.value = value
+        liveData.value = null
     }
 }

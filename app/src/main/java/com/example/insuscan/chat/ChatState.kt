@@ -2,15 +2,17 @@ package com.example.insuscan.chat
 
 // All possible states in the chat conversation flow
 enum class ChatState {
-    IDLE,               // initial state - waiting for user to start
-    AWAITING_IMAGE,     // asked user to take/upload a photo
-    SCANNING,           // image sent to server, waiting for results
+    AWAITING_IMAGE,     // waiting for photo/gallery or text food description
+    SCANNING,           // image sent to server, analyzing
     REVIEWING_FOOD,     // showing food card, waiting for confirm/edit
-    CLARIFYING,         // asking about items with 0 carbs
-    REVIEWING_MEDICAL,  // showing medical profile, waiting for confirm
-    COLLECTING_EXTRAS,  // asking about activity, sick mode, etc.
-    CALCULATING,        // running insulin calculation
-    SHOWING_RESULT,     // showing dose result card
+    CLARIFYING,         // LLM asked for more info (e.g. amount)
+    REVIEWING_MEDICAL,  // showing medical profile card
+    EDITING_MEDICAL,    // user is typing new medical values
+    ASKING_GLUCOSE,     // asking for current glucose level
+    ASKING_ACTIVITY,    // asking about exercise level
+    CALCULATING,        // running insulin calc
+    SHOWING_RESULT,     // showing dose result + adjustment toggles
+    ADJUSTING_ACTIVITY, // sub-menu for picking activity level
     SAVING,             // saving meal to server
-    DONE                // meal saved, flow complete
+    DONE                // flow complete
 }
