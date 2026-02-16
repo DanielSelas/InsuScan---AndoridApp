@@ -34,6 +34,10 @@ class EditMealBottomSheet(
         recyclerView = view.findViewById(R.id.rv_edit_food_items)
         val addButton = view.findViewById<Button>(R.id.btn_add_item)
         val saveButton = view.findViewById<Button>(R.id.btn_save_changes)
+        val resetButton = view.findViewById<Button>(R.id.btn_reset_items)
+
+        // Keep a deep copy of the original items for reset
+        val originalItems = initialItems.map { it.copy() }
 
         // Create a defensive copy of the list
         val mutableItems = initialItems.toMutableList()
@@ -50,6 +54,17 @@ class EditMealBottomSheet(
         addButton.setOnClickListener {
             adapter.addItem(FoodItem(name = "", carbsGrams = null, weightGrams = null))
             recyclerView?.smoothScrollToPosition(adapter.itemCount - 1)
+        }
+
+        resetButton.setOnClickListener {
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Reset to original?")
+                .setMessage("This will revert all items back to the original analysis results.")
+                .setPositiveButton("Reset") { _, _ ->
+                    adapter.resetItems(originalItems)
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
 
         saveButton.setOnClickListener {

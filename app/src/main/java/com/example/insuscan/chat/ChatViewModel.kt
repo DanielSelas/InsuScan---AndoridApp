@@ -185,7 +185,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 conversationManager.onGlucoseProvided(null)
             }
 
-            // Activity (during flow)
+            // Activity (during flow or step-edit)
             "activity_none" -> {
                 addMessage(ChatMessage.UserText(text = "No exercise"))
                 if (currentState == ChatState.ADJUSTING_ACTIVITY) {
@@ -211,7 +211,24 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
 
-            // Result screen adjustments
+            // Result screen — step-edit loop
+            "edit_step" -> conversationManager.onChooseEditStep()
+            "edit_step_food" -> {
+                addMessage(ChatMessage.UserText(text = "Edit food items"))
+                conversationManager.onEditStepFood()
+            }
+            "edit_step_medical" -> {
+                addMessage(ChatMessage.UserText(text = "Edit medical settings"))
+                conversationManager.onEditStepMedical()
+            }
+            "edit_step_glucose" -> {
+                addMessage(ChatMessage.UserText(text = "Edit glucose"))
+                conversationManager.onEditStepGlucose()
+            }
+            "edit_step_activity" -> {
+                addMessage(ChatMessage.UserText(text = "Edit activity"))
+                conversationManager.onEditStepActivity()
+            }
             "activity_menu" -> conversationManager.onAdjustActivity()
             "sick_toggle" -> conversationManager.toggleSickMode()
             "stress_toggle" -> conversationManager.toggleStressMode()
@@ -257,15 +274,29 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     ?: "unknown"
 
 // Set collected data on the meal before converting to DTO
+                val pm = UserProfileManager
                 val mealToSave = meal.copy(
                     glucoseLevel = conversationManager.collectedGlucose,
+                    glucoseUnits = pm.getGlucoseUnits(getApplication()),
                     activityLevel = conversationManager.collectedActivityLevel,
+                    wasSickMode = conversationManager.collectedSickMode,
+                    wasStressMode = conversationManager.collectedStressMode,
                     carbDose = doseResult?.carbDose,
                     correctionDose = doseResult?.correctionDose,
                     recommendedDose = doseResult?.roundedDose,
                     sickAdjustment = doseResult?.sickAdj,
                     stressAdjustment = doseResult?.stressAdj,
-                    exerciseAdjustment = doseResult?.exerciseAdj
+                    exerciseAdjustment = doseResult?.exerciseAdj,
+                    savedIcr = pm.getGramsPerUnit(getApplication()),
+                    savedIsf = pm.getCorrectionFactor(getApplication()),
+                    savedTargetGlucose = pm.getTargetGlucose(getApplication()),
+                    savedSickPct = if (conversationManager.collectedSickMode) pm.getSickDayAdjustment(getApplication()) else 0,
+                    savedStressPct = if (conversationManager.collectedStressMode) pm.getStressAdjustment(getApplication()) else 0,
+                    savedExercisePct = when (conversationManager.collectedActivityLevel) {
+                        "light" -> pm.getLightExerciseAdjustment(getApplication())
+                        "intense" -> pm.getIntenseExerciseAdjustment(getApplication())
+                        else -> 0
+                    }
                 )
                 val dto = MealDtoMapper.mapToDto(mealToSave)
 

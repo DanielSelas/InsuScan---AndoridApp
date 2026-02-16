@@ -64,7 +64,12 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
 
             // context flags
             wasSickMode = from.wasSickMode == true,
-            wasStressMode = from.wasStressMode == true
+            wasStressMode = from.wasStressMode == true,
+
+            // medical settings used at calculation time
+            savedIcr = from.insulinCalculation?.insulinCarbRatio?.toFloatOrNull(),
+            savedIsf = from.insulinCalculation?.correctionFactor,
+            savedTargetGlucose = from.insulinCalculation?.targetGlucose
         )
     }
 
@@ -92,10 +97,10 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
                 carbDose = meal.carbDose,
                 correctionDose = meal.correctionDose,
                 recommendedDose = meal.recommendedDose,
-                insulinCarbRatio = null, // backend recalculates
+                insulinCarbRatio = meal.savedIcr?.toString(),
                 currentGlucose = meal.glucoseLevel,
-                targetGlucose = null,
-                correctionFactor = null,
+                targetGlucose = meal.savedTargetGlucose,
+                correctionFactor = meal.savedIsf,
                 sickAdjustment = meal.sickAdjustment,
                 stressAdjustment = meal.stressAdjustment,
                 exerciseAdjustment = meal.exerciseAdjustment,
