@@ -230,8 +230,12 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
 
         // Show adjustment percentages edit dialog
-        viewModel.editAdjustmentsEvent.observe(viewLifecycleOwner) { show ->
-            if (show) showEditAdjustmentsDialog()
+        viewModel.editActivityEvent.observe(viewLifecycleOwner) { show ->
+            if (show) showEditActivityDialog()
+        }
+
+        viewModel.editSickStressEvent.observe(viewLifecycleOwner) { show ->
+            if (show) showEditSickStressDialog()
         }
     }
 
@@ -266,10 +270,46 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         sheet.show(parentFragmentManager, "EditMealBottomSheet")
     }
 
-    /**
-     * Shows a dialog to edit adjustment percentages.
-     */
-    private fun showEditAdjustmentsDialog() {
+    // ... (rest of methods)
+
+    private fun showEditActivityDialog() {
+        val ctx = requireContext()
+        val pm = UserProfileManager
+
+        val layout = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 0)
+        }
+
+        fun addLabel(text: String) {
+            layout.addView(android.widget.TextView(ctx).apply {
+                this.text = text
+                textSize = 14f
+                setPadding(0, 8, 0, 4)
+            })
+        }
+
+        addLabel("🏃 Light Exercise Reduction %")
+        val lightInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getLightExerciseAdjustment(ctx).toString()) }
+        layout.addView(lightInput)
+
+        addLabel("🏋️ Intense Exercise Reduction %")
+        val intenseInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getIntenseExerciseAdjustment(ctx).toString()) }
+        layout.addView(intenseInput)
+
+        AlertDialog.Builder(ctx)
+            .setTitle("⚙️ Edit Activity Adjustments")
+            .setView(layout)
+            .setPositiveButton("Save") { _, _ ->
+                val light = lightInput.text.toString().toIntOrNull()
+                val intense = intenseInput.text.toString().toIntOrNull()
+                viewModel.updateAdjustmentPercentages(light = light, intense = intense)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showEditSickStressDialog() {
         val ctx = requireContext()
         val pm = UserProfileManager
 
@@ -294,24 +334,13 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         val stressInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getStressAdjustment(ctx).toString()) }
         layout.addView(stressInput)
 
-        addLabel("🏃 Light Exercise Reduction %")
-        val lightInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getLightExerciseAdjustment(ctx).toString()) }
-        layout.addView(lightInput)
-
-        addLabel("🏋️ Intense Exercise Reduction %")
-        val intenseInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getIntenseExerciseAdjustment(ctx).toString()) }
-        layout.addView(intenseInput)
-
         AlertDialog.Builder(ctx)
-            .setTitle("⚙️ Edit Adjustment Percentages")
+            .setTitle("⚙️ Edit Health Adjustments")
             .setView(layout)
             .setPositiveButton("Save") { _, _ ->
-                sickInput.text.toString().toIntOrNull()?.let { pm.saveSickDayAdjustment(ctx, it) }
-                stressInput.text.toString().toIntOrNull()?.let { pm.saveStressAdjustment(ctx, it) }
-                lightInput.text.toString().toIntOrNull()?.let { pm.saveLightExerciseAdjustment(ctx, it) }
-                intenseInput.text.toString().toIntOrNull()?.let { pm.saveIntenseExerciseAdjustment(ctx, it) }
-
-                viewModel.onActionButton("adjustments_updated")
+                val sick = sickInput.text.toString().toIntOrNull()
+                val stress = stressInput.text.toString().toIntOrNull()
+                viewModel.updateAdjustmentPercentages(sick = sick, stress = stress)
             }
             .setNegativeButton("Cancel", null)
             .show()

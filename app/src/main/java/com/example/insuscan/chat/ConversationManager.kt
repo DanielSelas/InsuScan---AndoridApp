@@ -384,9 +384,10 @@ class ConversationManager(private val context: Context) {
         val intensePct = pm.getIntenseExerciseAdjustment(context)
 
         setActions(listOf(
-            ActionButton("activity_none", "None"),
-            ActionButton("activity_light", "🏃 Light (-${lightPct}%)"),
-            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)")
+            ActionButton("activity_none", "None", row = 0),
+            ActionButton("activity_light", "🏃 Light (-${lightPct}%)", row = 1),
+            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)", row = 1),
+            ActionButton("edit_activity_pct", "✏️ Edit %", row = 2)
         ))
     }
 
@@ -406,8 +407,69 @@ class ConversationManager(private val context: Context) {
             isEditingStep = false
             performCalculation()
         } else {
-            // Normal flow → proceed to food review
+            // Normal flow → ask adjustments (Sick/Stress)
+            askAdjustments()
+        }
+    }
+
+    // -- Adjustments (Sick/Stress) --
+
+    private fun askAdjustments() {
+        currentState = ChatState.ASKING_ADJUSTMENTS
+        callback?.onBotMessage(ChatMessage.BotText(text = "Are you feeling sick or stressed?"))
+        showAdjustmentOptions()
+        callback?.onStateChanged(currentState)
+    }
+
+    private fun showAdjustmentOptions() {
+        val pm = UserProfileManager
+        val sickPct = pm.getSickDayAdjustment(context)
+        val stressPct = pm.getStressAdjustment(context)
+
+        setActions(listOf(
+            ActionButton("adj_none", "No", row = 0),
+            ActionButton("adj_sick", "🤒 Sick (+${sickPct}%)", row = 1),
+            ActionButton("adj_stress", "😫 Stress (+${stressPct}%)", row = 1),
+            ActionButton("adj_both", "Both (+${sickPct + stressPct}%)", row = 1),
+            ActionButton("edit_sick_stress_pct", "✏️ Edit %", row = 2)
+        ))
+    }
+
+    fun onAdjustmentSelected(sick: Boolean, stress: Boolean) {
+        clearActions()
+        collectedSickMode = sick
+        collectedStressMode = stress
+
+        val status = when {
+            sick && stress -> "Sick & Stress"
+            sick -> "Sick"
+            stress -> "Stress"
+            else -> "Neither"
+        }
+        callback?.onBotMessage(ChatMessage.BotText(text = "Adjustments: $status"))
+
+        if (isEditingStep) {
+            isEditingStep = false
+            performCalculation()
+        } else {
             proceedToFoodReview()
+        }
+    }
+
+    // Called after user edits adjustment percentages in the dialog
+    fun onAdjustmentPercentagesUpdated() {
+        callback?.onBotMessage(ChatMessage.BotText(text = "✅ Adjustment percentages updated."))
+        
+        // If we were asking about adjustments, re-show options with new values
+        if (currentState == ChatState.ASKING_ADJUSTMENTS) {
+            showAdjustmentOptions()
+        }
+        else if (currentState == ChatState.ASKING_ACTIVITY) {
+            showActivityOptions()
+        }
+        // If we were showing results, recalculate with new values
+        else if (currentState == ChatState.SHOWING_RESULT) {
+            performCalculation()
         }
     }
 
@@ -429,11 +491,19 @@ class ConversationManager(private val context: Context) {
                 callback?.onStateChanged(currentState)
             }
         } else {
-            // Still waiting for scan — show loading
+            // Still waiting for scan — show loading AND edit option
             waitingForScan = true
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = "⏳ Still analyzing your meal image… Just a moment.")
-            )
+            val msg = if (waitingForScan)
+                "⏳ Still analyzing..."
+            else
+                "⏳ Analyzing your meal… Feel free to review your inputs while we wait."
+
+            callback?.onBotMessage(ChatMessage.BotText(text = msg))
+
+            // Show "Edit a Step" option while waiting
+            setActions(listOf(
+                ActionButton("edit_step_wait", "✏️ Review/Edit Steps", row = 0)
+            ))
         }
     }
 
@@ -509,7 +579,7 @@ class ConversationManager(private val context: Context) {
     private fun showResultActions() {
         setActions(listOf(
             ActionButton("save_meal", "💾 Save Meal", row = 0),
-            ActionButton("edit_step", "✏️ Edit a Step", row = 0)
+            ActionButton("edit_step", "✏️ Edit a Step", row = 1)
         ))
     }
 
@@ -521,11 +591,12 @@ class ConversationManager(private val context: Context) {
             ChatMessage.BotText(text = "Which step would you like to edit?")
         )
         setActions(listOf(
-            ActionButton("edit_step_food", "🍽️ Food Items"),
-            ActionButton("edit_step_medical", "⚕️ Medical"),
-            ActionButton("edit_step_glucose", "🩸 Glucose"),
-            ActionButton("edit_step_activity", "🏃 Activity"),
-            ActionButton("back_to_result", "← Back")
+            ActionButton("edit_step_food", "🍽️ Food Items", row = 0),
+            ActionButton("edit_step_medical", "⚕️ Medical", row = 1),
+            ActionButton("edit_step_glucose", "🩸 Glucose", row = 1),
+            ActionButton("edit_step_activity", "🏃 Activity", row = 2),
+            ActionButton("edit_step_adjustments", "🔧 Adjustments", row = 2),
+            ActionButton("back_to_result", "← Back", row = 3)
         ))
         callback?.onStateChanged(currentState)
     }
@@ -554,6 +625,12 @@ class ConversationManager(private val context: Context) {
         isEditingStep = true
         clearActions()
         askActivity()
+    }
+
+    fun onEditStepAdjustments() {
+        isEditingStep = true
+        clearActions()
+        askAdjustments()
     }
 
     // Activity adjustment sub-menu from result screen
@@ -611,12 +688,6 @@ class ConversationManager(private val context: Context) {
     // Open the adjustment % editor dialog
     fun onEditAdjustments() {
         callback?.onRequestEditAdjustmentsDialog()
-    }
-
-    // Called after user edits adjustment percentages in the dialog
-    fun onAdjustmentPercentagesUpdated() {
-        callback?.onBotMessage(ChatMessage.BotText(text = "✅ Adjustment percentages updated."))
-        performCalculation()
     }
 
     // -- Save --

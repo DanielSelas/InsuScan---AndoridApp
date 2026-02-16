@@ -54,15 +54,21 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _addFoodItemsEvent = MutableLiveData<List<FoodItem>?>()
     val addFoodItemsEvent: LiveData<List<FoodItem>?> = _addFoodItemsEvent
 
-    private val _editAdjustmentsEvent = MutableLiveData<Boolean>()
-    val editAdjustmentsEvent: LiveData<Boolean> = _editAdjustmentsEvent
+    // Split edit events
+    private val _editActivityEvent = MutableLiveData<Boolean>()
+    val editActivityEvent: LiveData<Boolean> = _editActivityEvent
+
+    private val _editSickStressEvent = MutableLiveData<Boolean>()
+    val editSickStressEvent: LiveData<Boolean> = _editSickStressEvent
+
+    private val userRepository = com.example.insuscan.network.repository.UserRepositoryImpl()
 
     init {
         conversationManager.callback = object : ConversationManager.Callback {
             override fun onBotMessage(message: ChatMessage) {
                 addMessage(message)
             }
-
+// ... (rest of init callback remains similar, but removing old edit event)
             override fun onStateChanged(newState: ChatState) {
                 FileLogger.log("CHAT_VM", "State → $newState")
             }
@@ -88,9 +94,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 _addFoodItemsEvent.postValue(items)
             }
 
-            override fun onRequestEditAdjustmentsDialog() {
-                _editAdjustmentsEvent.postValue(true)
-            }
+            // We no longer need onRequestEditAdjustmentsDialog as it's split
         }
         conversationManager.startConversation()
     }
@@ -102,6 +106,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         addMessage(ChatMessage.UserText(text = text))
         conversationManager.handleFreeText(text)
     }
+
     fun updateMedicalSettings(icr: Double?, isf: Double?, target: Int?) {
         conversationManager.onMedicalParamsUpdated(icr, isf, target)
     }
@@ -149,7 +154,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun onActionButton(actionId: String) {
         when (actionId) {
-            // Photo/gallery
+            // ... (Photo/Gallery/Food/Medical confirmed/edit - no changes)
             "take_photo" -> { fireEvent(_imagePickEvent, "camera"); return }
             "pick_gallery" -> { fireEvent(_imagePickEvent, "gallery"); return }
 
@@ -210,9 +215,14 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     conversationManager.onActivitySelected("intense")
                 }
             }
+            "edit_activity_pct" -> {
+                _editActivityEvent.value = true
+                _editActivityEvent.value = false
+            }
 
             // Result screen — step-edit loop
             "edit_step" -> conversationManager.onChooseEditStep()
+            "edit_step_wait" -> conversationManager.onChooseEditStep() // allow editing while waiting
             "edit_step_food" -> {
                 addMessage(ChatMessage.UserText(text = "Edit food items"))
                 conversationManager.onEditStepFood()
@@ -229,6 +239,33 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 addMessage(ChatMessage.UserText(text = "Edit activity"))
                 conversationManager.onEditStepActivity()
             }
+            "edit_step_adjustments" -> {
+                addMessage(ChatMessage.UserText(text = "Edit adjustments"))
+                conversationManager.onEditStepAdjustments()
+            }
+
+            // Adjustments (Sick/Stress)
+            "adj_none" -> {
+                addMessage(ChatMessage.UserText(text = "Neither"))
+                conversationManager.onAdjustmentSelected(sick = false, stress = false)
+            }
+            "adj_sick" -> {
+                addMessage(ChatMessage.UserText(text = "Sick"))
+                conversationManager.onAdjustmentSelected(sick = true, stress = false)
+            }
+            "adj_stress" -> {
+                addMessage(ChatMessage.UserText(text = "Stress"))
+                conversationManager.onAdjustmentSelected(sick = false, stress = true)
+            }
+            "adj_both" -> {
+                addMessage(ChatMessage.UserText(text = "Both"))
+                conversationManager.onAdjustmentSelected(sick = true, stress = true)
+            }
+            "edit_sick_stress_pct" -> {
+                _editSickStressEvent.value = true
+                _editSickStressEvent.value = false
+            }
+
             "activity_menu" -> conversationManager.onAdjustActivity()
             "sick_toggle" -> conversationManager.toggleSickMode()
             "stress_toggle" -> conversationManager.toggleStressMode()
@@ -237,9 +274,6 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
             // Save
             "save_meal" -> onSaveMeal()
-
-            // Post-save: adjustment percentages were updated
-            "adjustments_updated" -> conversationManager.onAdjustmentPercentagesUpdated()
 
             // Done screen
             "new_scan" -> {
@@ -255,6 +289,53 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun onMedicalConfirmed() { onActionButton("confirm_medical") }
     fun onMedicalEdit() { onActionButton("edit_medical") }
     fun onFoodEdit() { onActionButton("edit_food") }
+
+    // -- Update & Sync Adjustments --
+
+    fun updateAdjustmentPercentages(
+        sick: Int? = null,
+        stress: Int? = null,
+        light: Int? = null,
+        intense: Int? = null
+    ) {
+        val pm = UserProfileManager
+        val ctx = getApplication<Application>()
+
+        // 1. Save locally
+        sick?.let { pm.saveSickDayAdjustment(ctx, it) }
+        stress?.let { pm.saveStressAdjustment(ctx, it) }
+        light?.let { pm.saveLightExerciseAdjustment(ctx, it) }
+        intense?.let { pm.saveIntenseExerciseAdjustment(ctx, it) }
+
+        // 2. Notify conversation manager immediately so UI updates
+        conversationManager.onAdjustmentPercentagesUpdated()
+
+        // 3. Sync to Server
+        viewModelScope.launch {
+            try {
+                val email = AuthManager.getUserEmail() ?: pm.getUserEmail(ctx)
+                if (email != null) {
+                    val dto = com.example.insuscan.network.dto.UserDto(
+                        userId = null, username = null, role = null, avatar = null,
+                        insulinCarbRatio = null, correctionFactor = null, targetGlucose = null,
+                        syringeType = null, customSyringeLength = null,
+                        age = null, gender = null, pregnant = null, dueDate = null,
+                        diabetesType = null, insulinType = null, activeInsulinTime = null,
+                        doseRounding = null, glucoseUnits = null, createdTimestamp = null, updatedTimestamp = null,
+                        
+                        // Only these fields are updated
+                        sickDayAdjustment = sick,
+                        stressAdjustment = stress,
+                        lightExerciseAdjustment = light,
+                        intenseExerciseAdjustment = intense
+                    )
+                    userRepository.updateUser(email, dto)
+                }
+            } catch (e: Exception) {
+                FileLogger.log("CHAT_VM", "Sync error: ${e.message}")
+            }
+        }
+    }
 
     // -- Save meal --
 
