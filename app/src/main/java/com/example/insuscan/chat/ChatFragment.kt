@@ -1,21 +1,26 @@
 package com.example.insuscan.chat
 
+import android.app.AlertDialog
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
+import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.TopBarHelper
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import java.io.File
 
-// Main chat screen — RecyclerView + input bar + camera/gallery
+// Main chat screen — RecyclerView + compact sticky buttons + input bar
 class ChatFragment : Fragment(R.layout.fragment_chat) {
 
     private lateinit var viewModel: ChatViewModel
@@ -24,10 +29,11 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private lateinit var inputField: EditText
     private lateinit var sendButton: ImageButton
     private lateinit var cameraButton: ImageButton
-    private lateinit var svStickyActions: android.widget.HorizontalScrollView
-    private lateinit var llStickyActions: android.widget.LinearLayout
+    private lateinit var stickyContainer: LinearLayout
 
-    // Camera launcher — takes a photo and returns the bitmap
+    // Keep references to open sheets for item injection
+    private var openEditMealSheet: EditMealBottomSheet? = null
+
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
@@ -40,26 +46,22 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
     }
 
-    // Gallery picker
     private val galleryLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null) {
-            processGalleryUri(uri)
-        }
+        if (uri != null) processGalleryUri(uri)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         viewModel = ViewModelProvider(this)[ChatViewModel::class.java]
-
         findViews(view)
         setupTopBar(view)
         setupRecyclerView()
         setupInputListeners()
         observeMessages()
         observeStickyActions()
+        observeEvents()
     }
 
     private fun findViews(view: View) {
@@ -67,15 +69,14 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         inputField = view.findViewById(R.id.et_chat_input)
         sendButton = view.findViewById(R.id.btn_send)
         cameraButton = view.findViewById(R.id.btn_camera)
-        svStickyActions = view.findViewById(R.id.sv_sticky_actions)
-        llStickyActions = view.findViewById(R.id.ll_sticky_actions)
+        stickyContainer = view.findViewById(R.id.ll_sticky_container)
     }
 
     private fun setupTopBar(rootView: View) {
         TopBarHelper.setupTopBar(
             rootView = rootView,
             title = "Chat Assistant",
-            onBack = { 
+            onBack = {
                 androidx.navigation.fragment.NavHostFragment.findNavController(this).navigateUp()
             }
         )
@@ -83,12 +84,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
     private fun setupRecyclerView() {
         chatAdapter = ChatAdapter(
-            onFoodConfirm = { viewModel.onFoodConfirmed() },
-            onFoodEdit = { viewModel.onFoodEdit() },
-            onMedicalConfirm = { viewModel.onMedicalConfirmed() },
-            onMedicalEdit = { viewModel.onMedicalEdit() },
-            onActionButton = { actionId -> viewModel.onActionButton(actionId) },
-            onSaveMeal = { viewModel.onSaveMeal() }
+            onActionButton = { actionId -> viewModel.onActionButton(actionId) }
         )
         val layoutManager = LinearLayoutManager(requireContext())
         layoutManager.stackFromEnd = true
@@ -104,44 +100,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                 inputField.text.clear()
             }
         }
-
-        cameraButton.setOnClickListener {
-            showImageSourceChooser()
-        }
-    }
-
-    private fun showImageSourceChooser() {
-        val options = arrayOf("Take Photo", "Choose from Gallery")
-        android.app.AlertDialog.Builder(requireContext())
-            .setTitle("Add Image")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> cameraLauncher.launch(null)
-                    1 -> galleryLauncher.launch("image/*")
-                }
-            }
-            .show()
-    }
-
-    private fun processGalleryUri(uri: Uri) {
-        try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri)
-            val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
-            inputStream?.close()
-
-            if (bitmap == null) {
-                viewModel.onUserSendText("(Failed to load image)")
-                return
-            }
-
-            val file = File(requireContext().cacheDir, "chat_gallery_${System.currentTimeMillis()}.jpg")
-            file.outputStream().use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-            }
-            viewModel.onImageReceived(file.absolutePath)
-        } catch (e: Exception) {
-            viewModel.onUserSendText("(Error loading image: ${e.message})")
-        }
+        cameraButton.setOnClickListener { cameraLauncher.launch(null) }
     }
 
     private fun observeMessages() {
@@ -152,8 +111,88 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                 }
             }
         }
+    }
 
-        // Observe image pick events from action buttons
+    /**
+     * Renders sticky action buttons grouped by row.
+     * Each row is a centered ChipGroup. The "save_meal" chip is larger.
+     */
+    private fun observeStickyActions() {
+        viewModel.stickyActions.observe(viewLifecycleOwner) { actions ->
+            stickyContainer.removeAllViews()
+
+            if (actions.isNullOrEmpty()) {
+                stickyContainer.visibility = View.GONE
+                return@observe
+            }
+
+            stickyContainer.visibility = View.VISIBLE
+
+            // Group buttons by row, preserving order
+            val rows = actions.groupBy { it.row }
+                .toSortedMap()
+
+            rows.forEach { (rowIndex, rowButtons) ->
+                val chipGroup = ChipGroup(requireContext()).apply {
+                    isSingleLine = (rowIndex == 0) // force adjustment toggles on one line
+                    chipSpacingHorizontal = 8.dpToPx()
+                    chipSpacingVertical = 4.dpToPx()
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        gravity = android.view.Gravity.CENTER_HORIZONTAL
+                        topMargin = 2.dpToPx()
+                        bottomMargin = 2.dpToPx()
+                    }
+                }
+
+                rowButtons.forEach { button ->
+                    val chip = Chip(requireContext()).apply {
+                        text = button.label
+                        isClickable = true
+                        isCheckable = false
+                        textSize = 13f
+                        chipMinHeight = 44f
+                        chipStartPadding = 12f
+                        chipEndPadding = 12f
+
+                        // Save button — larger and highlighted
+                        if (button.actionId == "save_meal") {
+                            textSize = 16f
+                            chipMinHeight = 52f
+                            chipStartPadding = 20f
+                            chipEndPadding = 20f
+                            setChipBackgroundColorResource(R.color.primary)
+                            setTextColor(resources.getColor(R.color.white, null))
+                        }
+
+                        // Edit adjustments — bordered to stand out
+                        if (button.actionId == "edit_adjustments") {
+                            setChipStrokeWidth(2f)
+                            setChipStrokeColorResource(R.color.primary)
+                        }
+
+                        // Active adjustments (✓) — tinted background
+                        if (button.label.contains("✓")) {
+                            setChipBackgroundColorResource(R.color.primary_light)
+                        }
+
+                        setOnClickListener { viewModel.onActionButton(button.actionId) }
+                    }
+                    chipGroup.addView(chip)
+                }
+
+                stickyContainer.addView(chipGroup)
+            }
+        }
+    }
+
+    private fun Int.dpToPx(): Int {
+        return (this * resources.displayMetrics.density).toInt()
+    }
+
+    private fun observeEvents() {
         viewModel.imagePickEvent.observe(viewLifecycleOwner) { event ->
             when (event) {
                 "camera" -> cameraLauncher.launch(null)
@@ -161,55 +200,120 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             }
         }
 
-        // Observe edit event
-        viewModel.editFoodEvent.observe(viewLifecycleOwner) { shouldEdit ->
+        viewModel.editFoodEvent.observe(viewLifecycleOwner) { show ->
+            if (show) showEditMealDialog()
+        }
+
+        viewModel.navigationEvent.observe(viewLifecycleOwner) { target ->
+            when (target) {
+                "profile" -> {
+                    val navController = androidx.navigation.fragment.NavHostFragment.findNavController(this)
+                    navController.navigate(R.id.profileFragment)
+                }
+                "history" -> {
+                    val navController = androidx.navigation.fragment.NavHostFragment.findNavController(this)
+                    navController.navigate(R.id.historyFragment)
+                }
+            }
+        }
+        viewModel.editMedicalEvent.observe(viewLifecycleOwner) { shouldEdit ->
             if (shouldEdit) {
-                showEditMealBottomSheet()
+                showEditMedicalBottomSheet()
             }
         }
 
-        // Observe navigation
-        viewModel.navigationEvent.observe(viewLifecycleOwner) { destination ->
-            destination?.let {
-                val navController = androidx.navigation.fragment.NavHostFragment.findNavController(this)
-                when (it) {
-                    "profile" -> navController.navigate(R.id.profileFragment)
-                    "history" -> navController.navigate(R.id.historyFragment)
-                }
+        // Inject parsed food items into the open edit sheet
+        viewModel.addFoodItemsEvent.observe(viewLifecycleOwner) { items ->
+            if (items != null && items.isNotEmpty()) {
+                openEditMealSheet?.addItems(items)
             }
         }
-    }
 
-    private fun observeStickyActions() {
-        viewModel.stickyActions.observe(viewLifecycleOwner) { actions ->
-            if (actions.isNullOrEmpty()) {
-                svStickyActions.visibility = View.GONE
-            } else {
-                svStickyActions.visibility = View.VISIBLE
-                llStickyActions.removeAllViews()
-                actions.forEach { action ->
-                    val btn = com.google.android.material.button.MaterialButton(requireContext()).apply {
-                        text = action.label
-                        setOnClickListener { viewModel.onActionButton(action.actionId) }
-                    }
-                    val params = android.widget.LinearLayout.LayoutParams(
-                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                    params.marginEnd = 16
-                    btn.layoutParams = params
-                    llStickyActions.addView(btn)
-                }
-            }
+        // Show adjustment percentages edit dialog
+        viewModel.editAdjustmentsEvent.observe(viewLifecycleOwner) { show ->
+            if (show) showEditAdjustmentsDialog()
         }
     }
 
-    private fun showEditMealBottomSheet() {
+    private fun showEditMedicalBottomSheet() {
+        val sheet = EditMedicalBottomSheet { icr, isf, target ->
+            viewModel.updateMedicalSettings(icr, isf, target)
+        }
+        sheet.show(parentFragmentManager, "EditMedicalBottomSheet")
+    }
+
+    private fun processGalleryUri(uri: Uri) {
+        try {
+            val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return
+            val file = File(requireContext().cacheDir, "chat_gallery_${System.currentTimeMillis()}.jpg")
+            file.outputStream().use { out -> inputStream.copyTo(out) }
+            inputStream.close()
+            viewModel.onImageReceived(file.absolutePath)
+        } catch (e: Exception) {
+            com.example.insuscan.utils.FileLogger.log("CHAT", "Gallery error: ${e.message}")
+        }
+    }
+
+    private fun showEditMealDialog() {
         val currentMeal = com.example.insuscan.meal.MealSessionManager.currentMeal ?: return
         val items = currentMeal.foodItems ?: emptyList()
+
         val sheet = EditMealBottomSheet(items) { updatedItems ->
             viewModel.updateMealItems(updatedItems)
+            openEditMealSheet = null
         }
+        openEditMealSheet = sheet
         sheet.show(parentFragmentManager, "EditMealBottomSheet")
+    }
+
+    /**
+     * Shows a dialog to edit adjustment percentages.
+     */
+    private fun showEditAdjustmentsDialog() {
+        val ctx = requireContext()
+        val pm = UserProfileManager
+
+        val layout = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 0)
+        }
+
+        fun addLabel(text: String) {
+            layout.addView(android.widget.TextView(ctx).apply {
+                this.text = text
+                textSize = 14f
+                setPadding(0, 8, 0, 4)
+            })
+        }
+
+        addLabel("🤒 Sick Day Increase %")
+        val sickInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getSickDayAdjustment(ctx).toString()) }
+        layout.addView(sickInput)
+
+        addLabel("😫 Stress Increase %")
+        val stressInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getStressAdjustment(ctx).toString()) }
+        layout.addView(stressInput)
+
+        addLabel("🏃 Light Exercise Reduction %")
+        val lightInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getLightExerciseAdjustment(ctx).toString()) }
+        layout.addView(lightInput)
+
+        addLabel("🏋️ Intense Exercise Reduction %")
+        val intenseInput = EditText(ctx).apply { inputType = android.text.InputType.TYPE_CLASS_NUMBER; setText(pm.getIntenseExerciseAdjustment(ctx).toString()) }
+        layout.addView(intenseInput)
+
+        AlertDialog.Builder(ctx)
+            .setTitle("⚙️ Edit Adjustment Percentages")
+            .setView(layout)
+            .setPositiveButton("Save") { _, _ ->
+                sickInput.text.toString().toIntOrNull()?.let { pm.saveSickDayAdjustment(ctx, it) }
+                stressInput.text.toString().toIntOrNull()?.let { pm.saveStressAdjustment(ctx, it) }
+                lightInput.text.toString().toIntOrNull()?.let { pm.saveLightExerciseAdjustment(ctx, it) }
+                intenseInput.text.toString().toIntOrNull()?.let { pm.saveIntenseExerciseAdjustment(ctx, it) }
+
+                viewModel.onActionButton("adjustments_updated")
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }
