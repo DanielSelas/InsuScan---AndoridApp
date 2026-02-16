@@ -14,19 +14,12 @@ import com.bumptech.glide.Glide
 import com.example.insuscan.R
 import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.utils.InsulinCalculatorUtil
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import java.io.File
 
-// RecyclerView adapter for all chat message types.
-// Callbacks are wired from ChatFragment → ChatViewModel for button actions.
+// RecyclerView adapter for chat messages.
+// Cards are display-only — all buttons are in the sticky area managed by Fragment.
 class ChatAdapter(
-    private val onFoodConfirm: (() -> Unit)? = null,
-    private val onFoodEdit: (() -> Unit)? = null,
-    private val onMedicalConfirm: (() -> Unit)? = null,
-    private val onMedicalEdit: (() -> Unit)? = null,
-    private val onActionButton: ((String) -> Unit)? = null,
-    private val onSaveMeal: (() -> Unit)? = null
+    private val onActionButton: ((String) -> Unit)? = null
 ) : ListAdapter<ChatMessage, RecyclerView.ViewHolder>(ChatDiffCallback()) {
 
     companion object {
@@ -36,9 +29,9 @@ class ChatAdapter(
         private const val TYPE_BOT_LOADING = 3
         private const val TYPE_BOT_FOOD_CARD = 4
         private const val TYPE_BOT_MEDICAL_CARD = 5
-        private const val TYPE_BOT_ACTION_BUTTONS = 6
-        private const val TYPE_BOT_DOSE_RESULT = 7
-        private const val TYPE_BOT_SAVED = 8
+        private const val TYPE_BOT_DOSE_RESULT = 6
+        private const val TYPE_BOT_SAVED = 7
+        private const val TYPE_BOT_SUMMARY = 8
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -49,174 +42,139 @@ class ChatAdapter(
             is ChatMessage.BotLoading -> TYPE_BOT_LOADING
             is ChatMessage.BotFoodCard -> TYPE_BOT_FOOD_CARD
             is ChatMessage.BotMedicalCard -> TYPE_BOT_MEDICAL_CARD
-            is ChatMessage.BotActionButtons -> TYPE_BOT_ACTION_BUTTONS
             is ChatMessage.BotDoseResult -> TYPE_BOT_DOSE_RESULT
             is ChatMessage.BotSaved -> TYPE_BOT_SAVED
+            is ChatMessage.BotSummaryCard -> TYPE_BOT_SUMMARY
+            // BotActionButtons no longer used as inline cards — handled by sticky area
+            is ChatMessage.BotActionButtons -> TYPE_BOT_TEXT
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_USER_TEXT -> UserTextViewHolder(inflater.inflate(R.layout.item_chat_user_text, parent, false))
-            TYPE_USER_IMAGE -> UserImageViewHolder(inflater.inflate(R.layout.item_chat_user_image, parent, false))
-            TYPE_BOT_LOADING -> BotLoadingViewHolder(inflater.inflate(R.layout.item_chat_loading, parent, false))
-            TYPE_BOT_FOOD_CARD -> BotFoodCardViewHolder(inflater.inflate(R.layout.item_chat_food_card, parent, false))
-            TYPE_BOT_MEDICAL_CARD -> BotMedicalCardViewHolder(inflater.inflate(R.layout.item_chat_medical_card, parent, false))
-            TYPE_BOT_ACTION_BUTTONS -> BotActionButtonsViewHolder(inflater.inflate(R.layout.item_chat_buttons, parent, false))
-            TYPE_BOT_DOSE_RESULT -> BotDoseResultViewHolder(inflater.inflate(R.layout.item_chat_dose_result, parent, false))
-            TYPE_BOT_SAVED -> BotTextViewHolder(inflater.inflate(R.layout.item_chat_bot_text, parent, false)) // reuse bot text layout
-            else -> BotTextViewHolder(inflater.inflate(R.layout.item_chat_bot_text, parent, false))
+            TYPE_USER_TEXT -> UserTextVH(inflater.inflate(R.layout.item_chat_user_text, parent, false))
+            TYPE_USER_IMAGE -> UserImageVH(inflater.inflate(R.layout.item_chat_user_image, parent, false))
+            TYPE_BOT_LOADING -> BotLoadingVH(inflater.inflate(R.layout.item_chat_loading, parent, false))
+            TYPE_BOT_FOOD_CARD -> BotFoodCardVH(inflater.inflate(R.layout.item_chat_food_card, parent, false))
+            TYPE_BOT_MEDICAL_CARD -> BotMedicalCardVH(inflater.inflate(R.layout.item_chat_medical_card, parent, false))
+            TYPE_BOT_DOSE_RESULT -> BotDoseResultVH(inflater.inflate(R.layout.item_chat_dose_result, parent, false))
+            TYPE_BOT_SUMMARY -> BotSummaryCardVH(inflater.inflate(R.layout.item_chat_summary_card, parent, false))
+            else -> BotTextVH(inflater.inflate(R.layout.item_chat_bot_text, parent, false))
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (val msg = getItem(position)) {
-            is ChatMessage.BotText -> (holder as BotTextViewHolder).bind(msg.text)
-            is ChatMessage.UserText -> (holder as UserTextViewHolder).bind(msg)
-            is ChatMessage.UserImage -> (holder as UserImageViewHolder).bind(msg)
-            is ChatMessage.BotLoading -> (holder as BotLoadingViewHolder).bind(msg)
-            is ChatMessage.BotFoodCard -> (holder as BotFoodCardViewHolder).bind(msg)
-            is ChatMessage.BotMedicalCard -> (holder as BotMedicalCardViewHolder).bind(msg)
-            is ChatMessage.BotActionButtons -> (holder as BotActionButtonsViewHolder).bind(msg)
-            is ChatMessage.BotDoseResult -> (holder as BotDoseResultViewHolder).bind(msg)
-            is ChatMessage.BotSaved -> (holder as BotTextViewHolder).bind(msg.text)
+            is ChatMessage.BotText -> (holder as BotTextVH).bind(msg.text)
+            is ChatMessage.UserText -> (holder as UserTextVH).bind(msg.text)
+            is ChatMessage.UserImage -> (holder as UserImageVH).bind(msg.imagePath)
+            is ChatMessage.BotLoading -> (holder as BotLoadingVH).bind(msg.text)
+            is ChatMessage.BotFoodCard -> (holder as BotFoodCardVH).bind(msg)
+            is ChatMessage.BotMedicalCard -> (holder as BotMedicalCardVH).bind(msg)
+            is ChatMessage.BotDoseResult -> (holder as BotDoseResultVH).bind(msg)
+            is ChatMessage.BotSummaryCard -> (holder as BotSummaryCardVH).bind(msg)
+            is ChatMessage.BotSaved -> (holder as BotTextVH).bind(msg.text)
+            is ChatMessage.BotActionButtons -> {
+                // Legacy fallback — just show empty text. Buttons are in sticky area now.
+                (holder as BotTextVH).bind("")
+            }
         }
     }
 
     // --- ViewHolders ---
 
-    inner class BotTextViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val messageText: TextView = view.findViewById(R.id.tv_bot_message)
-        fun bind(text: String) {
-            messageText.text = text
+    inner class BotTextVH(view: View) : RecyclerView.ViewHolder(view) {
+        private val tv: TextView = view.findViewById(R.id.tv_bot_message)
+        fun bind(text: String) { tv.text = text }
+    }
+
+    inner class UserTextVH(view: View) : RecyclerView.ViewHolder(view) {
+        private val tv: TextView = view.findViewById(R.id.tv_user_message)
+        fun bind(text: String) { tv.text = text }
+    }
+
+    inner class UserImageVH(view: View) : RecyclerView.ViewHolder(view) {
+        private val iv: ImageView = view.findViewById(R.id.iv_user_image)
+        fun bind(imagePath: String) {
+            Glide.with(iv.context).load(File(imagePath)).centerCrop().into(iv)
         }
     }
 
-    inner class UserTextViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val messageText: TextView = view.findViewById(R.id.tv_user_message)
-        fun bind(msg: ChatMessage.UserText) {
-            messageText.text = msg.text
-        }
+    inner class BotLoadingVH(view: View) : RecyclerView.ViewHolder(view) {
+        private val tv: TextView = view.findViewById(R.id.tv_loading_text)
+        fun bind(text: String) { tv.text = text }
     }
 
-    inner class UserImageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val imageView: ImageView = view.findViewById(R.id.iv_user_image)
-        fun bind(msg: ChatMessage.UserImage) {
-            Glide.with(imageView.context)
-                .load(File(msg.imagePath))
-                .centerCrop()
-                .into(imageView)
-        }
-    }
+    inner class BotFoodCardVH(view: View) : RecyclerView.ViewHolder(view) {
+        private val container: LinearLayout = view.findViewById(R.id.layout_food_items)
+        private val totalText: TextView = view.findViewById(R.id.tv_total_carbs)
+        // No inline buttons — actions are in the sticky area
 
-    inner class BotLoadingViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val loadingText: TextView = view.findViewById(R.id.tv_loading_text)
-        fun bind(msg: ChatMessage.BotLoading) {
-            loadingText.text = msg.text
-        }
-    }
-
-    inner class BotFoodCardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val foodItemsLayout: LinearLayout = view.findViewById(R.id.layout_food_items)
-        private val totalCarbsText: TextView = view.findViewById(R.id.tv_total_carbs)
         fun bind(msg: ChatMessage.BotFoodCard) {
-            foodItemsLayout.removeAllViews()
+            // Cards are display-only, buttons are in sticky area
+
+            container.removeAllViews()
             val ctx = itemView.context
 
             msg.foodItems.forEachIndexed { index, item ->
-                val row = createFoodItemRow(ctx, item, index == msg.foodItems.lastIndex)
-                foodItemsLayout.addView(row)
+                val row = buildFoodRow(ctx, item, index == msg.foodItems.lastIndex)
+                container.addView(row)
             }
-
-            totalCarbsText.text = String.format("Total: %.1f g carbs", msg.totalCarbs)
+            totalText.text = String.format("Total: %.0fg carbs", msg.totalCarbs)
         }
 
-        private fun createFoodItemRow(ctx: android.content.Context, item: FoodItem, isLast: Boolean): View {
+        private fun buildFoodRow(ctx: android.content.Context, item: FoodItem, isLast: Boolean): View {
             val container = LinearLayout(ctx).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-            }
-
-            val row = LinearLayout(ctx).apply {
                 orientation = LinearLayout.HORIZONTAL
+                setPadding(0, 8, 0, 8)
                 layoutParams = LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
-                setPadding(0, 6, 0, 6)
-                gravity = android.view.Gravity.CENTER_VERTICAL
             }
-
-            val nameStr = item.nameHebrew ?: item.name
-            val quantityStr = if (item.quantity != null && item.quantity > 0f) {
-                // simple float formatting
-                val q = if (item.quantity % 1.0 == 0.0) item.quantity.toInt().toString() else item.quantity.toString()
-                " ($q ${item.quantityUnit ?: ""})"
-            } else ""
-
-            val displayName = nameStr + quantityStr
-            val carbs = item.carbsGrams ?: 0f
-            val weight = item.weightGrams?.toInt()
-            val hasMissing = carbs == 0f
 
             val nameView = TextView(ctx).apply {
+                text = item.name
+                textSize = 14f
+                setTextColor(ContextCompat.getColor(ctx, R.color.text_primary))
                 layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-                text = if (hasMissing) "⚠️ $displayName" else displayName
-                textSize = 15f
-                setTypeface(null, android.graphics.Typeface.BOLD)
-                setTextColor(ContextCompat.getColor(ctx, if (hasMissing) R.color.error else R.color.text_primary))
             }
-            row.addView(nameView)
+            container.addView(nameView)
 
-            if (weight != null && weight > 0) {
-                val weightView = TextView(ctx).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                    text = "${weight}g"
-                    textSize = 13f
-                    setTextColor(ContextCompat.getColor(ctx, R.color.text_secondary))
-                    setPadding(16, 0, 16, 0)
-                }
-                row.addView(weightView)
-            }
-
+            val carbs = item.carbsGrams ?: 0f
+            val hasMissing = carbs == 0f
             val carbsView = TextView(ctx).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                )
-                text = if (hasMissing) "? carbs" else String.format("%.1f g carbs", carbs)
+                text = if (hasMissing) "? carbs" else String.format("%.1fg", carbs)
                 textSize = 14f
                 setTextColor(ContextCompat.getColor(ctx, if (hasMissing) R.color.error else R.color.primary))
                 setTypeface(null, android.graphics.Typeface.BOLD)
             }
-            row.addView(carbsView)
+            container.addView(carbsView)
 
-            container.addView(row)
-
-            if (!isLast) {
-                val divider = View(ctx).apply {
-                    layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
-                    setBackgroundColor(ContextCompat.getColor(ctx, R.color.divider_light))
+            val wrapper = LinearLayout(ctx).apply {
+                orientation = LinearLayout.VERTICAL
+                addView(container)
+                if (!isLast) {
+                    addView(View(ctx).apply {
+                        layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1)
+                        setBackgroundColor(ContextCompat.getColor(ctx, R.color.divider_light))
+                    })
                 }
-                container.addView(divider)
             }
-
-            return container
+            return wrapper
         }
     }
 
-    inner class BotMedicalCardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    inner class BotMedicalCardVH(view: View) : RecyclerView.ViewHolder(view) {
         private val icrValue: TextView = view.findViewById(R.id.tv_icr_value)
         private val isfValue: TextView = view.findViewById(R.id.tv_isf_value)
         private val targetValue: TextView = view.findViewById(R.id.tv_target_value)
+        // No inline buttons — actions are in the sticky area
+
+
         fun bind(msg: ChatMessage.BotMedicalCard) {
+
             icrValue.text = String.format("1:%.0f g/u", msg.icr)
             isfValue.text = String.format("%.0f", msg.isf)
             val units = msg.glucoseUnits ?: "mg/dL"
@@ -224,26 +182,7 @@ class ChatAdapter(
         }
     }
 
-    inner class BotActionButtonsViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        private val chipGroup: ChipGroup = view.findViewById(R.id.chip_group_actions)
-
-        fun bind(msg: ChatMessage.BotActionButtons) {
-            chipGroup.removeAllViews()
-            val ctx = itemView.context
-
-            msg.buttons.forEach { button ->
-                val chip = Chip(ctx).apply {
-                    text = button.label
-                    isClickable = true
-                    isCheckable = false
-                    setOnClickListener { onActionButton?.invoke(button.actionId) }
-                }
-                chipGroup.addView(chip)
-            }
-        }
-    }
-
-    inner class BotDoseResultViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    inner class BotDoseResultVH(view: View) : RecyclerView.ViewHolder(view) {
         private val carbDose: TextView = view.findViewById(R.id.tv_dose_carb)
         private val correctionLayout: View = view.findViewById(R.id.layout_dose_correction)
         private val correctionDose: TextView = view.findViewById(R.id.tv_dose_correction)
@@ -260,9 +199,7 @@ class ChatAdapter(
         fun bind(msg: ChatMessage.BotDoseResult) {
             val r = msg.doseResult
 
-            // Reset visibility to avoid recycled view issues
-            correctionLayout.visibility = View.GONE
-            sickLayout.visibility = View.GONE
+            // Reset all optional rows
             correctionLayout.visibility = View.GONE
             sickLayout.visibility = View.GONE
             stressLayout.visibility = View.GONE
@@ -275,22 +212,18 @@ class ChatAdapter(
                 correctionLayout.visibility = View.VISIBLE
                 correctionDose.text = String.format("%+.2f u", r.correctionDose)
             }
-
             if (r.sickAdj != 0f) {
                 sickLayout.visibility = View.VISIBLE
                 sickDose.text = String.format("+%.2f u", r.sickAdj)
             }
-
             if (r.stressAdj != 0f) {
                 stressLayout.visibility = View.VISIBLE
                 stressDose.text = String.format("+%.2f u", r.stressAdj)
             }
-
             if (r.exerciseAdj != 0f) {
                 exerciseLayout.visibility = View.VISIBLE
                 exerciseDose.text = String.format("-%.2f u", r.exerciseAdj)
             }
-
             if (r.iob != 0f) {
                 iobLayout.visibility = View.VISIBLE
                 iobDose.text = String.format("-%.2f u", r.iob)
@@ -299,15 +232,69 @@ class ChatAdapter(
             finalDose.text = String.format("%.2f u", r.roundedDose)
         }
     }
+
+    inner class BotSummaryCardVH(view: View) : RecyclerView.ViewHolder(view) {
+        private val foodListContainer: LinearLayout = view.findViewById(R.id.ll_summary_food_list)
+        private val totalCarbs: TextView = view.findViewById(R.id.tv_summary_total_carbs)
+        private val medicalText: TextView = view.findViewById(R.id.tv_summary_medical)
+        private val glucoseText: TextView = view.findViewById(R.id.tv_summary_glucose)
+        private val adjustmentsLayout: View = view.findViewById(R.id.ll_summary_adjustments)
+        private val adjustmentsText: TextView = view.findViewById(R.id.tv_summary_adjustments)
+        private val finalDose: TextView = view.findViewById(R.id.tv_summary_final_dose)
+
+        fun bind(msg: ChatMessage.BotSummaryCard) {
+            val ctx = itemView.context
+
+            // Food items
+            foodListContainer.removeAllViews()
+            msg.foodItems.forEach { item ->
+                val tv = TextView(ctx).apply {
+                    val weight = item.weightGrams?.let { "${it.toInt()}g" } ?: "?"
+                    val carbs = item.carbsGrams?.let { String.format("%.1fg carbs", it) } ?: "? carbs"
+                    text = "  • ${item.name}  —  $weight  |  $carbs"
+                    textSize = 12f
+                    setTextColor(ContextCompat.getColor(ctx, R.color.text_secondary))
+                    setPadding(0, 2, 0, 2)
+                }
+                foodListContainer.addView(tv)
+            }
+            totalCarbs.text = String.format("Total: %.0fg carbs", msg.totalCarbs)
+
+            // Medical settings
+            medicalText.text = "ICR: 1:${msg.icr.toInt()} g/u  •  ISF: ${msg.isf.toInt()}  •  Target: ${msg.targetGlucose} ${msg.glucoseUnits}"
+
+            // Glucose
+            glucoseText.text = if (msg.glucoseLevel != null) {
+                "📊 Glucose: ${msg.glucoseLevel} ${msg.glucoseUnits}"
+            } else {
+                "📊 Glucose: Skipped"
+            }
+
+            // Adjustments
+            val adjustments = mutableListOf<String>()
+            val activityLabel = when (msg.activityLevel) {
+                "light" -> "🏃 Light exercise (-${msg.exercisePct}%)"
+                "intense" -> "🏋️ Intense exercise (-${msg.exercisePct}%)"
+                else -> null
+            }
+            if (activityLabel != null) adjustments.add(activityLabel)
+            if (msg.isSick) adjustments.add("🤒 Sick (+${msg.sickPct}%)")
+            if (msg.isStress) adjustments.add("😫 Stress (+${msg.stressPct}%)")
+
+            if (adjustments.isNotEmpty()) {
+                adjustmentsLayout.visibility = View.VISIBLE
+                adjustmentsText.text = adjustments.joinToString("\n")
+            } else {
+                adjustmentsLayout.visibility = View.GONE
+            }
+
+            // Final dose
+            finalDose.text = String.format("%.1f u", msg.doseResult.roundedDose)
+        }
+    }
 }
 
-// DiffUtil for efficient list updates
 class ChatDiffCallback : DiffUtil.ItemCallback<ChatMessage>() {
-    override fun areItemsTheSame(oldItem: ChatMessage, newItem: ChatMessage): Boolean {
-        return oldItem.id == newItem.id
-    }
-
-    override fun areContentsTheSame(oldItem: ChatMessage, newItem: ChatMessage): Boolean {
-        return oldItem == newItem
-    }
+    override fun areItemsTheSame(oldItem: ChatMessage, newItem: ChatMessage) = oldItem.id == newItem.id
+    override fun areContentsTheSame(oldItem: ChatMessage, newItem: ChatMessage) = oldItem == newItem
 }

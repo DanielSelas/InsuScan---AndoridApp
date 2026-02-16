@@ -42,30 +42,18 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Sticky Actions -->
-        <HorizontalScrollView
-            android:id="@+id/sv_sticky_actions"
+        <!-- Sticky Actions — rows are built programmatically, each centered -->
+        <LinearLayout
+            android:id="@+id/ll_sticky_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:fillViewport="true"
-            android:visibility="gone">
-
-            <LinearLayout
-            android:id="@+id/ll_sticky_actions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="center_horizontal"
-            android:paddingHorizontal="@dimen/spacing_medium"
-            android:paddingVertical="@dimen/spacing_small">
-        </LinearLayout>
-
-        </HorizontalScrollView>
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:gravity="center_horizontal"
+            android:visibility="gone" />
 
         <!-- Input Bar Row -->
         <LinearLayout

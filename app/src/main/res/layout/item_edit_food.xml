@@ -17,7 +17,7 @@
 
     <EditText
         android:id="@+id/et_food_weight"
-        android:layout_width="60dp"
+        android:layout_width="55dp"
         android:layout_height="wrap_content"
         android:hint="g"
         android:inputType="numberDecimal"
@@ -25,15 +25,44 @@
         android:gravity="center"
         android:layout_marginStart="4dp" />
 
-    <EditText
-        android:id="@+id/et_food_carbs"
+    <!-- Confirm weight & calculate carbs — clear text button -->
+    <Button
+        android:id="@+id/btn_confirm_weight"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:text="Calc"
+        android:textSize="12sp"
+        android:textAllCaps="false"
+        android:minWidth="0dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:layout_marginStart="2dp" />
+
+    <!-- Carbs field wrapped with loading indicator -->
+    <FrameLayout
         android:layout_width="60dp"
         android:layout_height="wrap_content"
-        android:hint="Carbs"
-        android:inputType="numberDecimal"
-        android:textSize="14sp"
-        android:gravity="center"
-        android:layout_marginStart="4dp" />
+        android:layout_marginStart="4dp">
+
+        <EditText
+            android:id="@+id/et_food_carbs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Carbs"
+            android:inputType="numberDecimal"
+            android:textSize="14sp"
+            android:gravity="center" />
+
+        <ProgressBar
+            android:id="@+id/pb_carb_loading"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <ImageButton
         android:id="@+id/btn_remove_item"
@@ -42,7 +71,7 @@
         android:src="@android:drawable/ic_delete"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:tint="#FF5252"
-        android:layout_marginStart="8dp"
+        android:layout_marginStart="4dp"
         android:contentDescription="Remove Item" />
 
 </LinearLayout>
