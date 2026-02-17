@@ -17,6 +17,9 @@ class ConversationManager(private val context: Context) {
     var currentState: ChatState = ChatState.AWAITING_IMAGE
         private set
 
+    // Track whether this is the user's first conversation (for welcome-back)
+    private var isReturningUser: Boolean = false
+
     // Clarification context — saves the original text when LLM asks for more info
     private var pendingClarificationContext: String? = null
     private var lastUserText: String = ""
@@ -73,8 +76,18 @@ class ConversationManager(private val context: Context) {
         hasStarted = true
         currentState = ChatState.AWAITING_IMAGE
 
+        // E: Welcome back message for returning users
+        val userName = UserProfileManager.getUserName(context)
+        val greeting = if (isReturningUser && userName != null) {
+            "Welcome back, $userName! 👋 Ready to log another meal?"
+        } else if (userName != null) {
+            "Hey, $userName! 👋 I'm your meal assistant.\nTake a photo or describe your meal to get started."
+        } else {
+            "Hey! 👋 I'm your meal assistant.\nTake a photo or describe your meal to get started."
+        }
+
         callback?.onBotMessage(
-            ChatMessage.BotText(text = "Hey! 👋 I'm your meal assistant.\nTake a photo or describe your meal to get started.")
+            ChatMessage.BotText(text = greeting)
         )
         showAwaitingImageActions()
         callback?.onStateChanged(currentState)
@@ -94,7 +107,7 @@ class ConversationManager(private val context: Context) {
         pendingScanMeal = null
         waitingForScan = false
         callback?.onBotMessage(
-            ChatMessage.BotText(text = "⏳ Analyzing your meal… Let's set up the rest while we wait.")
+            ChatMessage.BotText(text = "⏳ Analyzing your meal…\nIn the meantime, I'll ask a few quick questions to calculate your dose accurately.")
         )
         showMedicalReview()
     }
@@ -159,8 +172,13 @@ class ConversationManager(private val context: Context) {
         val totalCarbs = items.sumOf { (it.carbsGrams ?: 0f).toDouble() }.toFloat()
         currentState = ChatState.REVIEWING_FOOD
 
+        // F: Section divider before food review
         callback?.onBotMessage(
-            ChatMessage.BotText(text = "Here's what I found:")
+            ChatMessage.BotText(text = "── 🍽️ Meal Review ──")
+        )
+        // 3: Alert before food data appears
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "✅ Meal analysis complete! Here's what I found:")
         )
         callback?.onBotMessage(
             ChatMessage.BotFoodCard(foodItems = items, totalCarbs = totalCarbs)
@@ -272,6 +290,13 @@ class ConversationManager(private val context: Context) {
         }
 
         currentState = ChatState.REVIEWING_MEDICAL
+        // A: Step progress indicator
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "📋 Step 1/4 — Medical Settings")
+        )
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "Let's verify your medical settings are up to date.")
+        )
         callback?.onBotMessage(
             ChatMessage.BotMedicalCard(icr = icr, isf = isf, targetGlucose = targetGlucose, glucoseUnits = glucoseUnits)
         )
@@ -346,8 +371,12 @@ class ConversationManager(private val context: Context) {
 
     private fun askGlucose() {
         currentState = ChatState.ASKING_GLUCOSE
+        // A: Step progress indicator + B: Friendlier phrasing
         callback?.onBotMessage(
-            ChatMessage.BotText(text = "What's your current glucose level? (type a number, or skip)")
+            ChatMessage.BotText(text = "📋 Step 2/4 — Glucose Level")
+        )
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "🩸 What's your current blood glucose level?\nType a number or tap Skip if you haven't measured.")
         )
         setActions(listOf(
             ActionButton("skip_glucose", "Skip")
@@ -373,7 +402,13 @@ class ConversationManager(private val context: Context) {
 
     private fun askActivity() {
         currentState = ChatState.ASKING_ACTIVITY
-        callback?.onBotMessage(ChatMessage.BotText(text = "Any exercise to account for?"))
+        // A: Step progress indicator + B: Friendlier phrasing
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "📋 Step 3/4 — Activity Level")
+        )
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "🏃 Have you done any exercise recently?\nThis helps adjust your insulin dose.")
+        )
         showActivityOptions()
         callback?.onStateChanged(currentState)
     }
@@ -416,7 +451,13 @@ class ConversationManager(private val context: Context) {
 
     private fun askAdjustments() {
         currentState = ChatState.ASKING_ADJUSTMENTS
-        callback?.onBotMessage(ChatMessage.BotText(text = "Are you feeling sick or stressed?"))
+        // A: Step progress indicator + B: Friendlier phrasing
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "📋 Step 4/4 — Health Adjustments")
+        )
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "🤒 Are you feeling sick or stressed today?\nThese factors can affect your insulin needs.")
+        )
         showAdjustmentOptions()
         callback?.onStateChanged(currentState)
     }
@@ -513,6 +554,11 @@ class ConversationManager(private val context: Context) {
         currentState = ChatState.CALCULATING
         callback?.onStateChanged(currentState)
 
+        // C: Confirmation summary before calculation
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "📊 All set! Calculating your dose based on your inputs…")
+        )
+
         val meal = MealSessionManager.currentMeal
         val totalCarbs = meal?.foodItems?.sumOf { (it.carbsGrams ?: 0f).toDouble() }?.toFloat() ?: meal?.carbs ?: 0f
         val gramsPerUnit = UserProfileManager.getGramsPerUnit(context) ?: 10f
@@ -531,17 +577,16 @@ class ConversationManager(private val context: Context) {
         lastDoseResult = result
         currentState = ChatState.SHOWING_RESULT
 
+        // F: Section divider before results
+        callback?.onBotMessage(
+            ChatMessage.BotText(text = "── 📊 Results ──")
+        )
         // Show the dose breakdown card
-        callback?.onBotMessage(ChatMessage.BotText(text = "Here's your dose:"))
+        callback?.onBotMessage(ChatMessage.BotText(text = "Here's your recommended dose:"))
         callback?.onBotMessage(ChatMessage.BotDoseResult(doseResult = result))
 
         // Show detailed summary card
         showSummaryCard(result, totalCarbs)
-
-        // Show multi-select hint below the summary
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "💡 You can toggle multiple adjustments together — they stack.")
-        )
 
         showResultActions()
         callback?.onStateChanged(currentState)
@@ -719,6 +764,7 @@ class ConversationManager(private val context: Context) {
         collectedSickMode = false
         collectedStressMode = false
         lastDoseResult = null
+        isReturningUser = true  // E: Mark as returning user for welcome back
         startConversation()
     }
 
