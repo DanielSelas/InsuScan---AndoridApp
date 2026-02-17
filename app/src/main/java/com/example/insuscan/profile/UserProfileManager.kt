@@ -451,6 +451,7 @@ object UserProfileManager {
         user.targetGlucose?.let { saveTargetGlucose(context, it) }
         user.diabetesType?.let { saveDiabetesType(context, it) }
         user.insulinType?.let { saveInsulinType(context, it) }
+        user.activeInsulinTime?.let { saveActiveInsulinTime(context, it.toFloat()) }
 
         // Syringe settings
         user.syringeType?.let { saveSyringeSize(context, it) }
