@@ -17,9 +17,11 @@ import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.FileLogger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.example.insuscan.network.dto.ChatParseResponseDto
+import java.util.concurrent.ConcurrentLinkedQueue
 
 // Holds chat messages and drives the conversation via ConversationManager.
 // Single source of truth for the message list + sticky buttons.
@@ -63,10 +65,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userRepository = com.example.insuscan.network.repository.UserRepositoryImpl()
 
+    // D: Typing indicator queue — bot messages are enqueued and shown with a brief delay
+    private val botMessageQueue = ConcurrentLinkedQueue<ChatMessage>()
+    private var isProcessingQueue = false
+    private val TYPING_DELAY_MS = 400L
+
     init {
         conversationManager.callback = object : ConversationManager.Callback {
             override fun onBotMessage(message: ChatMessage) {
-                addMessage(message)
+                enqueueBotMessage(message)
             }
 // ... (rest of init callback remains similar, but removing old edit event)
             override fun onStateChanged(newState: ChatState) {
@@ -490,6 +497,36 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // -- Helpers --
+
+    // D: Enqueue bot messages with typing indicator
+    private fun enqueueBotMessage(message: ChatMessage) {
+        botMessageQueue.add(message)
+        if (!isProcessingQueue) {
+            isProcessingQueue = true
+            processBotMessageQueue()
+        }
+    }
+
+    private fun processBotMessageQueue() {
+        viewModelScope.launch {
+            while (botMessageQueue.isNotEmpty()) {
+                val message = botMessageQueue.poll() ?: break
+
+                // Only show typing indicator for text messages, not cards/loading
+                val shouldShowTyping = message is ChatMessage.BotText
+
+                if (shouldShowTyping) {
+                    val typingMsg = ChatMessage.BotLoading(text = "⋯")
+                    addMessage(typingMsg)
+                    delay(TYPING_DELAY_MS)
+                    removeMessage(typingMsg.id)
+                }
+
+                addMessage(message)
+            }
+            isProcessingQueue = false
+        }
+    }
 
     private fun addMessage(message: ChatMessage) {
         val current = _messages.value.orEmpty().toMutableList()
