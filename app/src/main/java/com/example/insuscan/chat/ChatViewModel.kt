@@ -109,6 +109,33 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun updateMedicalSettings(icr: Double?, isf: Double?, target: Int?) {
         conversationManager.onMedicalParamsUpdated(icr, isf, target)
+
+        // Sync updated medical params to server DB
+        viewModelScope.launch {
+            try {
+                val email = AuthManager.getUserEmail()
+                    ?: UserProfileManager.getUserEmail(getApplication())
+                if (email != null) {
+                    val icrString = icr?.let { "1:${it.toInt()}" }
+                    val dto = com.example.insuscan.network.dto.UserDto(
+                        userId = null, username = null, role = null, avatar = null,
+                        insulinCarbRatio = icrString,
+                        correctionFactor = isf?.toFloat(),
+                        targetGlucose = target,
+                        syringeType = null, customSyringeLength = null,
+                        age = null, gender = null, pregnant = null, dueDate = null,
+                        diabetesType = null, insulinType = null, activeInsulinTime = null,
+                        doseRounding = null, glucoseUnits = null,
+                        sickDayAdjustment = null, stressAdjustment = null,
+                        lightExerciseAdjustment = null, intenseExerciseAdjustment = null,
+                        createdTimestamp = null, updatedTimestamp = null
+                    )
+                    userRepository.updateUser(email, dto)
+                }
+            } catch (e: Exception) {
+                FileLogger.log("CHAT_VM", "Medical sync error: ${e.message}")
+            }
+        }
     }
 
     // -- Image handling --
