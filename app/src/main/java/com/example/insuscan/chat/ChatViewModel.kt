@@ -147,7 +147,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     // -- Image handling --
 
-    fun onImageReceived(imagePath: String) {
+    fun onImageReceived(imagePath: String, referenceObjectType: String? = null) {
         addMessage(ChatMessage.UserImage(imagePath = imagePath))
         val loadingMsg = ChatMessage.BotLoading(text = "Analyzing your meal…")
         addMessage(loadingMsg)
@@ -168,7 +168,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     ?: UserProfileManager.getUserEmail(getApplication())
                     ?: "unknown"
 
-                val result = withContext(Dispatchers.IO) { scanRepository.scanImage(bitmap, email) }
+                val result = withContext(Dispatchers.IO) { scanRepository.scanImage(bitmap, email, referenceObjectType = referenceObjectType) }
                 removeMessage(loadingMsg.id)
 
                 result.onSuccess { mealDto ->

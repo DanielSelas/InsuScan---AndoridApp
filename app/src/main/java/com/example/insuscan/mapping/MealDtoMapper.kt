@@ -26,6 +26,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             plateDepthCm = from.plateDepthCm,
             analysisConfidence = from.analysisConfidence,
             referenceObjectDetected = from.referenceDetected,
+            referenceObjectType = from.referenceObjectType,
 
             // food items (sanitize "Item with X" names if breakdown exists)
             foodItems = from.foodItems?.map { FoodItemDtoMapper.map(it) }?.let { items ->
@@ -90,6 +91,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             plateDepthCm = meal.plateDepthCm,
             analysisConfidence = meal.analysisConfidence,
             referenceDetected = meal.referenceObjectDetected,
+            referenceObjectType = meal.referenceObjectType,
 
             // fixed: complete insulin calculation with all fields
             insulinCalculation = InsulinCalculationDto(

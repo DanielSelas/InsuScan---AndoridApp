@@ -324,4 +324,12 @@
     <string name="chat_btn_sick">יום מחלה</string>
     <string name="chat_btn_continue">המשך</string>
 
+    <!-- ==================== Reference Object Selection ==================== -->
+    <string name="ref_dialog_title">משתמש באובייקט ייחוס?</string>
+    <string name="ref_option_insulin_syringe">מזרק אינסולין</string>
+    <string name="ref_option_syringe_knife">מזרק / סכין</string>
+    <string name="ref_option_card">כרטיס (אשראי / ת.ז.)</string>
+    <string name="ref_option_none">ללא אובייקט ייחוס</string>
+    <string name="history_label_reference">אובייקט ייחוס</string>
+
 </resources>
