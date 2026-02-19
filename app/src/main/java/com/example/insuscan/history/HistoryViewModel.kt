@@ -230,12 +230,11 @@ sealed class HistoryUiModel {
                 return "${(conf * 100).toInt()}%"
             }
 
-        // reference object (syringe) found or not
-        val referenceDetectedText: String?
-            get() = when (meal.referenceObjectDetected) {
-                true -> "✓ Reference detected"
-                false -> "✗ No reference object"
-                null -> null
+        // reference object type selected by user (raw server value)
+        val referenceObjectTypeRaw: String?
+            get() {
+                val type = meal.referenceObjectType
+                return if (!type.isNullOrBlank() && type != "NONE") type else null
             }
 
         // show recommended vs actual if they differ

@@ -67,6 +67,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     // State: are we showing the captured image or live camera?
     private var isShowingCapturedImage = false
 
+    // Selected reference object type (chosen before capture)
+    private var selectedReferenceType: String? = null
+
     // Camera
     private lateinit var cameraManager: CameraManager
     private var isImageQualityOk = false
@@ -327,15 +330,15 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
                 if (result != null) {
                     if (result.isPlateFound) {
-                        if (result.isReferenceObjectFound) {
-                            // Perfect scenario
-                            onCaptureClicked()
-                        } else {
-                            // Plate found, but Ref Object missing -> Show Dialog
-                            showMissingPenDialog()
+                        // Show reference dialog before capture
+                        showReferenceDialogThenAction {
+                            if (result.isReferenceObjectFound) {
+                                onCaptureClicked()
+                            } else {
+                                showMissingPenDialog()
+                            }
                         }
                     } else {
-                        // Plate not found -> Strict block (User needs to frame food)
                         ToastHelper.showShort(requireContext(), "Please center the food plate first")
                     }
                 } else {
@@ -344,7 +347,17 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
         }
         galleryButton.setOnClickListener {
-            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            // Show reference dialog before gallery pick
+            showReferenceDialogThenAction {
+                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }
+        }
+    }
+
+    private fun showReferenceDialogThenAction(action: () -> Unit) {
+        com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
+            selectedReferenceType = selectedType.serverValue
+            action()
         }
     }
 
@@ -623,12 +636,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         val volumeCm3 = (portionResult as? PortionResult.Success)?.volumeCm3
         val confidence = (portionResult as? PortionResult.Success)?.confidence
 
-        // Send to server
-        val referenceType = UserProfileManager.getReferenceObjectType(requireContext())
-        
+        // Use the reference type selected before capture
+        val referenceType = selectedReferenceType
+
         viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                // Pass volume to server for density-based calculation
                 scanRepository.scanImage(bitmap, email, estimatedWeight, volumeCm3, confidence, referenceType)
             }
 
@@ -810,7 +822,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Send to server
             lifecycleScope.launch {
                 try {
-                    val result = scanRepository.scanImage(bitmap, email, null, null)
+                    val result = scanRepository.scanImage(bitmap, email, null, null, null, selectedReferenceType)
 
                     withContext(Dispatchers.Main) {
                         result.onSuccess { mealDto ->

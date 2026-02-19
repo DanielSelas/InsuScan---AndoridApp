@@ -34,6 +34,9 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     // Keep references to open sheets for item injection
     private var openEditMealSheet: EditMealBottomSheet? = null
 
+    // Selected reference object type (chosen before capture)
+    private var selectedReferenceType: String? = null
+
     private val cameraLauncher = registerForActivityResult(
         ActivityResultContracts.TakePicturePreview()
     ) { bitmap: Bitmap? ->
@@ -42,7 +45,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             file.outputStream().use { out ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
             }
-            viewModel.onImageReceived(file.absolutePath)
+            viewModel.onImageReceived(file.absolutePath, selectedReferenceType)
         }
     }
 
@@ -100,7 +103,12 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                 inputField.text.clear()
             }
         }
-        cameraButton.setOnClickListener { cameraLauncher.launch(null) }
+        cameraButton.setOnClickListener {
+            com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
+                selectedReferenceType = selectedType.serverValue
+                cameraLauncher.launch(null)
+            }
+        }
     }
 
     private fun observeMessages() {
@@ -195,8 +203,13 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private fun observeEvents() {
         viewModel.imagePickEvent.observe(viewLifecycleOwner) { event ->
             when (event) {
-                "camera" -> cameraLauncher.launch(null)
-                "gallery" -> galleryLauncher.launch("image/*")
+                "camera", "gallery" -> {
+                    com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
+                        selectedReferenceType = selectedType.serverValue
+                        if (event == "camera") cameraLauncher.launch(null)
+                        else galleryLauncher.launch("image/*")
+                    }
+                }
             }
         }
 
@@ -252,7 +265,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             val file = File(requireContext().cacheDir, "chat_gallery_${System.currentTimeMillis()}.jpg")
             file.outputStream().use { out -> inputStream.copyTo(out) }
             inputStream.close()
-            viewModel.onImageReceived(file.absolutePath)
+            viewModel.onImageReceived(file.absolutePath, selectedReferenceType)
         } catch (e: Exception) {
             com.example.insuscan.utils.FileLogger.log("CHAT", "Gallery error: ${e.message}")
         }
