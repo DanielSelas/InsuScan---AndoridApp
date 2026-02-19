@@ -110,6 +110,10 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
 
         private val receiptTotalValue: TextView = itemView.findViewById(R.id.tv_receipt_total)
 
+        // Reference Object
+        private val referenceObjectLayout: LinearLayout = itemView.findViewById(R.id.layout_reference_object)
+        private val referenceObjectTypeText: TextView = itemView.findViewById(R.id.tv_reference_object_type)
+
 
         fun bind(item: HistoryUiModel.MealItem, isExpanded: Boolean) {
             val meal = item.meal
@@ -163,6 +167,13 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
 
                 // Warning Box
                 profileWarningLayout.isVisible = item.hasProfileError
+
+                // Reference Object
+                val refRaw = item.referenceObjectTypeRaw
+                referenceObjectLayout.isVisible = refRaw != null
+                if (refRaw != null) {
+                    referenceObjectTypeText.text = com.example.insuscan.utils.ReferenceObjectHelper.displayLabel(itemView.context, refRaw)
+                }
 
                 // Medical Settings
                 val icr = meal.savedIcr

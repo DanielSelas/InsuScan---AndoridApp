@@ -15,6 +15,7 @@ data class MealDto(
     val plateDepthCm: Float?,
     val analysisConfidence: Float?,
     val referenceDetected: Boolean?,
+    val referenceObjectType: String?,
     val insulinCalculation: InsulinCalculationDto?,
     val profileComplete: Boolean?,
     val missingProfileFields: List<String>?,

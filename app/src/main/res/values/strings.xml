@@ -328,4 +328,12 @@
     <string name="chat_btn_sick">Sick Day</string>
     <string name="chat_btn_continue">Continue</string>
 
+    <!-- ==================== Reference Object Selection ==================== -->
+    <string name="ref_dialog_title">Using a reference object?</string>
+    <string name="ref_option_insulin_syringe">Insulin Syringe</string>
+    <string name="ref_option_syringe_knife">Syringe / Knife</string>
+    <string name="ref_option_card">Card (Credit / ID)</string>
+    <string name="ref_option_none">No Reference Object</string>
+    <string name="history_label_reference">Reference Object</string>
+
 </resources>

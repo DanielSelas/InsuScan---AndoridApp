@@ -261,6 +261,35 @@
 
             </LinearLayout>
 
+            <!-- Reference Object Row -->
+            <LinearLayout
+                android:id="@+id/layout_reference_object"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="@dimen/spacing_medium"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_label_reference"
+                    android:textSize="@dimen/text_caption"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary"
+                    android:letterSpacing="0.05" />
+
+                <TextView
+                    android:id="@+id/tv_reference_object_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/spacing_small"
+                    android:textSize="@dimen/text_body2"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/text_primary"
+                    tools:text="Insulin Syringe" />
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/tv_profile_error"
                 android:layout_width="wrap_content"
