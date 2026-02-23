@@ -21,7 +21,7 @@ class PortionEstimator(private val context: Context) {
     }
 
     private val depthEstimator = DepthEstimator(context)
-    private val referenceDetector = ReferenceObjectDetector(context)
+    internal val referenceDetector = ReferenceObjectDetector(context)
     // Add PlateDetector to get accurate size
     private val plateDetector = PlateDetector()
 
@@ -78,7 +78,7 @@ class PortionEstimator(private val context: Context) {
         depthEstimator.stopSurfaceScan()
     }
 
-    fun estimatePortion(bitmap: Bitmap): PortionResult {
+    fun estimatePortion(bitmap: Bitmap, referenceObjectType: String? = null): PortionResult {
         if (!isInitialized) {
             Log.w(TAG, "PortionEstimator not initialized")
             return PortionResult.Error("System not initialized")
@@ -95,21 +95,31 @@ class PortionEstimator(private val context: Context) {
              Log.d(TAG, "Plate detected at: ${plateBounds.toShortString()}")
         }
 
-        // Determine Detection Mode based on User Profile
-        // "Syringe" or "Pen" -> Strict Mode (Physics-based rejection)
-        // "Other", "Fork", "Knife" -> Flexible Mode (Proximity & Shape)
-        val syringeType = com.example.insuscan.profile.UserProfileManager.getSyringeSize(context).lowercase()
-        val detectionMode = if (syringeType.contains("syringe") || syringeType.contains("pen")) {
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
-        } else {
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+        // Determine Detection Mode from user's explicit pre-capture choice
+        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(referenceObjectType)
+        val detectionMode = when (refType) {
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
+                ReferenceObjectDetector.DetectionMode.STRICT
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE ->
+                ReferenceObjectDetector.DetectionMode.FLEXIBLE
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD ->
+                ReferenceObjectDetector.DetectionMode.CARD
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE, null -> null // skip detection
         }
-        
-        Log.d(TAG, "Using Detection Mode: $detectionMode (Type: $syringeType)")
 
-        // Step 2: Detect reference object (Using Plate location as bias)
-        // "Smart Cutlery": Finds object closest to plate
-        val detectionResult = referenceDetector.detectReferenceObject(bitmap, plateBounds, detectionMode)
+        // Set expected object length from the known reference type dimensions
+        if (refType != null && refType != com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE) {
+            referenceDetector.setExpectedObjectLength(refType.lengthCm)
+        }
+
+        Log.d(TAG, "Using Detection Mode: $detectionMode (RefType: $refType)")
+
+        // Step 2: Detect reference object (skip if user chose NONE)
+        val detectionResult = if (detectionMode != null) {
+            referenceDetector.detectReferenceObject(bitmap, plateBounds, detectionMode)
+        } else {
+            DetectionResult.NotFound("User chose no reference object", "")
+        }
 
         val pixelToCmRatio = when (detectionResult) {
             is DetectionResult.Found -> {
@@ -123,8 +133,8 @@ class PortionEstimator(private val context: Context) {
         }
 
         // Step 3: Detect container type and estimate depth
-        val containerType = depthEstimator.detectContainerType(bitmap)
-        val depthResult = depthEstimator.estimateDepth(bitmap, containerType)
+        val containerType = depthEstimator.detectContainerType(plateResult)
+        val depthResult = depthEstimator.estimateDepth(bitmap, containerType, plateBounds)
 
         // Step 4: Calculate accurate plate dimensions (using now-known ratio)
         val plateDimensions = calculatePlateDimensions(bitmap, plateResult, pixelToCmRatio)

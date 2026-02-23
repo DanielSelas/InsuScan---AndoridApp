@@ -93,11 +93,17 @@ class DepthEstimator(private val context: Context) {
 
 
     // Estimate depth from image
-    // Returns estimated depth in centimeters
-    fun estimateDepth(bitmap: Bitmap, containerType: ContainerType): DepthResult {
-        // For now, return estimated values based on container type
-        // Real ARCore depth will be implemented when running on physical device
+    // Tries ARCore depth sampling first, falls back to container-type heuristics
+    fun estimateDepth(bitmap: Bitmap, containerType: ContainerType, plateBounds: android.graphics.Rect? = null): DepthResult {
+        // Try to get real depth from ARCore session
+        if (isArCoreAvailable && arSession != null && plateBounds != null) {
+            val arDepth = estimateDepthFromArSession(plateBounds, bitmap.width, bitmap.height)
+            if (arDepth != null) {
+                return arDepth
+            }
+        }
 
+        // Fallback: return estimated values based on container type
         val estimatedDepth = when (containerType) {
             ContainerType.FLAT_PLATE -> DEFAULT_PLATE_DEPTH
             ContainerType.REGULAR_BOWL -> DEFAULT_BOWL_DEPTH
@@ -105,30 +111,120 @@ class DepthEstimator(private val context: Context) {
             ContainerType.UNKNOWN -> DEFAULT_PLATE_DEPTH
         }
 
-        Log.d(TAG, "Estimated depth for $containerType: $estimatedDepth cm")
+        Log.d(TAG, "Estimated depth for $containerType: $estimatedDepth cm (fallback)")
 
         return DepthResult(
             depthCm = estimatedDepth,
-            confidence = if (isArCoreAvailable) 0.8f else 0.5f,
-            isFromArCore = false, // Will be true when ARCore depth is working
+            confidence = if (isArCoreAvailable) 0.4f else 0.3f,
+            isFromArCore = false,
             containerType = containerType
         )
+    }
+
+    /**
+     * Samples ARCore depth image at plate center and 4 rim points.
+     * depth = average(rim depths) - center depth → gives food pile height.
+     */
+    private fun estimateDepthFromArSession(
+        plateBounds: android.graphics.Rect,
+        imageWidth: Int,
+        imageHeight: Int
+    ): DepthResult? {
+        return try {
+            val session = arSession ?: return null
+            val frame = session.update()
+
+            val depthImage = try {
+                frame.acquireDepthImage16Bits()
+            } catch (e: Exception) {
+                Log.w(TAG, "Depth image not available: ${e.message}")
+                return null
+            }
+
+            val depthWidth = depthImage.width
+            val depthHeight = depthImage.height
+
+            // Scale plate bounds from image coords to depth image coords
+            val scaleX = depthWidth.toFloat() / imageWidth.toFloat()
+            val scaleY = depthHeight.toFloat() / imageHeight.toFloat()
+
+            val cx = ((plateBounds.left + plateBounds.right) / 2 * scaleX).toInt().coerceIn(0, depthWidth - 1)
+            val cy = ((plateBounds.top + plateBounds.bottom) / 2 * scaleY).toInt().coerceIn(0, depthHeight - 1)
+
+            // 4 rim points (top, bottom, left, right of plate bbox)
+            val rimPoints = listOf(
+                Pair(cx, (plateBounds.top * scaleY).toInt().coerceIn(0, depthHeight - 1)),  // top
+                Pair(cx, (plateBounds.bottom * scaleY).toInt().coerceIn(0, depthHeight - 1)), // bottom
+                Pair((plateBounds.left * scaleX).toInt().coerceIn(0, depthWidth - 1), cy),   // left
+                Pair((plateBounds.right * scaleX).toInt().coerceIn(0, depthWidth - 1), cy)   // right
+            )
+
+            // Sample depth at center
+            val plane = depthImage.planes[0]
+            val buffer = plane.buffer
+            val rowStride = plane.rowStride
+
+            fun sampleDepthMm(x: Int, y: Int): Int {
+                val offset = y * rowStride + x * 2 // 16-bit depth
+                return if (offset + 1 < buffer.capacity()) {
+                    (buffer.get(offset).toInt() and 0xFF) or ((buffer.get(offset + 1).toInt() and 0xFF) shl 8)
+                } else 0
+            }
+
+            val centerDepthMm = sampleDepthMm(cx, cy)
+            val rimDepthsMm = rimPoints.map { sampleDepthMm(it.first, it.second) }.filter { it > 0 }
+
+            depthImage.close()
+
+            if (centerDepthMm <= 0 || rimDepthsMm.isEmpty()) {
+                Log.w(TAG, "Invalid depth samples (center=$centerDepthMm, rims=${rimDepthsMm.size})")
+                return null
+            }
+
+            val avgRimDepthMm = rimDepthsMm.average()
+            // Rim is farther from camera than center of food pile
+            // So rim depth > center depth → positive height
+            val foodHeightCm = ((avgRimDepthMm - centerDepthMm) / 10.0f).toFloat()
+                .coerceIn(0.5f, 15.0f) // Sanity bounds
+
+            // Determine container type from depth difference
+            val arContainerType = when {
+                foodHeightCm < 1.5f -> ContainerType.FLAT_PLATE
+                foodHeightCm < 4.0f -> ContainerType.REGULAR_BOWL
+                else -> ContainerType.DEEP_BOWL
+            }
+
+            Log.d(TAG, "ARCore depth: center=${centerDepthMm}mm, avgRim=${avgRimDepthMm}mm, height=${foodHeightCm}cm → $arContainerType")
+
+            DepthResult(
+                depthCm = foodHeightCm,
+                confidence = 0.85f,
+                isFromArCore = true,
+                containerType = arContainerType
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "ARCore depth sampling failed: ${e.message}")
+            null
+        }
     }
 
 
     // Detect container type from image (plate vs bowl)
     // Uses simple heuristics - can be improved with ML later
 
-    fun detectContainerType(bitmap: Bitmap): ContainerType {
-        // Basic detection based on image analysis
-        // Real implementation will use edge detection and shape analysis
+    fun detectContainerType(plateResult: PlateDetectionResult): ContainerType {
+        // Use plate bounding box aspect ratio (not full image / photo orientation)
+        val bounds = plateResult.bounds ?: return ContainerType.UNKNOWN
 
-        val aspectRatio = bitmap.width.toFloat() / bitmap.height.toFloat()
+        val plateAspectRatio = bounds.width().toFloat() / bounds.height().toFloat()
 
-        // This is a placeholder - real detection will be more sophisticated
+        // Plate bbox aspect ratio indicates shape as seen from above:
+        // ~1.0 = circular plate (seen straight-on)
+        // > 1.3 = likely a flat plate seen from angle (wider than tall)
+        // < 0.8 = significantly taller than wide → deep bowl seen from side
         return when {
-            aspectRatio > 1.3f -> ContainerType.FLAT_PLATE
-            aspectRatio < 0.8f -> ContainerType.DEEP_BOWL
+            plateAspectRatio > 1.3f -> ContainerType.FLAT_PLATE
+            plateAspectRatio < 0.8f -> ContainerType.DEEP_BOWL
             else -> ContainerType.REGULAR_BOWL
         }
     }
