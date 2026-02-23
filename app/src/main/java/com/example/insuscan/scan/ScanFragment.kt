@@ -116,6 +116,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         
         // Add guide overlay for reference object
         addReferenceObjectOverlay(view)
+
+        // Show reference object selection dialog immediately on screen entry
+        showReferenceDialogThenAction {
+            // Dialog done — user can now capture with the chosen type
+            Log.d(TAG, "Reference type selected on entry: $selectedReferenceType")
+        }
         
         // Initialize Orientation Helper
         orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
@@ -200,22 +206,27 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     // ... (rest of simple methods)
 
-    private fun showMissingPenDialog() {
+    private fun showMissingRefObjectDialog() {
         val isArSupported = portionEstimator?.isArCoreSupported == true
         val arButtonText = if (isArSupported) "Scan Surface (AR)" else "Scan Surface (N/A)"
 
+        // Build message based on selected reference type
+        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+        val objectName = when (refType) {
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD -> "credit card"
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "insulin pen"
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "syringe/knife"
+            else -> "reference object"
+        }
+
         AlertDialog.Builder(requireContext())
             .setTitle("Reference Object Missing")
-            .setMessage("The insulin pen was not detected.\n\nTo ensure accurate results, we can scan the table surface instead.")
+            .setMessage("The $objectName was not detected in the image.\n\nMake sure it is placed next to the plate and clearly visible.\n\nTo ensure accurate results, we can scan the table surface instead.")
             .setPositiveButton(arButtonText) { dialog, _ ->
                 if (isArSupported) {
                     dialog.dismiss()
                     startArScanMode()
                 } else {
-                    // Keep dialog open or dismiss? User said "toast". 
-                    // To show toast, we need to handle the click. The default behavior is dismiss.
-                    // We can just show the toast and let it dismiss, or try to keep it open.
-                    // Simpler: Dismiss and Toast.
                     dialog.dismiss()
                     ToastHelper.showLong(requireContext(), "Your device does not support AR features needed for this mode.")
                 }
@@ -275,12 +286,21 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
             // Update Live Coach Pill (Top Overlay)
             // Prioritize feedback: Light > Focus > Framing
+            // Coach message based on selected reference type
+            val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+            val refObjLabel = when (refType) {
+                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD -> "Place Card 💳"
+                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "Place Pen 🖊️"
+                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "Place Ref Obj 🖊️"
+                else -> "Place Ref Obj"
+            }
+
             val coachMessage = when {
                 !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
                 !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
                 !quality.isSharpnessOk -> "Hold Steady 📷"
                 !quality.isPlateFound -> "Find Plate 🍽️"
-                !quality.isReferenceObjectFound -> "Place Ref Obj on Right 🖊️"
+                isRefObjectExpectedInFrame() && !quality.isReferenceObjectFound -> refObjLabel
                 else -> "Perfect! ✅"
             }
 
@@ -319,24 +339,29 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
+    /** Returns true if the user chose a reference object type that needs live detection */
+    private fun isRefObjectExpectedInFrame(): Boolean {
+        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+        return refType != null &&
+               refType != com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE
+    }
+
     private fun initializeListeners() {
         captureButton.setOnClickListener {
             if (isShowingCapturedImage) {
                 // User wants to retake - go back to camera mode
                 switchToCameraMode()
             } else {
-                // User wants to capture
+                // User wants to capture — dialog already shown on screen entry
                 val result = cameraManager.lastQualityResult
 
                 if (result != null) {
                     if (result.isPlateFound) {
-                        // Show reference dialog before capture
-                        showReferenceDialogThenAction {
-                            if (result.isReferenceObjectFound) {
-                                onCaptureClicked()
-                            } else {
-                                showMissingPenDialog()
-                            }
+                        // If user chose pen/syringe, warn if not found in frame
+                        if (isRefObjectExpectedInFrame() && !result.isReferenceObjectFound) {
+                            showMissingRefObjectDialog()
+                        } else {
+                            onCaptureClicked()
                         }
                     } else {
                         ToastHelper.showShort(requireContext(), "Please center the food plate first")
@@ -347,16 +372,15 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
         }
         galleryButton.setOnClickListener {
-            // Show reference dialog before gallery pick
-            showReferenceDialogThenAction {
-                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-            }
+            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
     }
 
     private fun showReferenceDialogThenAction(action: () -> Unit) {
         com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
             selectedReferenceType = selectedType.serverValue
+            // Sync to camera manager so live preview uses correct detection mode
+            cameraManager.selectedReferenceType = selectedType.serverValue
             action()
         }
     }
@@ -471,8 +495,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 captureButton.isEnabled = false
                 captureButton.alpha = 0.5f
             }
-            // Case 3: Plate Found but No Ref -> Warn (Allow Capture)
-            isPlateFound && !isRefFound -> {
+            // Case 3: Plate Found but No Ref -> Warn only if pen/syringe expected
+            isPlateFound && !isRefFound && isRefObjectExpectedInFrame() -> {
                 isImageQualityOk = true // Allow capture (Logic handled in click listener)
                 
                 val isArSupported = portionEstimator?.isArCoreSupported == true
@@ -627,17 +651,106 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
         showLoading(true, "Analyzing your meal...")
 
+        // Smart reference object pre-check
+        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+        val detectionMode = when (refType) {
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
+                com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE ->
+                com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD ->
+                com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD
+            else -> null
+        }
+
+        if (detectionMode != null) {
+            // Run smart fallback in background
+            viewLifecycleOwner.lifecycleScope.launch {
+                val fallbackResult = withContext(Dispatchers.IO) {
+                    portionEstimator?.referenceDetector?.detectWithFallback(bitmap, null, detectionMode)
+                }
+
+                if (fallbackResult != null && fallbackResult.isAlternative && fallbackResult.result is com.example.insuscan.analysis.DetectionResult.Found) {
+                    // Found a different object than selected! Show dialog
+                    showLoading(false)
+                    showAlternativeRefObjectDialog(
+                        bitmap = bitmap,
+                        imageFile = imageFile,
+                        selectedType = refType!!,
+                        detectedMode = fallbackResult.detectedMode!!
+                    )
+                } else {
+                    // Either found the correct type, or nothing found — proceed normally
+                    proceedWithPortionAnalysis(bitmap, imageFile, selectedReferenceType)
+                }
+            }
+        } else {
+            // No reference object expected (NONE) — proceed directly
+            proceedWithPortionAnalysis(bitmap, imageFile, selectedReferenceType)
+        }
+    }
+
+    /**
+     * Shows a dialog when a different reference object was detected than what the user selected.
+     * Offers to use the detected object instead, or proceed without it.
+     */
+    private fun showAlternativeRefObjectDialog(
+        bitmap: android.graphics.Bitmap,
+        imageFile: File,
+        selectedType: com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType,
+        detectedMode: com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode
+    ) {
+        val selectedName = getString(selectedType.displayNameResId)
+        val detectedName = when (detectedMode) {
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> getString(R.string.ref_option_insulin_syringe)
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> getString(R.string.ref_option_syringe_knife)
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> getString(R.string.ref_option_card)
+        }
+        val detectedServerValue = when (detectedMode) {
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
+        }
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("Different Object Detected")
+            .setMessage("You selected \"$selectedName\" but we detected what looks like \"$detectedName\".\n\nWould you like to use the detected object for more accurate measurements?")
+            .setPositiveButton("Use $detectedName") { dialog, _ ->
+                dialog.dismiss()
+                showLoading(true, "Analyzing with detected reference...")
+                // Override reference type with detected alternative
+                selectedReferenceType = detectedServerValue
+                cameraManager.selectedReferenceType = detectedServerValue
+                proceedWithPortionAnalysis(bitmap, imageFile, detectedServerValue)
+            }
+            .setNegativeButton("Ignore, Capture Anyway") { dialog, _ ->
+                dialog.dismiss()
+                showLoading(true, "Analyzing without reference object...")
+                // Proceed with NONE — no reference object
+                proceedWithPortionAnalysis(bitmap, imageFile, "NONE")
+            }
+            .setNeutralButton("Retake") { dialog, _ ->
+                dialog.dismiss()
+                switchToCameraMode()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    /**
+     * Proceeds with the actual portion analysis and server upload.
+     */
+    private fun proceedWithPortionAnalysis(bitmap: android.graphics.Bitmap, imageFile: File, refType: String?) {
         // Get user email
         val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
 
-        // Local portion analysis (optional - for extra data)
-        val portionResult = portionEstimator?.estimatePortion(bitmap)
+        // Local portion analysis
+        val portionResult = portionEstimator?.estimatePortion(bitmap, refType)
         val estimatedWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
         val volumeCm3 = (portionResult as? PortionResult.Success)?.volumeCm3
         val confidence = (portionResult as? PortionResult.Success)?.confidence
 
-        // Use the reference type selected before capture
-        val referenceType = selectedReferenceType
+        val referenceType = refType
 
         viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {

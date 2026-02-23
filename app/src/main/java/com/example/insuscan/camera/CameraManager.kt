@@ -47,6 +47,9 @@ class CameraManager(private val context: Context) {
     // Store last result for UI actions
     var lastQualityResult: ImageQualityResult? = null
 
+    // Reference type selected from the dialog — set by ScanFragment
+    var selectedReferenceType: String? = null
+
     companion object {
         private const val TAG = "CameraManager"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
@@ -189,34 +192,40 @@ class CameraManager(private val context: Context) {
             // Convert to Bitmap for detectors (heavy operation)
             val bitmap = imageProxy.toBitmap() 
             
-            // 1. Reference Object Detection
-            // Determine Mode from Profile (Pen vs Card vs Other)
-            val syringeType = com.example.insuscan.profile.UserProfileManager.getSyringeSize(context).lowercase()
+            // 1. Reference Object Detection (Smart Fallback)
+            // Determine Mode from *dialog selection* (not profile) for accurate live feedback
+            val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
             
-            val mode = when {
-                syringeType.contains("card") || syringeType.contains("id") -> {
+            val mode = when (refType) {
+                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD ->
                     com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD
-                }
-                syringeType.contains("syringe") || syringeType.contains("pen") -> {
+                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
                     com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
-                }
-                else -> {
+                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE ->
                     com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+                else -> {
+                    // Fallback to profile-based detection if no dialog selection
+                    val syringeType = com.example.insuscan.profile.UserProfileManager.getSyringeSize(context).lowercase()
+                    when {
+                        syringeType.contains("card") || syringeType.contains("id") ->
+                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD
+                        syringeType.contains("syringe") || syringeType.contains("pen") ->
+                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
+                        else ->
+                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+                    }
                 }
             }
+
+            // Use smart fallback: try selected mode first, then all others.
+            // For live preview, ANY known reference object counts as "found",
+            // even if it's a different type. The post-capture dialog handles the mismatch.
+            val fallbackResult = referenceObjectDetector.detectWithFallback(bitmap, null, mode)
+            val isRefFoundNow = fallbackResult.result is com.example.insuscan.analysis.DetectionResult.Found
             
-            // Set expected length if CARD (although logic handles it, good for logging)
-            if (mode == com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD) {
-                // Card detection uses fixed constant inside detector, no need to setExpectedObjectLength
-                // But if user sets custom length for "Other", we would set it here.
-            }
-            
-            val detectionResult = referenceObjectDetector.detectReferenceObject(bitmap, null, mode)
-            val isRefFoundNow = detectionResult is com.example.insuscan.analysis.DetectionResult.Found
-            
-            val debugInfoStr = when (detectionResult) {
-                is com.example.insuscan.analysis.DetectionResult.Found -> detectionResult.debugInfo
-                is com.example.insuscan.analysis.DetectionResult.NotFound -> detectionResult.debugInfo
+            val debugInfoStr = when (fallbackResult.result) {
+                is com.example.insuscan.analysis.DetectionResult.Found -> (fallbackResult.result as com.example.insuscan.analysis.DetectionResult.Found).debugInfo
+                is com.example.insuscan.analysis.DetectionResult.NotFound -> (fallbackResult.result as com.example.insuscan.analysis.DetectionResult.NotFound).debugInfo
             }
             
             // 2. Plate Detection
