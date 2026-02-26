@@ -24,14 +24,16 @@ class ReferenceObjectDetector(private val context: Context) {
         const val CARD_RATIO = CARD_WIDTH_CM / CARD_HEIGHT_CM
 
         // Detection thresholds
-        private const val MIN_CONTOUR_AREA = 500.0 
-        private const val MAX_CONTOUR_AREA = 300000.0
-        private const val MIN_ASPECT_RATIO = 5.0 // For Pens
-        private const val MAX_ASPECT_RATIO = 50.0 
+        private const val MIN_CONTOUR_AREA = 1000.0 
+        private const val MAX_CONTOUR_AREA = 500000.0
+        private const val MIN_ASPECT_RATIO = 5.0 
+        private const val MAX_ASPECT_RATIO = 25.0 
     }
 
     private var isOpenCvInitialized = false
     private var expectedObjectLengthCm = DEFAULT_SYRINGE_LENGTH_CM
+    private var expectedObjectWidthCm = 1.0f
+    private var expectedObjectHeightCm = 1.0f
 
     fun initialize(): Boolean {
         isOpenCvInitialized = OpenCVLoader.initLocal()
@@ -41,9 +43,11 @@ class ReferenceObjectDetector(private val context: Context) {
 
     // ... (initialize same)
 
-    fun setExpectedObjectLength(lengthCm: Float) {
+    fun setExpectedObjectDimensions(lengthCm: Float, widthCm: Float, heightCm: Float) {
         expectedObjectLengthCm = lengthCm
-        Log.d(TAG, "Expected Object length set to $lengthCm cm")
+        expectedObjectWidthCm = widthCm
+        expectedObjectHeightCm = heightCm
+        Log.d(TAG, "Expected Object dimensions set to ${lengthCm}x${widthCm}x${heightCm} cm")
     }
 
     enum class DetectionMode {
@@ -152,6 +156,7 @@ class ReferenceObjectDetector(private val context: Context) {
 
             if (thickness == 0.0) continue
             val aspectRatio = length / thickness
+            Log.d(TAG, "Contour candidate: ratio=$aspectRatio, length=$length, thickness=$thickness")
 
             // --- Mode Specific Logic ---
             var confidence = 0.0f
@@ -207,18 +212,39 @@ class ReferenceObjectDetector(private val context: Context) {
 
             if (!isCandidate) continue
 
+            // --- Size Robustness Check ---
+            // A 16cm syringe or 8.5cm card should not be a tiny speck in the image.
+            // Reject any candidate whose major dimension is less than 15% of image width (for pens)
+            // or 10% of image width (for cards).
+            val imgWidth = originalImage.cols().toDouble()
+            val minLengthThreshold = if (mode == DetectionMode.CARD) imgWidth * 0.10 else imgWidth * 0.15
+            
+            if (length < minLengthThreshold) {
+                Log.d(TAG, "Candidate rejected: too small (${length.toInt()}px < threshold ${minLengthThreshold.toInt()}px)")
+                stats.tooSmall++
+                continue
+            }
+
             // Success! Create candidate
             // Calculate scale based on object type
-            val realWorldLength = if (mode == DetectionMode.CARD) CARD_WIDTH_CM else expectedObjectLengthCm
-            var pixelToCmRatio = (realWorldLength / length).toFloat()
+            // New: Area-based scaling is more robust to perspective and orientation
+            val realWorldArea = expectedObjectLengthCm * expectedObjectWidthCm
+            val pixelArea = area 
+            
+            var pixelToCmRatio = if (pixelArea > 0) {
+                kotlin.math.sqrt(realWorldArea / pixelArea).toFloat()
+            } else {
+                (expectedObjectLengthCm / length).toFloat()
+            }
 
             // For CARD mode: attempt homography for perspective correction
             if (mode == DetectionMode.CARD) {
-                val correctedRatio = computeCardHomographyRatio(contour)
-                if (correctedRatio != null) {
-                    pixelToCmRatio = correctedRatio
-                    confidence = 0.97f // Higher confidence with homography
-                    Log.d(TAG, "Homography corrected ratio: $pixelToCmRatio")
+                val homographyRatio = computeCardHomographyRatio(contour)
+                if (homographyRatio != null) {
+                    // Average the two methods for extra stability
+                    pixelToCmRatio = (pixelToCmRatio + homographyRatio) / 2.0f
+                    confidence = 0.97f 
+                    Log.d(TAG, "Homography combined ratio: $pixelToCmRatio")
                 }
             }
             
@@ -344,10 +370,10 @@ class ReferenceObjectDetector(private val context: Context) {
             )
 
             // Known card dimensions in a pixel-scale destination
-            // Use 856 x 540 pixels to represent 8.56 x 5.40 cm (100px per cm)
+            // Use dynamic expected dimensions at 100px per cm
             val pxPerCm = 100.0
-            val dstW = CARD_WIDTH_CM * pxPerCm
-            val dstH = CARD_HEIGHT_CM * pxPerCm
+            val dstW = expectedObjectLengthCm * pxPerCm
+            val dstH = expectedObjectWidthCm * pxPerCm
 
             val dstPoints = MatOfPoint2f(
                 org.opencv.core.Point(0.0, 0.0),
@@ -378,7 +404,7 @@ class ReferenceObjectDetector(private val context: Context) {
                 return null
             }
 
-            val correctedRatio = (CARD_WIDTH_CM / srcWidthPx).toFloat()
+            val correctedRatio = (expectedObjectLengthCm / srcWidthPx).toFloat()
             Log.d(TAG, "Homography: srcWidthPx=$srcWidthPx → correctedRatio=$correctedRatio cm/px")
 
             perspectiveMatrix.release()
@@ -421,16 +447,19 @@ class ReferenceObjectDetector(private val context: Context) {
 
             // Set correct expected length for the fallback mode
             val originalLength = expectedObjectLengthCm
+            val originalWidth = expectedObjectWidthCm
+            val originalHeight = expectedObjectHeightCm
+            
             when (fallbackMode) {
-                DetectionMode.CARD -> { /* Card uses fixed constant, no need to set */ }
-                DetectionMode.STRICT -> setExpectedObjectLength(DEFAULT_SYRINGE_LENGTH_CM)
-                DetectionMode.FLEXIBLE -> setExpectedObjectLength(DEFAULT_SYRINGE_LENGTH_CM)
+                DetectionMode.CARD -> setExpectedObjectDimensions(8.5f, 5.5f, 0f)
+                DetectionMode.STRICT -> setExpectedObjectDimensions(DEFAULT_SYRINGE_LENGTH_CM, 1.25f, 1.25f)
+                DetectionMode.FLEXIBLE -> setExpectedObjectDimensions(DEFAULT_SYRINGE_LENGTH_CM, 1.5f, 1.5f)
             }
 
             val fallbackResult = detectReferenceObject(bitmap, plateBounds, fallbackMode)
 
-            // Restore original length
-            expectedObjectLengthCm = originalLength
+            // Restore original dimensions
+            setExpectedObjectDimensions(originalLength, originalWidth, originalHeight)
 
             if (fallbackResult is DetectionResult.Found) {
                 Log.d(TAG, "Smart detect: found ALTERNATIVE with mode $fallbackMode (instead of $selectedMode)")

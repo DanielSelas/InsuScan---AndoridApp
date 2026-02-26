@@ -22,11 +22,21 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         estimatedWeight: Float?,
         volumeCm3: Float?,
         confidence: Float?,
-        referenceObjectType: String?
+        referenceObjectType: String?,
+        plateDiameterCm: Float?,
+        plateDepthCm: Float?,
+        // v2 pipeline fields
+        containerType: String?,
+        pixelToCmRatio: Float?,
+        foodRegionsJson: String?
     ): Result<MealDto> {
         return try {
             val part = createImagePart(bitmap)
-            val response = api.analyzeImage(part, email, estimatedWeight, volumeCm3, confidence, referenceObjectType)
+            val response = api.analyzeImage(
+                part, email, estimatedWeight, volumeCm3, confidence, 
+                referenceObjectType, plateDiameterCm, plateDepthCm,
+                containerType, pixelToCmRatio, foodRegionsJson
+            )
 
             when {
                 response.isSuccessful && response.body() != null -> {

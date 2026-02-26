@@ -3,99 +3,83 @@ package com.example.insuscan.analysis
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import com.example.insuscan.ar.ArMeasurement
 
-
-//  Combines depth estimation and reference object detection
-//  to calculate real portion size in grams
-
+/**
+ * Combines depth estimation and reference object detection
+ * to calculate real portion size in grams.
+ *
+ * Scale sources (in priority order):
+ *  1. Reference object (syringe, card, etc.) → pixelToCmRatio
+ *  2. ARCore projection → real plate diameter
+ *  3. Neither → returns Error with warning
+ */
 class PortionEstimator(private val context: Context) {
 
     companion object {
         private const val TAG = "PortionEstimator"
 
-        // Average food density (g/cm³) - Adjusted for Cooked Rice/Carbs (was 0.8)
+        // Average food density (g/cm³) — for cooked rice/carbs
         private const val DEFAULT_FOOD_DENSITY = 0.65f
-
-        // Plate fill percentage - Removed (set to 1.0) in favor of geometric accuracy
-        private const val DEFAULT_FILL_PERCENTAGE = 1.0f
     }
 
     private val depthEstimator = DepthEstimator(context)
     internal val referenceDetector = ReferenceObjectDetector(context)
-    // Add PlateDetector to get accurate size
     private val plateDetector = PlateDetector()
 
     private var isInitialized = false
 
-    // Expose AR status for UI
-    var isArCoreSupported: Boolean = false
-        private set
-
-    // Initialize both estimators
+    // Initialize estimators (ARCore is handled separately by ArCoreManager)
     fun initialize(): InitializationResult {
-        val arCoreStatus = depthEstimator.checkArCoreAvailability()
-        
-        isArCoreSupported = (arCoreStatus == ArCoreStatus.SUPPORTED)
-
-        // Initialize AR Session if supported
-        if (isArCoreSupported) {
-            val arInitialized = depthEstimator.initializeSession()
-            Log.d(TAG, "AR Session initialized: $arInitialized")
-        }
-        
         val openCvReady = referenceDetector.initialize()
-        isInitialized = openCvReady // OpenCV is required, ARCore is optional
+        isInitialized = openCvReady
 
-        Log.d(TAG, "Initialization - ARCore: $arCoreStatus, OpenCV: $openCvReady")
+        Log.d(TAG, "Initialization — OpenCV: $openCvReady")
 
         return InitializationResult(
             isReady = isInitialized,
-            arCoreStatus = arCoreStatus,
             openCvReady = openCvReady
         )
     }
 
-    // Configure Syringe
+    // Configure reference object length
     fun configureSyringe(lengthCm: Float) {
-        referenceDetector.setExpectedObjectLength(lengthCm)
+        referenceDetector.setExpectedObjectDimensions(lengthCm, 1.0f, 1.0f)
     }
 
-    // Refresh settings from profile before scanning
     private fun refreshSettings() {
-        // Get custom length from profile (e.g. 15cm fork)
         val customLength = com.example.insuscan.profile.UserProfileManager.getCustomSyringeLength(context)
         configureSyringe(customLength)
-        configureSyringe(customLength)
     }
 
-    // Start ARCore scanning for surfaces
-    fun startArScan(callback: (Boolean) -> Unit) {
-        depthEstimator.startSurfaceScan(callback)
-    }
-
-    // Stop ARCore scanning
-    fun stopArScan() {
-        depthEstimator.stopSurfaceScan()
-    }
-
-    fun estimatePortion(bitmap: Bitmap, referenceObjectType: String? = null): PortionResult {
+    /**
+     * Main estimation pipeline.
+     *
+     * @param bitmap              The captured food image.
+     * @param referenceObjectType Server value of the selected reference type (e.g. "CARD", "INSULIN_SYRINGE").
+     * @param arMeasurement       Real AR measurement from ArCoreManager (null if AR unavailable).
+     */
+    fun estimatePortion(
+        bitmap: Bitmap,
+        referenceObjectType: String? = null,
+        arMeasurement: ArMeasurement? = null
+    ): PortionResult {
         if (!isInitialized) {
             Log.w(TAG, "PortionEstimator not initialized")
             return PortionResult.Error("System not initialized")
         }
-        
-        // 0. Update settings
+
         refreshSettings()
 
-        // Step 1: Detect Plate (We do this FIRST now, to help find the reference object)
+        // ── Step 1: Detect Plate ──
         val plateResult = plateDetector.detectPlate(bitmap)
         val plateBounds = if (plateResult.isFound) plateResult.bounds else null
-        
+
         if (plateBounds != null) {
-             Log.d(TAG, "Plate detected at: ${plateBounds.toShortString()}")
+            Log.d(TAG, "Plate detected at: ${plateBounds.toShortString()}")
         }
 
-        // Determine Detection Mode from user's explicit pre-capture choice
+        // ── Step 2: Detect Reference Object ──
         val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(referenceObjectType)
         val detectionMode = when (refType) {
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
@@ -104,119 +88,155 @@ class PortionEstimator(private val context: Context) {
                 ReferenceObjectDetector.DetectionMode.FLEXIBLE
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD ->
                 ReferenceObjectDetector.DetectionMode.CARD
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE, null -> null // skip detection
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE, null -> null
         }
 
-        // Set expected object length from the known reference type dimensions
         if (refType != null && refType != com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE) {
-            referenceDetector.setExpectedObjectLength(refType.lengthCm)
+            referenceDetector.setExpectedObjectDimensions(refType.lengthCm, refType.widthCm, refType.heightCm)
         }
 
-        Log.d(TAG, "Using Detection Mode: $detectionMode (RefType: $refType)")
+        Log.d(TAG, "Detection Mode: $detectionMode (RefType: $refType)")
 
-        // Step 2: Detect reference object (skip if user chose NONE)
         val detectionResult = if (detectionMode != null) {
             referenceDetector.detectReferenceObject(bitmap, plateBounds, detectionMode)
         } else {
             DetectionResult.NotFound("User chose no reference object", "")
         }
 
-        val pixelToCmRatio = when (detectionResult) {
-            is DetectionResult.Found -> {
-                Log.d(TAG, "Reference object found with ratio: ${detectionResult.pixelToCmRatio}")
-                detectionResult.pixelToCmRatio
+        // ── Step 3: Determine scale (pixelToCmRatio or AR diameter) ──
+        val hasRefObject = detectionResult is DetectionResult.Found
+        val hasArMeasurement = arMeasurement != null
+
+        val scaleSource: ScaleSource = when {
+            hasRefObject -> {
+                val ratio = (detectionResult as DetectionResult.Found).pixelToCmRatio
+                Log.d(TAG, "Scale from REFERENCE OBJECT: ratio=$ratio")
+                ScaleSource.ReferenceObject(ratio)
             }
-            is DetectionResult.NotFound -> {
-                Log.w(TAG, "Reference object not found: ${detectionResult.reason}")
-                estimateFallbackRatio(bitmap)
+            hasArMeasurement -> {
+                Log.d(TAG, "Scale from AR: plate diameter=${arMeasurement!!.plateDiameterCm}cm")
+                ScaleSource.ArProjection(arMeasurement)
+            }
+            else -> {
+                Log.w(TAG, "NO scale source available (no reference object, no AR)")
+                ScaleSource.None
             }
         }
 
-        // Step 3: Detect container type and estimate depth
-        val containerType = depthEstimator.detectContainerType(plateResult)
-        val depthResult = depthEstimator.estimateDepth(bitmap, containerType, plateBounds)
+        // ── Step 4: Depth estimation ──
+        val containerType = depthEstimator.detectContainerType(plateResult, arMeasurement)
+        val depthResult = depthEstimator.estimateDepth(arMeasurement, containerType)
 
-        // Step 4: Calculate accurate plate dimensions (using now-known ratio)
-        val plateDimensions = calculatePlateDimensions(bitmap, plateResult, pixelToCmRatio)
+        // ── Step 5: Calculate plate dimensions ──
+        val plateDimensions = when (scaleSource) {
+            is ScaleSource.ReferenceObject -> {
+                calculatePlateDimensionsFromRatio(bitmap, plateResult, scaleSource.pixelToCmRatio)
+            }
+            is ScaleSource.ArProjection -> {
+                // AR already gave us real diameter — use it directly
+                val diameter = scaleSource.arMeasurement.plateDiameterCm
+                Log.d(TAG, "Using AR plate diameter: ${diameter}cm")
+                PlateDimensions(diameterCm = diameter, radiusCm = diameter / 2)
+            }
+            is ScaleSource.None -> {
+                // No reliable scale — warn user
+                return PortionResult.Success(
+                    estimatedWeightGrams = 0f,
+                    volumeCm3 = 0f,
+                    plateDiameterCm = 0f,
+                    depthCm = depthResult.depthCm,
+                    containerType = containerType,
+                    confidence = 0.05f,
+                    referenceObjectDetected = false,
+                    arMeasurementUsed = false,
+                    warning = "No reference object or AR available. Place a reference object for accurate measurements."
+                )
+            }
+        }
 
-        // Step 5: Calculate volume using SPHERICAL CAP (more accurate for piles of food)
+        // ── Step 6: Calculate raw container volume ──
+        // Send raw volume to server — server handles fill level (GPT) + density (USDA)
         val volumeCm3 = calculateVolume(plateDimensions, depthResult.depthCm)
 
-        // Step 6: Estimate weight
-        val weightGrams = volumeCm3 * DEFAULT_FOOD_DENSITY * DEFAULT_FILL_PERCENTAGE
+        // NOTE: We do NOT calculate weight here anymore.
+        // Server uses: volume × GPT fill % × food-specific density
 
-        Log.d(TAG, "Portion estimate: ${weightGrams}g (volume: ${volumeCm3}cm³)")
+        Log.d(TAG, "Raw measurements: vol=${volumeCm3}cm³, " +
+                "plate=${plateDimensions.diameterCm}cm, depth=${depthResult.depthCm}cm, " +
+                "source=${scaleSource::class.simpleName}")
 
         return PortionResult.Success(
-            estimatedWeightGrams = weightGrams,
-            volumeCm3 = volumeCm3,
+            estimatedWeightGrams = 0f, // Server calculates weight with physics engine
+            volumeCm3 = volumeCm3,     // Raw container volume for server reference
             plateDiameterCm = plateDimensions.diameterCm,
             depthCm = depthResult.depthCm,
             containerType = containerType,
-            confidence = calculateOverallConfidence(detectionResult, depthResult),
-            referenceObjectDetected = detectionResult is DetectionResult.Found
+            confidence = calculateOverallConfidence(detectionResult, depthResult, scaleSource),
+            referenceObjectDetected = hasRefObject,
+            arMeasurementUsed = hasArMeasurement,
+            warning = null
         )
     }
 
-    // Calculate plate dimensions from image
-    private fun calculatePlateDimensions(bitmap: Bitmap, plateResult: PlateDetectionResult, pixelToCmRatio: Float): PlateDimensions {
-        
+    /**
+     * Calculate plate dimensions from pixelToCmRatio (reference object based).
+     */
+    private fun calculatePlateDimensionsFromRatio(
+        bitmap: Bitmap,
+        plateResult: PlateDetectionResult,
+        pixelToCmRatio: Float
+    ): PlateDimensions {
         val plateWidthPixels = if (plateResult.isFound && plateResult.bounds != null) {
-            Log.d(TAG, "Using actual detected plate width: ${plateResult.bounds.width()}px")
+            Log.d(TAG, "Plate width from detection: ${plateResult.bounds.width()}px")
             plateResult.bounds.width().toFloat()
         } else {
-            // Fallback: Assume plate takes up ~45% of image width (safer average than 60%)
-            // Reduced to 45% because we advised user to zoom out
-            Log.d(TAG, "Plate not found for sizing, using fallback 45%")
+            Log.d(TAG, "Plate not detected, using 45% of image width")
             bitmap.width * 0.45f
         }
-        
-        val diameterCm = plateWidthPixels * pixelToCmRatio
-        
-        // ... rest of logic
-        val adjustedDiameter = diameterCm.coerceIn(12f, 32f)
 
-         return PlateDimensions(
-            diameterCm = adjustedDiameter,
-            radiusCm = adjustedDiameter / 2
+        val diameterCm = plateWidthPixels * pixelToCmRatio
+        Log.d(TAG, "Plate diameter from ref object: ${diameterCm}cm ($plateWidthPixels px × $pixelToCmRatio)")
+
+        return PlateDimensions(
+            diameterCm = diameterCm,
+            radiusCm = diameterCm / 2
         )
     }
-    
-    // Calculate food volume based on plate dimensions and depth
+
+    /**
+     * Calculate raw container volume (full cylinder).
+     * No adjustments — server handles fill level via GPT + density via USDA.
+     */
     private fun calculateVolume(dimensions: PlateDimensions, depthCm: Float): Float {
         val radius = dimensions.radiusCm
-        
-        // Single Portion Limit:
-        // Even if the plate is Huge (e.g. 32cm), a single serving of food rarely exceeds 12cm width (Radius 6cm).
-        // This is critical for small portions (like 70g) on large plates.
-        val effectiveRadius = radius.coerceAtMost(6.0f)
 
-        // Cone/Mound Formula for food piles (V = ~1/3 * Base * Height)
-        val cylinderVolume = Math.PI * effectiveRadius * effectiveRadius * depthCm
-        val adjustedVolume = cylinderVolume * 0.35 
-        
-        Log.d(TAG, "CALC_DEBUG: RawRadius=${radius}cm, EffRadius=${effectiveRadius}cm, Depth=${depthCm}cm") 
-        Log.d(TAG, "CALC_DEBUG: Vol=${adjustedVolume.toInt()}cm3 (Mass ~${adjustedVolume * DEFAULT_FOOD_DENSITY}g)")
-        
-        return adjustedVolume.toFloat()
-    }
+        // Raw cylinder volume — server will apply paraboloid correction for bowls
+        // and GPT fill percentage for actual food amount
+        val volume = (Math.PI * radius * radius * depthCm).toFloat()
 
-    private fun estimateFallbackRatio(bitmap: Bitmap): Float {
-        val baseRatio = 0.02f
-        val resolutionFactor = 1920f / bitmap.width
-        return baseRatio * resolutionFactor
+        Log.d(TAG, "Raw container volume: r=${radius}cm, d=${depthCm}cm → ${volume.toInt()}cm³")
+
+        return volume
     }
 
     private fun calculateOverallConfidence(
         detection: DetectionResult,
-        depth: DepthResult
+        depth: DepthResult,
+        scaleSource: ScaleSource
     ): Float {
-        val detectionConfidence = when (detection) {
-            is DetectionResult.Found -> detection.confidence
-            is DetectionResult.NotFound -> 0.3f 
+        val scaleConfidence = when (scaleSource) {
+            is ScaleSource.ReferenceObject -> {
+                when (detection) {
+                    is DetectionResult.Found -> detection.confidence
+                    is DetectionResult.NotFound -> 0.1f
+                }
+            }
+            is ScaleSource.ArProjection -> scaleSource.arMeasurement.confidence * 0.9f
+            is ScaleSource.None -> 0.05f
         }
+
         val depthConfidence = depth.confidence
-        return (detectionConfidence * 0.6f + depthConfidence * 0.4f)
+        return (scaleConfidence * 0.6f + depthConfidence * 0.4f)
     }
 
     fun release() {
@@ -225,10 +245,16 @@ class PortionEstimator(private val context: Context) {
     }
 }
 
+// ── Internal scale source ──
+private sealed class ScaleSource {
+    data class ReferenceObject(val pixelToCmRatio: Float) : ScaleSource()
+    data class ArProjection(val arMeasurement: ArMeasurement) : ScaleSource()
+    data object None : ScaleSource()
+}
+
 // Initialization result
 data class InitializationResult(
     val isReady: Boolean,
-    val arCoreStatus: ArCoreStatus,
     val openCvReady: Boolean
 )
 
@@ -247,7 +273,9 @@ sealed class PortionResult {
         val depthCm: Float,
         val containerType: ContainerType,
         val confidence: Float,
-        val referenceObjectDetected: Boolean
+        val referenceObjectDetected: Boolean,
+        val arMeasurementUsed: Boolean,
+        val warning: String?
     ) : PortionResult()
 
     data class Error(

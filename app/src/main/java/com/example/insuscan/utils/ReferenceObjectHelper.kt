@@ -13,12 +13,14 @@ object ReferenceObjectHelper {
     enum class ReferenceObjectType(
         val displayNameResId: Int,
         val lengthCm: Float,
+        val widthCm: Float,
+        val heightCm: Float,
         val serverValue: String
     ) {
-        INSULIN_SYRINGE(R.string.ref_option_insulin_syringe, 13f, "INSULIN_SYRINGE"),
-        SYRINGE_KNIFE(R.string.ref_option_syringe_knife, 21f, "SYRINGE_KNIFE"),
-        CARD(R.string.ref_option_card, 8.56f, "CARD"),
-        NONE(R.string.ref_option_none, 0f, "NONE");
+        INSULIN_SYRINGE(R.string.ref_option_insulin_syringe, 16f, 1.25f, 1.25f, "INSULIN_SYRINGE"),
+        SYRINGE_KNIFE(R.string.ref_option_syringe_knife, 21f, 1.5f, 0.5F, "SYRINGE_KNIFE"),
+        CARD(R.string.ref_option_card, 8.5f, 5.5f, 0f, "CARD"),
+        NONE(R.string.ref_option_none, 0f, 0f, 0f, "NONE");
     }
 
     /**

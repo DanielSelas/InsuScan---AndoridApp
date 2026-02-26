@@ -50,6 +50,9 @@ class CameraManager(private val context: Context) {
     // Reference type selected from the dialog — set by ScanFragment
     var selectedReferenceType: String? = null
 
+    // ARCore manager for continuous depth frame updates during live preview
+    var arCoreManager: com.example.insuscan.ar.ArCoreManager? = null
+
     companion object {
         private const val TAG = "CameraManager"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
@@ -173,6 +176,8 @@ class CameraManager(private val context: Context) {
     // Analysis loop
     private fun analyzeImageQuality(imageProxy: ImageProxy) {
         try {
+            // Keep ARCore session alive by updating on every frame
+            arCoreManager?.updateFrame()
             // existing quality checks...
             val buffer = imageProxy.planes[0].buffer
             val data = ByteArray(buffer.remaining())
