@@ -10,6 +10,12 @@ interface ScanRepository {
         estimatedWeight: Float? = null,
         volumeCm3: Float? = null,
         confidence: Float? = null,
-        referenceObjectType: String? = null
+        referenceObjectType: String? = null,
+        plateDiameterCm: Float? = null,
+        plateDepthCm: Float? = null,
+        // v2 pipeline fields
+        containerType: String? = null,
+        pixelToCmRatio: Float? = null,
+        foodRegionsJson: String? = null
     ): Result<MealDto>
 }

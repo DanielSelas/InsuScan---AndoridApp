@@ -77,6 +77,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     // Portion analysis (ARCore + OpenCV)
     private var portionEstimator: PortionEstimator? = null
 
+    // ARCore session manager for real depth + plate size
+    private var arCoreManager: com.example.insuscan.ar.ArCoreManager? = null
+
     // Add as class member
     private val scanRepository = ScanRepositoryImpl()
 
@@ -109,6 +112,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         )
 
         findViews(view)
+        initializeArCore()
         initializeCameraManager()
         initializePortionEstimator()
         initializeListeners()
@@ -207,8 +211,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     // ... (rest of simple methods)
 
     private fun showMissingRefObjectDialog() {
-        val isArSupported = portionEstimator?.isArCoreSupported == true
-        val arButtonText = if (isArSupported) "Scan Surface (AR)" else "Scan Surface (N/A)"
+        val isArReady = arCoreManager?.isReady == true
+        val isArSupported = arCoreManager?.isSupported == true
+        val arButtonText = when {
+            isArReady -> "Use AR Measurement ✅"
+            isArSupported -> "Scan Surface (AR)"
+            else -> "Scan Surface (N/A)"
+        }
 
         // Build message based on selected reference type
         val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
@@ -219,11 +228,21 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             else -> "reference object"
         }
 
+        val message = if (isArReady) {
+            "The $objectName was not detected.\n\nAR is ready — we can measure the plate size automatically using depth sensing."
+        } else {
+            "The $objectName was not detected in the image.\n\nMake sure it is placed next to the plate and clearly visible.\n\nTo ensure accurate results, we can scan the table surface instead."
+        }
+
         AlertDialog.Builder(requireContext())
             .setTitle("Reference Object Missing")
-            .setMessage("The $objectName was not detected in the image.\n\nMake sure it is placed next to the plate and clearly visible.\n\nTo ensure accurate results, we can scan the table surface instead.")
+            .setMessage(message)
             .setPositiveButton(arButtonText) { dialog, _ ->
-                if (isArSupported) {
+                if (isArReady) {
+                    dialog.dismiss()
+                    // AR already has measurements — capture directly
+                    onCaptureClicked()
+                } else if (isArSupported) {
                     dialog.dismiss()
                     startArScanMode()
                 } else {
@@ -233,7 +252,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
             .setNegativeButton("Capture Anyway") { dialog, _ ->
                 dialog.dismiss()
-                onCaptureClicked() // Proceed with lower accuracy
+                onCaptureClicked()
             }
             .setNeutralButton("Cancel") { dialog, _ ->
                 dialog.dismiss()
@@ -243,24 +262,33 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     private fun startArScanMode() {
         isScanningSurface = true
-        // Show UI
         arGuidanceOverlay.visibility = View.VISIBLE
         captureButton.isEnabled = false
         galleryButton.isEnabled = false
-        
-        // Start Logic
-        portionEstimator?.startArScan { success ->
-             activity?.runOnUiThread {
-                 if (success) {
-                     // Surface Found!
-                     ToastHelper.showShort(requireContext(), "Surface detected! Capturing...")
-                     stopArScanMode()
-                     onCaptureClicked() // Auto-capture or let user tap? Let's auto-capture for smooth flow.
-                 } else {
-                     ToastHelper.showShort(requireContext(), "AR Scan failed or not supported.")
-                     stopArScanMode()
-                 }
-             }
+
+        // ARCore continuously updates during live preview.
+        // We just wait until it reports ready (enough depth frames accumulated).
+        viewLifecycleOwner.lifecycleScope.launch {
+            var waitCycles = 0
+            val maxWait = 30 // ~6 seconds at 200ms interval
+            while (waitCycles < maxWait && arCoreManager?.isReady != true) {
+                kotlinx.coroutines.delay(200)
+                waitCycles++
+                activity?.runOnUiThread {
+                    arStatusText.text = "Scanning surface... Move phone slowly"
+                }
+            }
+
+            activity?.runOnUiThread {
+                if (arCoreManager?.isReady == true) {
+                    ToastHelper.showShort(requireContext(), "Surface detected! Capturing...")
+                    stopArScanMode()
+                    onCaptureClicked()
+                } else {
+                    ToastHelper.showShort(requireContext(), "AR Scan timed out. Try again.")
+                    stopArScanMode()
+                }
+            }
         }
     }
 
@@ -269,13 +297,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         arGuidanceOverlay.visibility = View.GONE
         captureButton.isEnabled = true
         galleryButton.isEnabled = true
-        portionEstimator?.stopArScan()
     }
 
     // Dev mode version - forces good quality for emulator testing
     private fun initializeCameraManager() {
         // Camera setup
         cameraManager = CameraManager(requireContext())
+        cameraManager.arCoreManager = arCoreManager // Feed AR frames during live preview
         cameraManager.onImageQualityUpdate = { quality ->
             // Update legacy quality status (bottom bar)
             qualityStatusText.text = quality.getValidationMessage()
@@ -321,20 +349,25 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-    // Initialize ARCore + OpenCV for portion estimation
+    // Initialize ARCore manager
+    private fun initializeArCore() {
+        arCoreManager = com.example.insuscan.ar.ArCoreManager(requireContext())
+        val arReady = arCoreManager?.initialize(requireActivity()) == true
+        Log.d(TAG, "ArCoreManager initialized: $arReady (supported=${arCoreManager?.isSupported})")
+    }
+
+    // Initialize OpenCV for portion estimation
     private fun initializePortionEstimator() {
         portionEstimator = PortionEstimator(requireContext())
 
         val result = portionEstimator?.initialize()
 
         result?.let {
-            val arStatus = it.arCoreStatus.name
             val cvStatus = if (it.openCvReady) "Ready" else "Failed"
-
-            Log.d(TAG, "Portion estimator init - ARCore: $arStatus, OpenCV: $cvStatus")
+            Log.d(TAG, "Portion estimator init — OpenCV: $cvStatus")
 
             if (!it.isReady) {
-                Log.w(TAG, "Analysis module not fully ready, using fallbacks")
+                Log.w(TAG, "Analysis module not fully ready")
             }
         }
     }
@@ -431,6 +464,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         if (::orientationHelper.isInitialized) {
             orientationHelper.start()
         }
+        arCoreManager?.resume()
     }
 
     override fun onPause() {
@@ -438,6 +472,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         if (::orientationHelper.isInitialized) {
             orientationHelper.stop()
         }
+        arCoreManager?.pause()
     }
 
     private fun updateCoachPill() {
@@ -499,8 +534,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             isPlateFound && !isRefFound && isRefObjectExpectedInFrame() -> {
                 isImageQualityOk = true // Allow capture (Logic handled in click listener)
                 
-                val isArSupported = portionEstimator?.isArCoreSupported == true
-                val msg = if (isArSupported) "Ref Obj Missing. Tap for AR Mode" else "Ref Obj Missing. Estimating..."
+                val isArReady = arCoreManager?.isReady == true
+                val isArSupported = arCoreManager?.isSupported == true
+                val msg = when {
+                    isArReady -> "Ref Obj Missing. AR Ready 📐"
+                    isArSupported -> "Ref Obj Missing. Tap for AR Mode"
+                    else -> "Ref Obj Missing. Estimating..."
+                }
                 
                 qualityStatusText.text = msg
                 qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning)) // Use yellow
@@ -739,22 +779,54 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     /**
      * Proceeds with the actual portion analysis and server upload.
+     * Uses ARCore measurement when available for real depth + plate size.
      */
     private fun proceedWithPortionAnalysis(bitmap: android.graphics.Bitmap, imageFile: File, refType: String?) {
-        // Get user email
         val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
 
-        // Local portion analysis
-        val portionResult = portionEstimator?.estimatePortion(bitmap, refType)
-        val estimatedWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
-        val volumeCm3 = (portionResult as? PortionResult.Success)?.volumeCm3
+        // Get AR measurement if available
+        val arMeasurement = if (arCoreManager?.isReady == true) {
+            // Detect plate bounds first for AR projection
+            val plateResult = com.example.insuscan.analysis.PlateDetector().detectPlate(bitmap)
+            if (plateResult.isFound && plateResult.bounds != null) {
+                arCoreManager?.measurePlate(plateResult.bounds, bitmap.width, bitmap.height)
+            } else null
+        } else null
+
+        if (arMeasurement != null) {
+            Log.d(TAG, "AR measurement: depth=${arMeasurement.depthCm}cm, " +
+                    "diameter=${arMeasurement.plateDiameterCm}cm")
+        } else {
+            Log.d(TAG, "No AR measurement available")
+        }
+
+        // Local portion analysis with AR data
+        val portionResult = portionEstimator?.estimatePortion(bitmap, refType, arMeasurement)
+        // Send null for weight/volume when 0 — server will calculate using plate physics
+        val rawWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
+        val estimatedWeight = if (rawWeight != null && rawWeight > 0f) rawWeight else null
+        val rawVolume = (portionResult as? PortionResult.Success)?.volumeCm3
+        val volumeCm3 = if (rawVolume != null && rawVolume > 0f) rawVolume else null
+        val diameter = (portionResult as? PortionResult.Success)?.plateDiameterCm
+        val depth = (portionResult as? PortionResult.Success)?.depthCm
         val confidence = (portionResult as? PortionResult.Success)?.confidence
+        val containerType = (portionResult as? PortionResult.Success)?.containerType?.name
+
+        // Check for warning from portion estimator
+        val warning = (portionResult as? PortionResult.Success)?.warning
+        if (warning != null) {
+            Log.w(TAG, "Portion warning: $warning")
+        }
 
         val referenceType = refType
 
         viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
-                scanRepository.scanImage(bitmap, email, estimatedWeight, volumeCm3, confidence, referenceType)
+                scanRepository.scanImage(
+                    bitmap, email, estimatedWeight, volumeCm3, 
+                    confidence, referenceType, diameter, depth,
+                    containerType = containerType
+                )
             }
 
             result.onSuccess { mealDto ->
@@ -894,6 +966,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         cameraManager.shutdown()
         portionEstimator?.release()
         portionEstimator = null
+        arCoreManager?.release()
+        arCoreManager = null
     }
 
     // Old implementation removed in favor of the one added in findViews/startArScanMode section
@@ -935,7 +1009,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Send to server
             lifecycleScope.launch {
                 try {
-                    val result = scanRepository.scanImage(bitmap, email, null, null, null, selectedReferenceType)
+                    val result = scanRepository.scanImage(
+                        bitmap, email, 
+                        null, null, null, selectedReferenceType,
+                        null, null
+                    )
 
                     withContext(Dispatchers.Main) {
                         result.onSuccess { mealDto ->
