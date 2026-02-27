@@ -567,6 +567,16 @@
 
                         </LinearLayout>
 
+                        <TextView
+                            android:id="@+id/tv_dose_rounding_hint"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Round to the nearest 0.5 or 1.0 on your pen"
+                            android:textSize="@dimen/text_caption"
+                            android:textColor="@color/text_hint"
+                            android:textAlignment="textEnd"
+                            android:layout_marginTop="@dimen/spacing_xxs" />
+
                     </LinearLayout>
 
                 </LinearLayout>
