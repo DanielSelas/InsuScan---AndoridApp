@@ -118,7 +118,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         initializePortionEstimator()
         initializeListeners()
         checkCameraPermission()
-        
+
         // Add guide overlay for reference object
         addReferenceObjectOverlay(view)
 
@@ -127,7 +127,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Dialog done — user can now capture with the chosen type
             Log.d(TAG, "Reference type selected on entry: $selectedReferenceType")
         }
-        
+
         // Initialize Orientation Helper
         orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
         orientationHelper.onOrientationChanged = { pitch, roll, isLevel ->
@@ -143,24 +143,25 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private fun addReferenceObjectOverlay(rootView: View) {
         val context = requireContext()
         val container = rootView as? FrameLayout ?: return
-        
+
         // Create overlay container
         val overlay = FrameLayout(context).apply {
             // Semi-transparent overlay on the right side (20% width)
             layoutParams = FrameLayout.LayoutParams(
-                (resources.displayMetrics.widthPixels * 0.25).toInt(), 
+                (resources.displayMetrics.widthPixels * 0.25).toInt(),
                 FrameLayout.LayoutParams.MATCH_PARENT
             ).apply {
                 gravity = android.view.Gravity.END
             }
             setBackgroundColor(android.graphics.Color.parseColor("#2000FF00")) // Very faint green tint
-            
+
             // Add border/stroke effect (using a simple view for border)
             val border = View(context).apply {
-                 layoutParams = FrameLayout.LayoutParams(4, FrameLayout.LayoutParams.MATCH_PARENT).apply {
-                     gravity = android.view.Gravity.START
-                 }
-                 setBackgroundColor(android.graphics.Color.parseColor("#80FFFFFF"))
+                layoutParams =
+                    FrameLayout.LayoutParams(4, FrameLayout.LayoutParams.MATCH_PARENT).apply {
+                        gravity = android.view.Gravity.START
+                    }
+                setBackgroundColor(android.graphics.Color.parseColor("#80FFFFFF"))
             }
             addView(border)
 
@@ -171,7 +172,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 textSize = 14f
                 gravity = android.view.Gravity.CENTER
                 layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT, 
+                    FrameLayout.LayoutParams.WRAP_CONTENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
                     gravity = android.view.Gravity.CENTER
@@ -179,7 +180,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             }
             addView(label)
         }
-        
+
         // Add behind the other UI elements but on top of camera
         container.addView(overlay, 1) // Index 1 to be above camera (0) but below controls
     }
@@ -198,12 +199,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         galleryButton = view.findViewById(R.id.btn_gallery)
         subtitleText = view.findViewById(R.id.tv_scan_subtitle)
         tvCoachPill = view.findViewById(R.id.tv_coach_pill)
-        
+
         // AR Overlay Views (from include)
         arGuidanceOverlay = view.findViewById(R.id.ar_guidance_overlay)
         arStatusText = view.findViewById(R.id.tv_ar_status)
         btnCancelAr = view.findViewById(R.id.btn_cancel_ar)
-        
+
         btnCancelAr.setOnClickListener {
             stopArScanMode()
         }
@@ -221,7 +222,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
 
         // Build message based on selected reference type
-        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+        val refType =
+            com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
         val objectName = when (refType) {
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD -> "credit card"
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "insulin pen"
@@ -248,7 +250,10 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                     startArScanMode()
                 } else {
                     dialog.dismiss()
-                    ToastHelper.showLong(requireContext(), "Your device does not support AR features needed for this mode.")
+                    ToastHelper.showLong(
+                        requireContext(),
+                        "Your device does not support AR features needed for this mode."
+                    )
                 }
             }
             .setNegativeButton("Capture Anyway") { dialog, _ ->
@@ -309,14 +314,20 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Update legacy quality status (bottom bar)
             qualityStatusText.text = quality.getValidationMessage()
             qualityStatusText.setBackgroundColor(
-                ContextCompat.getColor(requireContext(), if (quality.isValid) R.color.secondary_light else R.color.error)
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (quality.isValid) R.color.secondary_light else R.color.error
+                )
             )
-            captureButton.isEnabled = quality.isValid || true // Allow capture anyway for now (debug)
+            captureButton.isEnabled =
+                quality.isValid || true // Allow capture anyway for now (debug)
 
             // Update Live Coach Pill (Top Overlay)
             // Prioritize feedback: Light > Focus > Framing
             // Coach message based on selected reference type
-            val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+            val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(
+                selectedReferenceType
+            )
             val refObjLabel = when (refType) {
                 com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD -> "Place Card 💳"
                 com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "Place Pen 🖊️"
@@ -336,7 +347,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             tvCoachPill.apply {
                 text = coachMessage
                 visibility = View.VISIBLE
-                
+
                 // Color coding for the pill
                 background.setTint(
                     if (coachMessage.startsWith("Perfect")) android.graphics.Color.parseColor("#994CAF50") // Green tint
@@ -344,7 +355,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 )
             }
         }
-        
+
         cameraPreview.post {
             cameraManager.startCamera(viewLifecycleOwner, cameraPreview)
         }
@@ -375,9 +386,10 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     /** Returns true if the user chose a reference object type that needs live detection */
     private fun isRefObjectExpectedInFrame(): Boolean {
-        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+        val refType =
+            com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
         return refType != null &&
-               refType != com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE
+                refType != com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE
     }
 
     private fun initializeListeners() {
@@ -398,7 +410,10 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                             onCaptureClicked()
                         }
                     } else {
-                        ToastHelper.showShort(requireContext(), "Please center the food plate first")
+                        ToastHelper.showShort(
+                            requireContext(),
+                            "Please center the food plate first"
+                        )
                     }
                 } else {
                     ToastHelper.showShort(requireContext(), "Camera initializing...")
@@ -459,7 +474,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private var isScanningSurface = false
 
 
-
     override fun onResume() {
         super.onResume()
         if (::orientationHelper.isInitialized) {
@@ -480,16 +494,21 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         // If device is tilted, show warning
         if (!isDeviceLevel) {
             tvCoachPill.text = "Hold Phone Flat 📱"
-            tvCoachPill.setBackgroundResource(R.drawable.bg_pill_warning) 
+            tvCoachPill.setBackgroundResource(R.drawable.bg_pill_warning)
             // Assuming bg_pill_warning exists or reuse warning color
-            tvCoachPill.background.setTint(ContextCompat.getColor(requireContext(), R.color.warning))
+            tvCoachPill.background.setTint(
+                ContextCompat.getColor(
+                    requireContext(),
+                    R.color.warning
+                )
+            )
             tvCoachPill.visibility = View.VISIBLE
         } else {
             // Restore default text if needed or hide
             tvCoachPill.visibility = View.GONE
         }
     }
-    
+
     // In updateQualityStatus, we can also integrate this check
     // ...
 
@@ -507,34 +526,44 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         // 3. Ref Obj (Missing)
         // 4. Quality (Brightness/Blur)
         // 5. Success
-        
+
         // Default text color and background
         var textColorRes = android.R.color.white
         var textBgRes = R.color.primary // Default or dark
-        
+
         when {
             // Case 0: Tilt Check (Critical for accuracy)
             !isDeviceLevel -> {
                 isImageQualityOk = false // Prevent bad angle shots? Or just warn? Warn is safer UX.
                 // Let's allow capture but scream warning
                 qualityStatusText.text = "Hold Phone Flat 📱"
-                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning))
-                captureButton.isEnabled = true 
+                qualityStatusText.setBackgroundColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        R.color.warning
+                    )
+                )
+                captureButton.isEnabled = true
                 captureButton.alpha = 1f
             }
-            
+
             // Case 1 & 2: No Plate -> Block
             !isPlateFound -> {
                 isImageQualityOk = false
                 qualityStatusText.text = "Plate not detected. Center the food."
-                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning))
+                qualityStatusText.setBackgroundColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        R.color.warning
+                    )
+                )
                 captureButton.isEnabled = false
                 captureButton.alpha = 0.5f
             }
             // Case 3: Plate Found but No Ref -> Warn only if pen/syringe expected
             isPlateFound && !isRefFound && isRefObjectExpectedInFrame() -> {
                 isImageQualityOk = true // Allow capture (Logic handled in click listener)
-                
+
                 val isArReady = arCoreManager?.isReady == true
                 val isArSupported = arCoreManager?.isSupported == true
                 val msg = when {
@@ -542,9 +571,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                     isArSupported -> "Ref Obj Missing. Tap for AR Mode"
                     else -> "Ref Obj Missing. Estimating..."
                 }
-                
+
                 qualityStatusText.text = msg
-                qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning)) // Use yellow
+                qualityStatusText.setBackgroundColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        R.color.warning
+                    )
+                ) // Use yellow
 
                 // Allow capture but maybe show a dialog on click
                 captureButton.isEnabled = true
@@ -556,23 +590,33 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                     // Specific quality feedback
                     val msg = qualityResult.getValidationMessage() // Might say "Too Dark" etc
                     qualityStatusText.text = msg
-                    qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.warning))
+                    qualityStatusText.setBackgroundColor(
+                        ContextCompat.getColor(
+                            requireContext(),
+                            R.color.warning
+                        )
+                    )
                 } else {
                     isImageQualityOk = true
                     qualityStatusText.text = "Perfect! Ready to capture."
-                    qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.secondary_light))
+                    qualityStatusText.setBackgroundColor(
+                        ContextCompat.getColor(
+                            requireContext(),
+                            R.color.secondary_light
+                        )
+                    )
                 }
                 captureButton.isEnabled = true
                 captureButton.alpha = 1f
             }
         }
-        
+
         // Handle other quality issues (brightness/blur) as override warnings if critical
         if (!qualityResult.isBrightnessOk || !qualityResult.isSharpnessOk) {
-             // We generally still allow capture if plate is found, but update text
-             if (isPlateFound) {
-                 qualityStatusText.text = qualityResult.getValidationMessage()
-             }
+            // We generally still allow capture if plate is found, but update text
+            if (isPlateFound) {
+                qualityStatusText.text = qualityResult.getValidationMessage()
+            }
         }
     }
 
@@ -693,14 +737,18 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         showLoading(true, "Analyzing your meal...")
 
         // Smart reference object pre-check
-        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+        val refType =
+            com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
         val detectionMode = when (refType) {
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
                 com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
+
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE ->
                 com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
+
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD ->
                 com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD
+
             else -> null
         }
 
@@ -708,7 +756,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             // Run smart fallback in background
             viewLifecycleOwner.lifecycleScope.launch {
                 val fallbackResult = withContext(Dispatchers.IO) {
-                    portionEstimator?.referenceDetector?.detectWithFallback(bitmap, null, detectionMode)
+                    portionEstimator?.referenceDetector?.detectWithFallback(
+                        bitmap,
+                        null,
+                        detectionMode
+                    )
                 }
 
                 if (fallbackResult != null && fallbackResult.isAlternative && fallbackResult.result is com.example.insuscan.analysis.DetectionResult.Found) {
@@ -743,8 +795,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     ) {
         val selectedName = getString(selectedType.displayNameResId)
         val detectedName = when (detectedMode) {
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> getString(R.string.ref_option_insulin_syringe)
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> getString(R.string.ref_option_syringe_knife)
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> getString(
+                R.string.ref_option_insulin_syringe
+            )
+
+            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> getString(
+                R.string.ref_option_syringe_knife
+            )
+
             com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> getString(R.string.ref_option_card)
         }
         val detectedServerValue = when (detectedMode) {
@@ -782,7 +840,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
      * Proceeds with the actual portion analysis and server upload.
      * Uses ARCore measurement when available for real depth + plate size.
      */
-    private fun proceedWithPortionAnalysis(bitmap: android.graphics.Bitmap, imageFile: File, refType: String?) {
+    private fun proceedWithPortionAnalysis(
+        bitmap: android.graphics.Bitmap,
+        imageFile: File,
+        refType: String?
+    ) {
         val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
 
         // detect plate ONCE — reuse for AR, portion estimation, and GrabCut
@@ -795,15 +857,22 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         } else null
 
         if (arMeasurement != null) {
-            Log.d(TAG, "AR measurement: depth=${arMeasurement.depthCm}cm, " +
-                    "diameter=${arMeasurement.plateDiameterCm}cm")
+            Log.d(
+                TAG, "AR measurement: depth=${arMeasurement.depthCm}cm, " +
+                        "diameter=${arMeasurement.plateDiameterCm}cm"
+            )
         } else {
             Log.d(TAG, "No AR measurement available")
         }
 
         // Local portion analysis with AR data
         // pass cached plate result so it won't re-detect
-        val portionResult = portionEstimator?.estimatePortion(bitmap, refType, arMeasurement, plateResult)        // Send null for weight/volume when 0 — server will calculate using plate physics
+        val portionResult = portionEstimator?.estimatePortion(
+            bitmap,
+            refType,
+            arMeasurement,
+            plateResult
+        )        // Send null for weight/volume when 0 — server will calculate using plate physics
         val rawWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
         val estimatedWeight = if (rawWeight != null && rawWeight > 0f) rawWeight else null
         val rawVolume = (portionResult as? PortionResult.Success)?.volumeCm3
@@ -852,7 +921,12 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 if (pixelToCmRatio != null && pixelToCmRatio > 0f && hasBboxes) {
                     Log.d(TAG, "Running GrabCut refinement (P1 path)")
                     val regions = withContext(Dispatchers.IO) {
-                        FoodRegionAnalyzer.analyze(bitmap, foodItems, pixelToCmRatio, plateBoundsForGrabCut)
+                        FoodRegionAnalyzer.analyze(
+                            bitmap,
+                            foodItems,
+                            pixelToCmRatio,
+                            plateBoundsForGrabCut
+                        )
                     }
 
                     if (regions.isNotEmpty()) {
@@ -900,16 +974,20 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             is ScanException.NoFoodDetected -> {
                 showNoFoodDetectedDialog()
             }
+
             is ScanException.NetworkError -> {
                 showScanFailedDialog("No internet connection. Please check your network and try again.")
             }
+
             is ScanException.ServerError -> {
                 showScanFailedDialog("Server error. Please try again later.")
             }
+
             is ScanException.Unauthorized -> {
                 ToastHelper.showLong(requireContext(), "Session expired. Please log in again.")
                 // Optionally navigate to login
             }
+
             else -> {
                 showScanFailedDialog("Something went wrong. Please try again.")
             }
@@ -923,12 +1001,17 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
         // Apply local overrides (portion analysis fallbacks that might not be in DTO if server failed to update)
         return mappedMeal.copy(
-            portionWeightGrams = dto.estimatedWeight ?: (portionResult as? PortionResult.Success)?.estimatedWeightGrams,
-            portionVolumeCm3 = dto.plateVolumeCm3 ?: (portionResult as? PortionResult.Success)?.volumeCm3,
-            plateDiameterCm = dto.plateDiameterCm ?: (portionResult as? PortionResult.Success)?.plateDiameterCm,
+            portionWeightGrams = dto.estimatedWeight
+                ?: (portionResult as? PortionResult.Success)?.estimatedWeightGrams,
+            portionVolumeCm3 = dto.plateVolumeCm3
+                ?: (portionResult as? PortionResult.Success)?.volumeCm3,
+            plateDiameterCm = dto.plateDiameterCm
+                ?: (portionResult as? PortionResult.Success)?.plateDiameterCm,
             plateDepthCm = dto.plateDepthCm ?: (portionResult as? PortionResult.Success)?.depthCm,
-            analysisConfidence = dto.analysisConfidence ?: (portionResult as? PortionResult.Success)?.confidence,
-            referenceObjectDetected = dto.referenceDetected ?: (portionResult as? PortionResult.Success)?.referenceObjectDetected
+            analysisConfidence = dto.analysisConfidence
+                ?: (portionResult as? PortionResult.Success)?.confidence,
+            referenceObjectDetected = dto.referenceDetected
+                ?: (portionResult as? PortionResult.Success)?.referenceObjectDetected
         )
     }
 
@@ -1028,11 +1111,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     // Keeping this clean.
 
 
-
     private fun processGalleryImage(uri: android.net.Uri) {
         showLoading(true, "Loading image...")
-        // ... rest of existing function
-
 
         try {
             val inputStream = requireContext().contentResolver.openInputStream(uri)
@@ -1045,47 +1125,18 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 return
             }
 
-            // Save gallery image to cache for summary screen
             val cacheFile = File(requireContext().cacheDir, "gallery_${System.currentTimeMillis()}.jpg")
             cacheFile.outputStream().use { out ->
                 bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
             }
             capturedImagePath = cacheFile.absolutePath
 
-            // Show the selected image
             switchToCapturedImageMode(cacheFile)
 
             showLoading(true, "Analyzing your meal...")
 
-            // Get user email
-            val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
+            analyzePortionAndContinue(cacheFile)
 
-            // Send to server
-            lifecycleScope.launch {
-                try {
-                    val result = scanRepository.scanImage(
-                        bitmap, email, 
-                        null, null, null, selectedReferenceType,
-                        null, null
-                    )
-
-                    withContext(Dispatchers.Main) {
-                        result.onSuccess { mealDto ->
-                            handleScanSuccess(mealDto, null)
-                        }.onFailure { error ->
-                            Log.e(TAG, "Scan failed: ${error.message}")
-                            showLoading(false)
-                            handleScanError(error)
-                        }
-                    }
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        showLoading(false)
-                        Log.e(TAG, "Error: ${e.message}")
-                        showScanFailedDialog("Error: ${e.message}")
-                    }
-                }
-            }
         } catch (e: Exception) {
             showLoading(false)
             ToastHelper.showShort(requireContext(), "Failed to process image: ${e.message}")
