@@ -105,6 +105,8 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         private const val DOSE_WARNING_THRESHOLD = 15f
         private const val DOSE_BLOCKING_THRESHOLD = 30f
         private const val DOSE_HARD_CAP = 100f
+        private const val IOB_SOFT_LIMIT = 20f
+        private const val IOB_HARD_LIMIT = 50f
 
         // Validation result for save operation
         private sealed class SaveValidation {
@@ -254,11 +256,24 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             }
         })
 
-        // Active Insulin input listener
         activeInsulinEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
+                val iob = s?.toString()?.toFloatOrNull()
+                when {
+                    iob != null && iob > IOB_HARD_LIMIT -> {
+                        activeInsulinEditText.error = "Maximum IOB is ${IOB_HARD_LIMIT.toInt()} units"
+                        return
+                    }
+                    iob != null && iob > IOB_SOFT_LIMIT -> {
+                        activeInsulinEditText.error = "Unusually high — please verify"
+                    }
+                    iob != null && iob < 0 -> {
+                        activeInsulinEditText.error = "IOB cannot be negative"
+                        return
+                    }
+                }
                 calculateDose()
             }
         })
@@ -646,6 +661,15 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         // Final Dose
         finalDoseText.text = String.format("%.1f u", result.roundedDose)
 
+        val hintView = view?.findViewById<TextView>(R.id.tv_dose_rounding_hint)
+        if (result.roundedDose > 0 && result.roundedDose % 0.5f != 0f) {
+            val roundedHalf = (Math.round(result.roundedDose * 2) / 2f)
+            hintView?.text = "Round to ${String.format("%.1f", roundedHalf)} on your pen"
+            hintView?.visibility = View.VISIBLE
+        } else {
+            hintView?.visibility = View.GONE
+        }
+
         // 4. Safety Cap: show warning banner for high doses
         updateHighDoseWarning(result.roundedDose)
     }
@@ -778,8 +802,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             FileLogger.log("CALC", "STEP 4c: Exercise (Home) = $baseDose * $pct% = -$exerciseAdj u")
         }
 
-        // IOB
-        val iob = activeInsulin ?: 0f
+        val rawIob = activeInsulin ?: 0f
+        val iob = rawIob.coerceIn(0f, IOB_HARD_LIMIT)
+        if (rawIob != iob) {
+            FileLogger.log("CALC", "STEP 4d: IOB clamped from $rawIob to $iob")
+        }
         FileLogger.log("CALC", "STEP 4d: Active Insulin (IOB) = -$iob u")
 
         // 5. Final
@@ -833,7 +860,13 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         meal.analysisConfidence?.let { confidence ->
             val percentage = (confidence * 100).toInt()
-            confidenceText.text = "Confidence: $percentage%"
+            confidenceText.text = "Confidence: $percentage% (estimate)"
+            val color = when {
+                percentage >= 80 -> R.color.status_normal
+                percentage >= 50 -> R.color.status_warning
+                else -> R.color.status_critical
+            }
+            confidenceText.setTextColor(ContextCompat.getColor(ctx, color))
         }
 
         val refStatus = when (meal.referenceObjectDetected) {
@@ -1014,7 +1047,8 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val glucoseUnits = pm.getGlucoseUnits(ctx)
         val activityLevel = getSelectedActivityLevel()
         val gramsPerUnit = pm.getGramsPerUnit(ctx)
-        val activeInsulin = activeInsulinEditText.text.toString().toFloatOrNull() ?: 0f
+        val activeInsulin = (activeInsulinEditText.text.toString().toFloatOrNull() ?: 0f)
+            .coerceIn(0f, IOB_HARD_LIMIT)
 
         if (gramsPerUnit == null) return meal
 
@@ -1052,49 +1086,6 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             R.id.rb_activity_intense -> "intense"
             else -> "normal"
         }
-    }
-
-    private fun calculateCorrectionDose(glucose: Int?, units: String, unitsPerGram: Float?): Float? {
-        if (glucose == null || unitsPerGram == null) return null
-
-        val pm = UserProfileManager
-        val target = pm.getTargetGlucose(ctx) ?: 100
-        val isf = pm.getCorrectionFactor(ctx) ?: 50f
-        val glucoseInMgDl = if (units == "mmol/L") glucose * 18 else glucose
-
-        return if (glucoseInMgDl > target) (glucoseInMgDl - target) / isf else null
-    }
-
-    private fun calculateExerciseAdjustment(activityLevel: String, unitsPerGram: Float?, carbs: Float): Float? {
-        if (activityLevel == "normal" || unitsPerGram == null) return null
-
-        val pm = UserProfileManager
-        val carbDose = carbs * unitsPerGram
-        val adjPercent = when (activityLevel) {
-            "light" -> pm.getLightExerciseAdjustment(ctx)
-            "intense" -> pm.getIntenseExerciseAdjustment(ctx)
-            else -> 0
-        }
-
-        return -(carbDose * adjPercent / 100f)
-    }
-
-    private fun calculateSickAdjustment(carbs: Float, unitsPerGram: Float?, correctionDose: Float?): Float? {
-        if (!UserProfileManager.isSickModeEnabled(ctx) || unitsPerGram == null) return null
-        
-        val carbDose = carbs * unitsPerGram
-        val baseDose = carbDose + (correctionDose ?: 0f)
-        val sickPercent = UserProfileManager.getSickDayAdjustment(ctx)
-        return baseDose * (sickPercent / 100f)
-    }
-
-    private fun calculateStressAdjustment(carbs: Float, unitsPerGram: Float?, correctionDose: Float?): Float? {
-        if (!UserProfileManager.isStressModeEnabled(ctx) || unitsPerGram == null) return null
-
-        val carbDose = carbs * unitsPerGram
-        val baseDose = carbDose + (correctionDose ?: 0f)
-        val stressPercent = UserProfileManager.getStressAdjustment(ctx)
-        return baseDose * (stressPercent / 100f)
     }
 
     private fun saveToServer(mealId: String, dose: Float?) {
