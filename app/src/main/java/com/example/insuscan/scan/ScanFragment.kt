@@ -785,13 +785,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private fun proceedWithPortionAnalysis(bitmap: android.graphics.Bitmap, imageFile: File, refType: String?) {
         val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
 
-        // Get AR measurement if available
-        val arMeasurement = if (arCoreManager?.isReady == true) {
-            // Detect plate bounds first for AR projection
-            val plateResult = com.example.insuscan.analysis.PlateDetector().detectPlate(bitmap)
-            if (plateResult.isFound && plateResult.bounds != null) {
-                arCoreManager?.measurePlate(plateResult.bounds, bitmap.width, bitmap.height)
-            } else null
+        // detect plate ONCE — reuse for AR, portion estimation, and GrabCut
+        val plateResult = com.example.insuscan.analysis.PlateDetector().detectPlate(bitmap)
+        val plateBounds = if (plateResult.isFound) plateResult.bounds else null
+
+        // use cached plate bounds for AR projection
+        val arMeasurement = if (arCoreManager?.isReady == true && plateBounds != null) {
+            arCoreManager?.measurePlate(plateBounds, bitmap.width, bitmap.height)
         } else null
 
         if (arMeasurement != null) {
@@ -802,8 +802,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
 
         // Local portion analysis with AR data
-        val portionResult = portionEstimator?.estimatePortion(bitmap, refType, arMeasurement)
-        // Send null for weight/volume when 0 — server will calculate using plate physics
+        // pass cached plate result so it won't re-detect
+        val portionResult = portionEstimator?.estimatePortion(bitmap, refType, arMeasurement, plateResult)        // Send null for weight/volume when 0 — server will calculate using plate physics
         val rawWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
         val estimatedWeight = if (rawWeight != null && rawWeight > 0f) rawWeight else null
         val rawVolume = (portionResult as? PortionResult.Success)?.volumeCm3
@@ -822,16 +822,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         val referenceType = refType
 
 // get pixelToCmRatio + plate bounds for GrabCut refinement
+        // reuse cached plate bounds for ratio calc
         val pixelToCmRatio = (portionResult as? PortionResult.Success)?.let { pr ->
-            if (pr.referenceObjectDetected && pr.plateDiameterCm > 0) {
-                // derive ratio from plate: diameter_cm / plate_width_px
-                val plateResult = com.example.insuscan.analysis.PlateDetector().detectPlate(bitmap)
-                if (plateResult.isFound && plateResult.bounds != null) {
-                    pr.plateDiameterCm / plateResult.bounds.width().toFloat()
-                } else null
+            if (pr.referenceObjectDetected && pr.plateDiameterCm > 0 && plateBounds != null) {
+                pr.plateDiameterCm / plateBounds.width().toFloat()
             } else null
         }
-        val plateBounds = com.example.insuscan.analysis.PlateDetector().detectPlate(bitmap).bounds
+        // plateBounds already defined above — just use it for GrabCut
+        val plateBoundsForGrabCut = plateBounds
 
         viewLifecycleOwner.lifecycleScope.launch {
             // step 1: send image to server (gets food items + P2/P3 weights)
@@ -854,7 +852,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 if (pixelToCmRatio != null && pixelToCmRatio > 0f && hasBboxes) {
                     Log.d(TAG, "Running GrabCut refinement (P1 path)")
                     val regions = withContext(Dispatchers.IO) {
-                        FoodRegionAnalyzer.analyze(bitmap, foodItems, pixelToCmRatio, plateBounds)
+                        FoodRegionAnalyzer.analyze(bitmap, foodItems, pixelToCmRatio, plateBoundsForGrabCut)
                     }
 
                     if (regions.isNotEmpty()) {
