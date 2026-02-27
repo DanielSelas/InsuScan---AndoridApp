@@ -60,7 +60,12 @@ data class FoodItemDto(
     val estimatedWeightGrams: Float?,
     @SerializedName(value = "carbs", alternate = ["carbsGrams"])
     val carbsGrams: Float?,
-    val confidence: Float?
+    val confidence: Float?,
+    // bbox from GPT (% of image) for GrabCut segmentation
+    val bboxXPct: Float? = null,
+    val bboxYPct: Float? = null,
+    val bboxWPct: Float? = null,
+    val bboxHPct: Float? = null
 )
 
 data class InsulinCalculationDto(
