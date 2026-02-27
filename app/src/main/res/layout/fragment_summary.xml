@@ -572,6 +572,37 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- ============== HIGH DOSE WARNING BANNER ============== -->
+            <LinearLayout
+                android:id="@+id/layout_high_dose_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@color/status_warning"
+                android:padding="@dimen/padding_card"
+                android:layout_marginBottom="@dimen/spacing_medium"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚠️"
+                    android:textSize="20sp"
+                    android:layout_marginEnd="@dimen/spacing_small" />
+
+                <TextView
+                    android:id="@+id/tv_high_dose_warning"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="High dose — please verify your meal data"
+                    android:textSize="@dimen/text_body2"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
             <!-- ============== ANALYSIS RESULTS CARD ============== -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_analysis_results"
