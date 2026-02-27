@@ -93,8 +93,18 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     // Calculation results (stored for saving)
     private var lastCalculatedResult: DoseResult? = null
 
+    // Safety cap views and state
+    private lateinit var highDoseWarningLayout: LinearLayout
+    private lateinit var highDoseWarningText: TextView
+    private var highDoseAcknowledged: Boolean = false
+
     companion object {
         private const val MSG_SET_RATIO = "Please set insulin to carb ratio in Profile first"
+
+        // Safety thresholds (units)
+        private const val DOSE_WARNING_THRESHOLD = 15f
+        private const val DOSE_BLOCKING_THRESHOLD = 30f
+        private const val DOSE_HARD_CAP = 100f
 
         // Validation result for save operation
         private sealed class SaveValidation {
@@ -199,6 +209,10 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         plateDimensionsText = view.findViewById(R.id.tv_plate_dimensions)
         confidenceText = view.findViewById(R.id.tv_analysis_confidence)
         referenceStatusText = view.findViewById(R.id.tv_reference_status)
+
+        // High dose safety warning
+        highDoseWarningLayout = view.findViewById(R.id.layout_high_dose_warning)
+        highDoseWarningText = view.findViewById(R.id.tv_high_dose_warning)
 
         // Bottom
         logButton = view.findViewById(R.id.btn_log_meal)
@@ -590,6 +604,9 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         
         lastCalculatedResult = result
 
+        // Reset acknowledgement when dose changes
+        highDoseAcknowledged = false
+
         // 3. Update UI
         carbDoseText.text = String.format("%.1f u", result.carbDose)
 
@@ -628,6 +645,54 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         // Final Dose
         finalDoseText.text = String.format("%.1f u", result.roundedDose)
+
+        // 4. Safety Cap: show warning banner for high doses
+        updateHighDoseWarning(result.roundedDose)
+    }
+
+    /**
+     * 3-tier safety system for high insulin doses.
+     * - Above 15u: yellow warning banner
+     * - Above 30u: blocking confirmation dialog on save
+     * - Above 100u: hard rejection, cannot save
+     */
+    private fun updateHighDoseWarning(dose: Float) {
+        if (dose > DOSE_WARNING_THRESHOLD) {
+            highDoseWarningLayout.visibility = View.VISIBLE
+            when {
+                dose > DOSE_HARD_CAP -> {
+                    highDoseWarningText.text = String.format(
+                        "BLOCKED: %.1f units exceeds the maximum safe dose (%d units). " +
+                        "Please check your meal data for errors.",
+                        dose, DOSE_HARD_CAP.toInt()
+                    )
+                    highDoseWarningLayout.setBackgroundColor(
+                        ContextCompat.getColor(ctx, R.color.status_critical)
+                    )
+                    setLogButtonEnabled(false)
+                }
+                dose > DOSE_BLOCKING_THRESHOLD -> {
+                    highDoseWarningText.text = String.format(
+                        "Very high dose: %.1f units. You will need to confirm before saving.",
+                        dose
+                    )
+                    highDoseWarningLayout.setBackgroundColor(
+                        ContextCompat.getColor(ctx, R.color.status_warning)
+                    )
+                }
+                else -> {
+                    highDoseWarningText.text = String.format(
+                        "High dose: %.1f units. Please verify your meal data is correct.",
+                        dose
+                    )
+                    highDoseWarningLayout.setBackgroundColor(
+                        ContextCompat.getColor(ctx, R.color.status_warning)
+                    )
+                }
+            }
+        } else {
+            highDoseWarningLayout.visibility = View.GONE
+        }
     }
 
     /**
@@ -840,11 +905,67 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         val meal = MealSessionManager.currentMeal
 
         when (val validation = validateBeforeSave(meal)) {
-            is SaveValidation.Valid -> performSave(meal!!)
+            is SaveValidation.Valid -> {
+                val dose = lastCalculatedResult?.roundedDose ?: 0f
+
+                // Hard cap: reject doses above 100u entirely
+                if (dose > DOSE_HARD_CAP) {
+                    AlertDialog.Builder(ctx)
+                        .setTitle("Dose Rejected")
+                        .setMessage(
+                            String.format(
+                                "The calculated dose of %.1f units exceeds the maximum " +
+                                "safe limit of %d units.\n\nThis is likely a scan error. " +
+                                "Please review and correct your meal data before saving.",
+                                dose, DOSE_HARD_CAP.toInt()
+                            )
+                        )
+                        .setPositiveButton("OK", null)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show()
+                    return
+                }
+
+                // Blocking dialog: require explicit confirmation above 30u
+                if (dose > DOSE_BLOCKING_THRESHOLD && !highDoseAcknowledged) {
+                    showHighDoseConfirmationDialog(meal!!, dose)
+                    return
+                }
+
+                performSave(meal!!)
+            }
             is SaveValidation.NoMealData -> showError("No meal data to save")
             is SaveValidation.NoFoodDetected -> showError("No food detected. Use 'Edit' to add items manually.")
             is SaveValidation.ProfileIncomplete -> showIncompleteProfileDialog(meal!!)
         }
+    }
+
+    /**
+     * Shows a blocking confirmation dialog for very high insulin doses (> 30 units).
+     * Requires the user to explicitly confirm the dose is correct.
+     */
+    private fun showHighDoseConfirmationDialog(meal: Meal, dose: Float) {
+        AlertDialog.Builder(ctx)
+            .setTitle("Very High Dose Warning")
+            .setMessage(
+                String.format(
+                    "The recommended dose is %.1f units, which is unusually high.\n\n" +
+                    "Please verify:\n" +
+                    "  • The scanned food items are correct\n" +
+                    "  • The portion sizes look right\n" +
+                    "  • Your glucose reading is accurate\n\n" +
+                    "Are you sure this dose is correct?",
+                    dose
+                )
+            )
+            .setPositiveButton("I Confirm This Dose") { _, _ ->
+                highDoseAcknowledged = true
+                performSave(meal)
+            }
+            .setNegativeButton("Cancel", null)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setCancelable(false)
+            .show()
     }
 
     private fun validateBeforeSave(meal: Meal?): SaveValidation {

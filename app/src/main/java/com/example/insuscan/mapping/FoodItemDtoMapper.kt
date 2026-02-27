@@ -11,7 +11,11 @@ object FoodItemDtoMapper : Mapper<FoodItemDto, FoodItem> {
             nameHebrew = from.nameHebrew,
             carbsGrams = from.carbsGrams,
             weightGrams = from.estimatedWeightGrams,
-            confidence = from.confidence
+            confidence = from.confidence,
+            bboxXPct = from.bboxXPct,
+            bboxYPct = from.bboxYPct,
+            bboxWPct = from.bboxWPct,
+            bboxHPct = from.bboxHPct
         )
     }
 
@@ -22,7 +26,11 @@ object FoodItemDtoMapper : Mapper<FoodItemDto, FoodItem> {
             nameHebrew = from.nameHebrew,
             estimatedWeightGrams = from.weightGrams,
             carbsGrams = from.carbsGrams,
-            confidence = from.confidence
+            confidence = from.confidence,
+            bboxXPct = from.bboxXPct,
+            bboxYPct = from.bboxYPct,
+            bboxWPct = from.bboxWPct,
+            bboxHPct = from.bboxHPct
         )
     }
 }
