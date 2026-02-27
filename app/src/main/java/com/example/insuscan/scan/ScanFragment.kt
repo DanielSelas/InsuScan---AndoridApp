@@ -42,6 +42,7 @@ import kotlinx.coroutines.withContext
 import android.provider.MediaStore
 import androidx.activity.result.PickVisualMediaRequest
 import com.bumptech.glide.Glide
+import com.example.insuscan.analysis.FoodRegionAnalyzer
 import com.example.insuscan.network.repository.ScanRepositoryImpl
 
 // ScanFragment - food scan screen with camera preview and portion analysis
@@ -820,17 +821,72 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
         val referenceType = refType
 
+// get pixelToCmRatio + plate bounds for GrabCut refinement
+        val pixelToCmRatio = (portionResult as? PortionResult.Success)?.let { pr ->
+            if (pr.referenceObjectDetected && pr.plateDiameterCm > 0) {
+                // derive ratio from plate: diameter_cm / plate_width_px
+                val plateResult = com.example.insuscan.analysis.PlateDetector().detectPlate(bitmap)
+                if (plateResult.isFound && plateResult.bounds != null) {
+                    pr.plateDiameterCm / plateResult.bounds.width().toFloat()
+                } else null
+            } else null
+        }
+        val plateBounds = com.example.insuscan.analysis.PlateDetector().detectPlate(bitmap).bounds
+
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = withContext(Dispatchers.IO) {
+            // step 1: send image to server (gets food items + P2/P3 weights)
+            val scanResult = withContext(Dispatchers.IO) {
                 scanRepository.scanImage(
-                    bitmap, email, estimatedWeight, volumeCm3, 
+                    bitmap, email, estimatedWeight, volumeCm3,
                     confidence, referenceType, diameter, depth,
                     containerType = containerType
                 )
             }
 
-            result.onSuccess { mealDto ->
-                handleScanSuccess(mealDto, portionResult)
+            scanResult.onSuccess { mealDto ->
+                // step 2: if we have scale, try GrabCut refinement and re-scan with P1
+                val foodItems = mealDto.foodItems?.map {
+                    com.example.insuscan.mapping.FoodItemDtoMapper.map(it)
+                } ?: emptyList()
+
+                val hasBboxes = foodItems.any { it.bboxXPct != null && it.bboxWPct != null }
+
+                if (pixelToCmRatio != null && pixelToCmRatio > 0f && hasBboxes) {
+                    Log.d(TAG, "Running GrabCut refinement (P1 path)")
+                    val regions = withContext(Dispatchers.IO) {
+                        FoodRegionAnalyzer.analyze(bitmap, foodItems, pixelToCmRatio, plateBounds)
+                    }
+
+                    if (regions.isNotEmpty()) {
+                        // re-scan with precise per-food measurements
+                        val regionsJson = FoodRegionAnalyzer.toFoodRegionsJson(regions)
+                        Log.d(TAG, "Sending ${regions.size} food regions to server")
+
+                        val refinedResult = withContext(Dispatchers.IO) {
+                            scanRepository.scanImage(
+                                bitmap, email, estimatedWeight, volumeCm3,
+                                confidence, referenceType, diameter, depth,
+                                containerType = containerType,
+                                foodRegionsJson = regionsJson
+                            )
+                        }
+
+                        refinedResult.onSuccess { refinedDto ->
+                            Log.d(TAG, "P1 refined scan success")
+                            handleScanSuccess(refinedDto, portionResult)
+                        }.onFailure { error ->
+                            // P1 failed — fall back to original P2/P3 result
+                            Log.w(TAG, "P1 refinement failed, using P2/P3: ${error.message}")
+                            handleScanSuccess(mealDto, portionResult)
+                        }
+                    } else {
+                        // GrabCut returned nothing — use original result
+                        handleScanSuccess(mealDto, portionResult)
+                    }
+                } else {
+                    // no scale or no bboxes — use P2/P3 as-is
+                    handleScanSuccess(mealDto, portionResult)
+                }
 
             }.onFailure { error ->
                 Log.e(TAG, "Scan failed: ${error.message}")
