@@ -62,7 +62,8 @@ class PortionEstimator(private val context: Context) {
     fun estimatePortion(
         bitmap: Bitmap,
         referenceObjectType: String? = null,
-        arMeasurement: ArMeasurement? = null
+        arMeasurement: ArMeasurement? = null,
+        precomputedPlateResult: PlateDetectionResult? = null
     ): PortionResult {
         if (!isInitialized) {
             Log.w(TAG, "PortionEstimator not initialized")
@@ -71,8 +72,8 @@ class PortionEstimator(private val context: Context) {
 
         refreshSettings()
 
-        // ── Step 1: Detect Plate ──
-        val plateResult = plateDetector.detectPlate(bitmap)
+        // ── Step 1: Detect Plate (reuse if already detected by caller) ──
+        val plateResult = precomputedPlateResult ?: plateDetector.detectPlate(bitmap)
         val plateBounds = if (plateResult.isFound) plateResult.bounds else null
 
         if (plateBounds != null) {
