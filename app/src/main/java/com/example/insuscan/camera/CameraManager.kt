@@ -56,9 +56,12 @@ class CameraManager(private val context: Context) {
     companion object {
         private const val TAG = "CameraManager"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-        private const val BRIGHTNESS_MIN = 50f
-        private const val BRIGHTNESS_MAX = 200f
-        private const val SHARPNESS_THRESHOLD = 500f
+        // Brightness thresholds — synced with ImageValidator (40-220)
+        private const val BRIGHTNESS_MIN = 40f
+        private const val BRIGHTNESS_MAX = 220f
+        // Sharpness: live preview uses variance on low-res (640x480), so threshold is higher
+        // than ImageValidator's 100.0 (which uses std deviation on full-res capture)
+        private const val SHARPNESS_THRESHOLD = 1000f
         // Lowered from 1080p to VGA (640x480) to ensure it works on all devices.
         // The *Capture* will still be max resolution, this is just for the preview/analysis check.
         private const val MIN_RESOLUTION = 640 * 480
@@ -233,8 +236,8 @@ class CameraManager(private val context: Context) {
                 is com.example.insuscan.analysis.DetectionResult.NotFound -> (fallbackResult.result as com.example.insuscan.analysis.DetectionResult.NotFound).debugInfo
             }
             
-            // 2. Plate Detection
-            val isPlateFoundNow = plateDetector.detectPlate(bitmap).isFound
+            // 2. Plate Detection (smoothed for stable live preview)
+            val isPlateFoundNow = plateDetector.detectPlateSmoothed(bitmap).isFound
 
             // 3. Stability Logic (Hysteresis / Debounce)
             // ... (keep existing stability logic) ...
@@ -306,7 +309,8 @@ class CameraManager(private val context: Context) {
             variance += (value - mean) * (value - mean)
         }
 
-        return (variance / data.size).toFloat()
+        // Return variance divided by mean to normalize across lighting conditions
+        return (variance / data.size / (mean + 1)).toFloat() * 100f
     }
 
     // Stops camera and releases resources.

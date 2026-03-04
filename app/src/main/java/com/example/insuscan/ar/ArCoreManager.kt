@@ -270,17 +270,18 @@ class ArCoreManager(private val context: Context) {
                 else -> ContainerType.DEEP_BOWL
             }
 
-            ArMeasurement(
-                depthCm = depthCm,
-                plateDiameterCm = plateDiameterCm,
-                surfaceDistanceCm = surfaceDistanceCm,
-                containerType = containerType,
-                confidence = (rimDepthsMm.size.toFloat() / rimPoints.size).coerceIn(0.5f, 1.0f)
-            )
-        } catch (e: Exception) {
-            null
+                ArMeasurement(
+                    depthCm = depthCm,
+                    plateDiameterCm = plateDiameterCm,
+                    surfaceDistanceCm = surfaceDistanceCm,
+                    containerType = containerType,
+                    confidence = (rimDepthsMm.size.toFloat() / rimPoints.size).coerceIn(0.5f, 1.0f),
+                    isRealDepth = true
+                )
+            } catch (e: Exception) {
+                null
+            }
         }
-    }
 
     /** Fallback measurement using Plane Hit Test (for SM-A325F etc). */
     private fun measureUsingPlanes(
@@ -320,7 +321,8 @@ class ArCoreManager(private val context: Context) {
                 plateDiameterCm = plateDiameterCm,
                 surfaceDistanceCm = distanceM * 100f,
                 containerType = ContainerType.FLAT_PLATE, // Default to plate
-                confidence = 0.6f // Moderate confidence for planes
+                confidence = 0.6f, // Moderate confidence for planes
+                isRealDepth = false // <--- Depth is just a guess here
             )
         } catch (e: Exception) {
             Log.e(TAG, "Plane hit test failed: ${e.message}")
@@ -426,5 +428,6 @@ data class ArMeasurement(
     val plateDiameterCm: Float,  // Real plate diameter from 2D→3D projection
     val surfaceDistanceCm: Float,// Distance from camera to table surface
     val containerType: ContainerType, // Classified from real depth
-    val confidence: Float        // 0.0 to 1.0 based on depth sample quality
+    val confidence: Float,        // 0.0 to 1.0 based on depth sample quality
+    val isRealDepth: Boolean     // True if measured by depth sensor, false if assumed from plane
 )

@@ -84,6 +84,10 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     // Add as class member
     private val scanRepository = ScanRepositoryImpl()
 
+    // Quality override timer
+    private var plateInFrameStartTime: Long = 0L
+    private var isForceCaptureAllowed = false
+
     // Camera permission flow
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -134,9 +138,81 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             if (isDeviceLevel != isLevel) {
                 isDeviceLevel = isLevel
                 activity?.runOnUiThread {
-                    updateCoachPill()
+                    // Update state and UI whenever tilt changes
+                    cameraManager.lastQualityResult?.let { updateQualityUI(it) }
                 }
             }
+        }
+    }
+
+    private fun updateQualityUI(quality: ImageQualityResult) {
+        // Track how long a plate has been in frame to allow "Force Capture"
+        if (quality.isPlateFound) {
+            if (plateInFrameStartTime == 0L) {
+                plateInFrameStartTime = System.currentTimeMillis()
+            } else {
+                val elapsed = System.currentTimeMillis() - plateInFrameStartTime
+                if (elapsed > 5000) { // 5 seconds
+                    isForceCaptureAllowed = true
+                }
+            }
+        } else {
+            plateInFrameStartTime = 0L
+            isForceCaptureAllowed = false
+        }
+
+        // 1. Update legacy quality status (bottom bar)
+        val validationMsg = when {
+            !isDeviceLevel -> "Hold Phone Flat 📱"
+            !quality.isValid && isForceCaptureAllowed -> "Quality low, but you can capture now."
+            else -> quality.getValidationMessage()
+        }
+        
+        qualityStatusText.text = validationMsg
+        
+        val statusColor = when {
+            quality.isValid && isDeviceLevel -> R.color.secondary_light
+            isForceCaptureAllowed -> R.color.warning // Orange for force capture
+            else -> R.color.error
+        }
+        qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), statusColor))
+
+        // 2. Decide if capture is allowed
+        // Allowed if: perfect quality OR (plate found + 5 seconds passed)
+        captureButton.isEnabled = (quality.isValid && isDeviceLevel) || isForceCaptureAllowed
+        captureButton.alpha = if (captureButton.isEnabled) 1.0f else 0.5f
+        
+        // 3. Update Live Coach Pill (Top Overlay)
+        // ... (rest of method) ...
+        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(
+            selectedReferenceType
+        )
+        val refObjLabel = when (refType) {
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD -> "Place Card 💳"
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "Place Pen 🖊️"
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "Place Fork/Knife 🍴"
+            else -> "Place Ref Obj"
+        }
+
+        val coachMessage = when {
+            !isDeviceLevel -> "Phone Tilted 📐"
+            !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
+            !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
+            !quality.isSharpnessOk -> "Image Blurry 📷"
+            !quality.isPlateFound -> "Find Plate 🍽️"
+            isRefObjectExpectedInFrame() && !quality.isReferenceObjectFound -> refObjLabel
+            else -> "Perfect! ✅"
+        }
+
+        tvCoachPill.apply {
+            text = coachMessage
+            visibility = View.VISIBLE
+
+            // Color coding for the pill
+            background.setTint(
+                if (coachMessage == "Perfect! ✅") android.graphics.Color.parseColor("#994CAF50") // Green
+                else android.graphics.Color.parseColor("#99F44336") // Red for errors
+            )
         }
     }
 
@@ -183,6 +259,10 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
         // Add behind the other UI elements but on top of camera
         container.addView(overlay, 1) // Index 1 to be above camera (0) but below controls
+
+        // Reset force capture state
+        plateInFrameStartTime = 0L
+        isForceCaptureAllowed = false
     }
 
     private lateinit var arGuidanceOverlay: View
@@ -227,7 +307,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         val objectName = when (refType) {
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD -> "credit card"
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "insulin pen"
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "syringe/knife"
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "fork/knife"
             else -> "reference object"
         }
 
@@ -311,49 +391,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         cameraManager = CameraManager(requireContext())
         cameraManager.arCoreManager = arCoreManager // Feed AR frames during live preview
         cameraManager.onImageQualityUpdate = { quality ->
-            // Update legacy quality status (bottom bar)
-            qualityStatusText.text = quality.getValidationMessage()
-            qualityStatusText.setBackgroundColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    if (quality.isValid) R.color.secondary_light else R.color.error
-                )
-            )
-            captureButton.isEnabled =
-                quality.isValid || true // Allow capture anyway for now (debug)
-
-            // Update Live Coach Pill (Top Overlay)
-            // Prioritize feedback: Light > Focus > Framing
-            // Coach message based on selected reference type
-            val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(
-                selectedReferenceType
-            )
-            val refObjLabel = when (refType) {
-                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD -> "Place Card 💳"
-                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "Place Pen 🖊️"
-                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "Place Ref Obj 🖊️"
-                else -> "Place Ref Obj"
-            }
-
-            val coachMessage = when {
-                !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
-                !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
-                !quality.isSharpnessOk -> "Hold Steady 📷"
-                !quality.isPlateFound -> "Find Plate 🍽️"
-                isRefObjectExpectedInFrame() && !quality.isReferenceObjectFound -> refObjLabel
-                else -> "Perfect! ✅"
-            }
-
-            tvCoachPill.apply {
-                text = coachMessage
-                visibility = View.VISIBLE
-
-                // Color coding for the pill
-                background.setTint(
-                    if (coachMessage.startsWith("Perfect")) android.graphics.Color.parseColor("#994CAF50") // Green tint
-                    else android.graphics.Color.parseColor("#99000000") // Black tint
-                )
-            }
+            updateQualityUI(quality)
         }
 
         cameraPreview.post {
@@ -490,135 +528,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         arCoreManager?.pause()
     }
 
-    private fun updateCoachPill() {
-        // If device is tilted, show warning
-        if (!isDeviceLevel) {
-            tvCoachPill.text = "Hold Phone Flat 📱"
-            tvCoachPill.setBackgroundResource(R.drawable.bg_pill_warning)
-            // Assuming bg_pill_warning exists or reuse warning color
-            tvCoachPill.background.setTint(
-                ContextCompat.getColor(
-                    requireContext(),
-                    R.color.warning
-                )
-            )
-            tvCoachPill.visibility = View.VISIBLE
-        } else {
-            // Restore default text if needed or hide
-            tvCoachPill.visibility = View.GONE
-        }
-    }
+
 
     // In updateQualityStatus, we can also integrate this check
     // ...
 
     // Updates UI based on live quality checks
-    private fun updateQualityStatus(qualityResult: ImageQualityResult) {
-        // Only update if we're in camera mode
-        if (isScanningSurface || qualityResult == null) return
 
-        val isPlateFound = qualityResult.isPlateFound
-        val isRefFound = qualityResult.isReferenceObjectFound
-
-        // Decide state with Priority: 
-        // 1. Tilt (Hold Flat)
-        // 2. Plate (Center)
-        // 3. Ref Obj (Missing)
-        // 4. Quality (Brightness/Blur)
-        // 5. Success
-
-        // Default text color and background
-        var textColorRes = android.R.color.white
-        var textBgRes = R.color.primary // Default or dark
-
-        when {
-            // Case 0: Tilt Check (Critical for accuracy)
-            !isDeviceLevel -> {
-                isImageQualityOk = false // Prevent bad angle shots? Or just warn? Warn is safer UX.
-                // Let's allow capture but scream warning
-                qualityStatusText.text = "Hold Phone Flat 📱"
-                qualityStatusText.setBackgroundColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        R.color.warning
-                    )
-                )
-                captureButton.isEnabled = true
-                captureButton.alpha = 1f
-            }
-
-            // Case 1 & 2: No Plate -> Block
-            !isPlateFound -> {
-                isImageQualityOk = false
-                qualityStatusText.text = "Plate not detected. Center the food."
-                qualityStatusText.setBackgroundColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        R.color.warning
-                    )
-                )
-                captureButton.isEnabled = false
-                captureButton.alpha = 0.5f
-            }
-            // Case 3: Plate Found but No Ref -> Warn only if pen/syringe expected
-            isPlateFound && !isRefFound && isRefObjectExpectedInFrame() -> {
-                isImageQualityOk = true // Allow capture (Logic handled in click listener)
-
-                val isArReady = arCoreManager?.isReady == true
-                val isArSupported = arCoreManager?.isSupported == true
-                val msg = when {
-                    isArReady -> "Ref Obj Missing. AR Ready 📐"
-                    isArSupported -> "Ref Obj Missing. Tap for AR Mode"
-                    else -> "Ref Obj Missing. Estimating..."
-                }
-
-                qualityStatusText.text = msg
-                qualityStatusText.setBackgroundColor(
-                    ContextCompat.getColor(
-                        requireContext(),
-                        R.color.warning
-                    )
-                ) // Use yellow
-
-                // Allow capture but maybe show a dialog on click
-                captureButton.isEnabled = true
-                captureButton.alpha = 1f
-            }
-            // Case 4: Both Found -> Check other quality metrics
-            isPlateFound && isRefFound -> {
-                if (!qualityResult.isValid) {
-                    // Specific quality feedback
-                    val msg = qualityResult.getValidationMessage() // Might say "Too Dark" etc
-                    qualityStatusText.text = msg
-                    qualityStatusText.setBackgroundColor(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            R.color.warning
-                        )
-                    )
-                } else {
-                    isImageQualityOk = true
-                    qualityStatusText.text = "Perfect! Ready to capture."
-                    qualityStatusText.setBackgroundColor(
-                        ContextCompat.getColor(
-                            requireContext(),
-                            R.color.secondary_light
-                        )
-                    )
-                }
-                captureButton.isEnabled = true
-                captureButton.alpha = 1f
-            }
-        }
-
-        // Handle other quality issues (brightness/blur) as override warnings if critical
-        if (!qualityResult.isBrightnessOk || !qualityResult.isSharpnessOk) {
-            // We generally still allow capture if plate is found, but update text
-            if (isPlateFound) {
-                qualityStatusText.text = qualityResult.getValidationMessage()
-            }
-        }
-    }
 
     private fun onCaptureClicked() {
         showLoading(true, "Capturing image...")
@@ -873,14 +789,35 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
             arMeasurement,
             plateResult
         )        // Send null for weight/volume when 0 — server will calculate using plate physics
-        val rawWeight = (portionResult as? PortionResult.Success)?.estimatedWeightGrams
+        // Send null for weight/volume when 0 — server will calculate using plate physics
+        val successRes = portionResult as? PortionResult.Success
+        val rawWeight = successRes?.estimatedWeightGrams
         val estimatedWeight = if (rawWeight != null && rawWeight > 0f) rawWeight else null
-        val rawVolume = (portionResult as? PortionResult.Success)?.volumeCm3
+        val rawVolume = successRes?.volumeCm3
         val volumeCm3 = if (rawVolume != null && rawVolume > 0f) rawVolume else null
-        val diameter = (portionResult as? PortionResult.Success)?.plateDiameterCm
-        val depth = (portionResult as? PortionResult.Success)?.depthCm
-        val confidence = (portionResult as? PortionResult.Success)?.confidence
-        val containerType = (portionResult as? PortionResult.Success)?.containerType?.name
+
+        // CRITICAL: Only send diameter/depth if they come from real physical measurements (AR or Ref Obj).
+        // If they are just heuristic fallbacks from the client, we send null so the server's GPT can estimate them better.
+        val diameter = if (successRes?.arMeasurementUsed == true || successRes?.referenceObjectDetected == true) {
+            successRes.plateDiameterCm
+        } else null
+
+        val depth = if (successRes?.arMeasurementUsed == true && successRes.arDepthIsReal) {
+            successRes.depthCm
+        } else null
+
+        val confidence = successRes?.confidence
+        val containerType = successRes?.containerType?.name
+
+        // Check for reference object discrepancy
+        if (isRefObjectExpectedInFrame() && cameraManager.lastQualityResult?.isReferenceObjectFound == true) {
+            if (successRes?.referenceObjectDetected == false) {
+                Log.w(TAG, "DISCREPANCY: Reference object detected in preview but missed in final high-res capture!")
+                activity?.runOnUiThread {
+                   ToastHelper.showLong(requireContext(), "Reference object was lost in the final photo. Try holding steadier.")
+                }
+            }
+        }
 
         // Check for warning from portion estimator
         val warning = (portionResult as? PortionResult.Success)?.warning

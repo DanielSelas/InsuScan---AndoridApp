@@ -104,7 +104,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private val genderOptions = arrayOf("Select", "Male", "Female", "Other", "Prefer not to say")
     private val diabetesOptions = arrayOf("Select", "Type 1", "Type 2", "Gestational", "Other")
     private val insulinOptions = arrayOf("Select", "Rapid-acting", "Short-acting", "Other")
-    private val referenceOptions = arrayOf("Insulin Pen (Standard)", "Other Object (Fork/Knife)")
+    private val referenceOptions = arrayOf("Insulin Pen (Standard)", "Fork / Knife")
     private val roundingOptions = arrayOf("0.5 units", "1 unit")
     private val glucoseUnitOptions = arrayOf("mg/dL", "mmol/L")
 
