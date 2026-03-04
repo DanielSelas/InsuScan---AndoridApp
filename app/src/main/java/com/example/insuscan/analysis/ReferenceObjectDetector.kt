@@ -139,12 +139,20 @@ class ReferenceObjectDetector(private val context: Context) {
         val candidates = mutableListOf<DetectionResult.Found>()
 
         // ... (plateCenter logic same)
-        stats.totalContours = contours.size
+        val imgWidth = originalImage.cols().toDouble()
+        val imgHeight = originalImage.rows().toDouble()
+        val totalPixels = imgWidth * imgHeight
+        
+        // Scale thresholds relative to a "reference" 1080p-ish resolution (approx 2MP)
+        // 2,000,000 pixels is our baseline for the hardcoded constants.
+        val scaleFactor = totalPixels / 2_000_000.0
+        val minArea = MIN_CONTOUR_AREA * scaleFactor
+        val maxArea = MAX_CONTOUR_AREA * scaleFactor
 
         for (contour in contours) {
             val area = Imgproc.contourArea(contour)
-            if (area < MIN_CONTOUR_AREA) { stats.tooSmall++; continue }
-            if (area > MAX_CONTOUR_AREA) { stats.tooLarge++; continue }
+            if (area < minArea) { stats.tooSmall++; continue }
+            if (area > maxArea) { stats.tooLarge++; continue }
 
             val contour2f = MatOfPoint2f(*contour.toArray())
             val rotatedRect = Imgproc.minAreaRect(contour2f)
@@ -164,12 +172,13 @@ class ReferenceObjectDetector(private val context: Context) {
 
             when (mode) {
                 DetectionMode.STRICT -> {
-                    // Pens must be thin (High Ratio > 4.0)
+                    // Pens/Syringes must be thin (Ratio > 4.0)
                     if (aspectRatio >= 4.0 && aspectRatio <= MAX_ASPECT_RATIO) {
-                         // Rectangularity check
+                         // Rectangularity check — Syringes/Pens are elongated but can have irregularities 
+                         // (plungers, caps). Relaxing from 0.8 to 0.7.
                          val rectArea = width * height
                          val rectangularity = area / rectArea
-                         if (rectangularity > 0.8) {
+                         if (rectangularity > 0.7) {
                              confidence = 0.9f 
                              isCandidate = true
                          } else { stats.badSolidity++ }
@@ -217,7 +226,8 @@ class ReferenceObjectDetector(private val context: Context) {
             // Reject any candidate whose major dimension is less than 15% of image width (for pens)
             // or 10% of image width (for cards).
             val imgWidth = originalImage.cols().toDouble()
-            val minLengthThreshold = if (mode == DetectionMode.CARD) imgWidth * 0.10 else imgWidth * 0.15
+            // Relaxed thresholds: pens only need 7% of img width (was 15%), cards 7% (was 10%)
+            val minLengthThreshold = if (mode == DetectionMode.CARD) imgWidth * 0.07 else imgWidth * 0.07
             
             if (length < minLengthThreshold) {
                 Log.d(TAG, "Candidate rejected: too small (${length.toInt()}px < threshold ${minLengthThreshold.toInt()}px)")
@@ -231,7 +241,9 @@ class ReferenceObjectDetector(private val context: Context) {
             val realWorldArea = expectedObjectLengthCm * expectedObjectWidthCm
             val pixelArea = area 
             
-            var pixelToCmRatio = if (pixelArea > 0) {
+            // For thin objects (syringes), length-based scaling is much more robust than area-based.
+            // For cards, area-based is better.
+            var pixelToCmRatio = if (mode == DetectionMode.CARD && pixelArea > 0) {
                 kotlin.math.sqrt(realWorldArea / pixelArea).toFloat()
             } else {
                 (expectedObjectLengthCm / length).toFloat()

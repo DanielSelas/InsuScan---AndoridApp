@@ -150,6 +150,7 @@ class PortionEstimator(private val context: Context) {
                     confidence = 0.05f,
                     referenceObjectDetected = false,
                     arMeasurementUsed = false,
+                    arDepthIsReal = false,
                     warning = "No reference object or AR available. Place a reference object for accurate measurements."
                 )
             }
@@ -175,6 +176,7 @@ class PortionEstimator(private val context: Context) {
             confidence = calculateOverallConfidence(detectionResult, depthResult, scaleSource),
             referenceObjectDetected = hasRefObject,
             arMeasurementUsed = hasArMeasurement,
+            arDepthIsReal = arMeasurement?.isRealDepth ?: false,
             warning = null
         )
     }
@@ -276,6 +278,7 @@ sealed class PortionResult {
         val confidence: Float,
         val referenceObjectDetected: Boolean,
         val arMeasurementUsed: Boolean,
+        val arDepthIsReal: Boolean,
         val warning: String?
     ) : PortionResult()
 

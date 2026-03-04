@@ -40,7 +40,13 @@ class PlateDetector {
         private const val FALLBACK_CIRCULARITY_THRESHOLD = 0.35 // For ovals/bowls seen from angle
         private const val LAST_RESORT_CIRCULARITY_THRESHOLD = 0.25 // Very relaxed for difficult images
         private const val TARGET_PROCESSING_WIDTH = 640 // Normalize to this width before processing
+        private const val TEMPORAL_HISTORY_SIZE = 5 // Number of frames to average for smoothing
     }
+
+    // ── Temporal smoothing for live preview ──
+    private val boundsHistory = ArrayDeque<android.graphics.Rect>(TEMPORAL_HISTORY_SIZE)
+    private var lastShapeType = ShapeType.UNKNOWN
+    private var lastConfidence = 0f
 
     /**
      * Detects if a plate is present in the image and returns its bounds + shape.
@@ -74,7 +80,9 @@ class PlateDetector {
             Imgproc.cvtColor(processingMat, gray, Imgproc.COLOR_RGBA2GRAY)
 
             // Apply CLAHE (Contrast Limited Adaptive Histogram Equalization)
-            val clahe = Imgproc.createCLAHE(3.0, Size(8.0, 8.0))
+            // clip=4.0 + tile=6x6 boosts contrast more aggressively in smaller regions,
+            // critical for detecting white plates on white tables
+            val clahe = Imgproc.createCLAHE(4.0, Size(6.0, 6.0))
             val enhanced = Mat()
             clahe.apply(gray, enhanced)
 
@@ -134,6 +142,55 @@ class PlateDetector {
             Log.e(TAG, "Error detecting plate", e)
             PlateDetectionResult(false, null, 0f, ShapeType.UNKNOWN)
         }
+    }
+
+    /**
+     * Detect plate with temporal smoothing for live preview.
+     * Averages the last N bounding boxes to produce a stable, non-flickering result.
+     * Use [detectPlate] for single-shot capture analysis (no smoothing needed).
+     */
+    fun detectPlateSmoothed(bitmap: Bitmap): PlateDetectionResult {
+        val raw = detectPlate(bitmap)
+
+        if (!raw.isFound || raw.bounds == null) {
+            // Reset history on detection loss
+            if (boundsHistory.size > 0) {
+                boundsHistory.clear()
+            }
+            return raw
+        }
+
+        // Add to temporal buffer
+        if (boundsHistory.size >= TEMPORAL_HISTORY_SIZE) {
+            boundsHistory.removeFirst()
+        }
+        boundsHistory.addLast(raw.bounds)
+        lastShapeType = raw.shapeType
+        lastConfidence = raw.confidence
+
+        // Not enough history yet — return raw
+        if (boundsHistory.size < 2) {
+            return raw
+        }
+
+        // Average all bounding boxes in history
+        var avgLeft = 0; var avgTop = 0; var avgRight = 0; var avgBottom = 0
+        for (r in boundsHistory) {
+            avgLeft += r.left; avgTop += r.top; avgRight += r.right; avgBottom += r.bottom
+        }
+        val n = boundsHistory.size
+        val smoothedBounds = android.graphics.Rect(
+            avgLeft / n, avgTop / n, avgRight / n, avgBottom / n
+        )
+
+        return PlateDetectionResult(true, smoothedBounds, lastConfidence, lastShapeType)
+    }
+
+    /** Clear temporal smoothing history (call when camera restarts or fragment pauses). */
+    fun resetSmoothing() {
+        boundsHistory.clear()
+        lastShapeType = ShapeType.UNKNOWN
+        lastConfidence = 0f
     }
 
     /**

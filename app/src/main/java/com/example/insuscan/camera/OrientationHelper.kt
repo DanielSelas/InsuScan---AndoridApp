@@ -21,7 +21,7 @@ class OrientationHelper(context: Context) : SensorEventListener {
 
     companion object {
         private const val TAG = "OrientationHelper"
-        private const val MAX_TILT_DEGREES = 15.0 // Allow small tilt
+        private const val MAX_TILT_DEGREES = 20.0 // Allow more lenient tilt
     }
 
     fun start() {
