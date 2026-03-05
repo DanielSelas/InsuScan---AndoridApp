@@ -16,6 +16,8 @@ interface ScanRepository {
         // v2 pipeline fields
         containerType: String? = null,
         pixelToCmRatio: Float? = null,
-        foodRegionsJson: String? = null
+        foodRegionsJson: String? = null,
+        // Side image for depth estimation fallback
+        sideImageBitmap: Bitmap? = null
     ): Result<MealDto>
 }
