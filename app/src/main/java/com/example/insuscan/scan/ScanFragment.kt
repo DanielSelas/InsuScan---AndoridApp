@@ -64,6 +64,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private lateinit var tvCoachPill: TextView
 
     private var capturedImagePath: String? = null
+    private var sideImageBitmap: android.graphics.Bitmap? = null
 
     // State: are we showing the captured image or live camera?
     private var isShowingCapturedImage = false
@@ -135,11 +136,29 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         // Initialize Orientation Helper
         orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
         orientationHelper.onOrientationChanged = { pitch, roll, isLevel ->
-            if (isDeviceLevel != isLevel) {
-                isDeviceLevel = isLevel
+            if (isSidePhotoCaptureMode) {
+                // For side photo, we want the phone held upright, looking at table
+                // pitch around 0 means phone is vertical
+                val isUpright = Math.abs(pitch) < 30.0
                 activity?.runOnUiThread {
-                    // Update state and UI whenever tilt changes
-                    cameraManager.lastQualityResult?.let { updateQualityUI(it) }
+                    if (isUpright) {
+                        tvCoachPill.text = "✅ Good angle"
+                        tvCoachPill.setBackgroundResource(R.drawable.bg_coach_pill)
+                        captureButton.isEnabled = true
+                    } else {
+                        tvCoachPill.text = "📐 Hold phone vertically"
+                        tvCoachPill.setBackgroundResource(R.drawable.bg_pill_warning)
+                        captureButton.isEnabled = false
+                    }
+                }
+            } else {
+                // Normal top-down behavior
+                if (isDeviceLevel != isLevel) {
+                    isDeviceLevel = isLevel
+                    activity?.runOnUiThread {
+                        // Update state and UI whenever tilt changes
+                        cameraManager.lastQualityResult?.let { updateQualityUI(it) }
+                    }
                 }
             }
         }
@@ -399,6 +418,59 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
+    /**
+     * Shows a dialog asking the user to take a side-angle photo for better depth estimation.
+     * This is triggered as a fallback when ARCore doesn't provide measurements.
+     */
+    private fun showSidePhotoDialog(
+        topDownBitmap: android.graphics.Bitmap,
+        imageFile: File,
+        refType: String?
+    ) {
+        if (!isAdded) return
+
+        AlertDialog.Builder(requireContext())
+            .setTitle("📐 Improve Accuracy")
+            .setMessage(
+                "For better depth estimation, take a side-angle photo of the bowl/plate.\n\n" +
+                "This helps us measure how deep the container is, which improves portion accuracy.\n\n" +
+                "Hold your phone at table level and capture the container from the side."
+            )
+            .setPositiveButton("📸 Take Side Photo") { dialog, _ ->
+                dialog.dismiss()
+                // Store the top-down bitmap and imageFile for later use
+                pendingSidePhotoBitmap = topDownBitmap
+                pendingSidePhotoFile = imageFile
+                pendingSidePhotoRefType = refType
+                // Reset to live camera for the side photo
+                showLoading(false) // IMPORTANT: Dismiss the "Analyzing..." loading screen
+                isShowingCapturedImage = false
+                capturedImageView.visibility = View.GONE
+                cameraPreview.visibility = View.VISIBLE
+                captureButton.isEnabled = false // wait for orientation angle
+                isSidePhotoCaptureMode = true
+                subtitleText.text = "Capture from the SIDE"
+                tvCoachPill.text = "📐 Hold phone upright"
+                tvCoachPill.setBackgroundResource(R.drawable.bg_pill_warning)
+                tvCoachPill.visibility = View.VISIBLE
+            }
+            .setNegativeButton("Skip") { dialog, _ ->
+                dialog.dismiss()
+                showLoading(true, "Analyzing your meal...") // Keep loading if skipping
+                // Continue without side photo
+                proceedWithPortionAnalysis(topDownBitmap, imageFile, refType, sideImage = null)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    // Pending side-photo state
+    private var isSidePhotoCaptureMode = false
+    private var sidePhotoOffered = false
+    private var pendingSidePhotoBitmap: android.graphics.Bitmap? = null
+    private var pendingSidePhotoFile: File? = null
+    private var pendingSidePhotoRefType: String? = null
+
     // Initialize ARCore manager
     private fun initializeArCore() {
         arCoreManager = com.example.insuscan.ar.ArCoreManager(requireContext())
@@ -424,6 +496,9 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
     /** Returns true if the user chose a reference object type that needs live detection */
     private fun isRefObjectExpectedInFrame(): Boolean {
+        // Skip requirement for side photos (reference object only needed in top-down view)
+        if (isSidePhotoCaptureMode) return false
+        
         val refType =
             com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
         return refType != null &&
@@ -537,6 +612,47 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
 
 
     private fun onCaptureClicked() {
+        // Side photo capture mode: capture and resume analysis with both photos
+        if (isSidePhotoCaptureMode) {
+            showLoading(true, "Capturing side photo...")
+            val outputDir = requireContext().cacheDir
+            cameraManager.captureImage(
+                outputDirectory = outputDir,
+                onImageCaptured = { sideFile ->
+                    isSidePhotoCaptureMode = false
+                    val sideBitmap = android.graphics.BitmapFactory.decodeFile(sideFile.absolutePath)
+                    val topBitmap = pendingSidePhotoBitmap
+                    val origFile = pendingSidePhotoFile
+                    val origRefType = pendingSidePhotoRefType
+
+                    // Show original captured image again
+                    if (origFile != null) {
+                        switchToCapturedImageMode(origFile)
+                    }
+                    subtitleText.text = "Analyzing with side photo..."
+                    tvCoachPill.visibility = View.GONE
+
+                    // Clear pending state
+                    pendingSidePhotoBitmap = null
+                    pendingSidePhotoFile = null
+                    pendingSidePhotoRefType = null
+
+                    if (topBitmap != null && origFile != null) {
+                        Log.d(TAG, "Side photo captured — resuming analysis with both images")
+                        proceedWithPortionAnalysis(topBitmap, origFile, origRefType, sideImage = sideBitmap)
+                    } else {
+                        showLoading(false)
+                        ToastHelper.showShort(requireContext(), "Error: original photo lost")
+                    }
+                },
+                onError = { errorMessage ->
+                    showLoading(false)
+                    ToastHelper.showShort(requireContext(), errorMessage)
+                }
+            )
+            return
+        }
+
         showLoading(true, "Capturing image...")
 
         val outputDir = requireContext().cacheDir
@@ -590,6 +706,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private fun switchToCameraMode() {
         isShowingCapturedImage = false
         capturedImagePath = null
+        sidePhotoOffered = false
 
         // Toggle visibility
         capturedImageView.visibility = View.GONE
@@ -759,7 +876,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     private fun proceedWithPortionAnalysis(
         bitmap: android.graphics.Bitmap,
         imageFile: File,
-        refType: String?
+        refType: String?,
+        sideImage: android.graphics.Bitmap? = null
     ) {
         val email = UserProfileManager.getUserEmail(requireContext()) ?: "test@example.com"
 
@@ -796,18 +914,33 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         val rawVolume = successRes?.volumeCm3
         val volumeCm3 = if (rawVolume != null && rawVolume > 0f) rawVolume else null
 
-        // CRITICAL: Only send diameter/depth if they come from real physical measurements (AR or Ref Obj).
-        // If they are just heuristic fallbacks from the client, we send null so the server's GPT can estimate them better.
-        val diameter = if (successRes?.arMeasurementUsed == true || successRes?.referenceObjectDetected == true) {
+        // CRITICAL: Only send diameter/depth if they come from ARCore AND no reference object was found.
+        // If a reference object (Card/Syringe) is detected, we send null to force the AI to use its physical scale.
+        // This prevents inaccurate ARCore data (e.g., 33.5cm) from biasing the AI.
+        val diameter = if (successRes?.referenceObjectDetected == true) {
+            null
+        } else if (successRes?.arMeasurementUsed == true) {
             successRes.plateDiameterCm
         } else null
 
-        val depth = if (successRes?.arMeasurementUsed == true && successRes.arDepthIsReal) {
+        val depth = if (successRes?.referenceObjectDetected == true) {
+            null
+        } else if (successRes?.arMeasurementUsed == true && successRes.arDepthIsReal) {
             successRes.depthCm
         } else null
 
         val confidence = successRes?.confidence
         val containerType = successRes?.containerType?.name
+
+        // If no depth measurement (from AR) and no side image yet, prompt user for side photo (once)
+        // We prompt if depth is missing (even if diameter was found via reference object)
+        if (sideImage == null && depth == null && !sidePhotoOffered) {
+            sidePhotoOffered = true
+            activity?.runOnUiThread {
+                showSidePhotoDialog(bitmap, imageFile, refType)
+            }
+            return
+        }
 
         // Check for reference object discrepancy
         if (isRefObjectExpectedInFrame() && cameraManager.lastQualityResult?.isReferenceObjectFound == true) {
@@ -843,7 +976,8 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
                 scanRepository.scanImage(
                     bitmap, email, estimatedWeight, volumeCm3,
                     confidence, referenceType, diameter, depth,
-                    containerType = containerType
+                    containerType = containerType,
+                    sideImageBitmap = sideImage
                 )
             }
 

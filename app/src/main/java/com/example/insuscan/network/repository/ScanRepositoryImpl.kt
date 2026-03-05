@@ -28,14 +28,19 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         // v2 pipeline fields
         containerType: String?,
         pixelToCmRatio: Float?,
-        foodRegionsJson: String?
+        foodRegionsJson: String?,
+        // Side image for depth estimation fallback
+        sideImageBitmap: Bitmap?
     ): Result<MealDto> {
         return try {
-            val part = createImagePart(bitmap)
+            val part = createImagePart(bitmap, "file", "meal.jpg")
+            val sidePart = sideImageBitmap?.let { createImagePart(it, "sideFile", "side.jpg") }
+
             val response = api.analyzeImage(
                 part, email, estimatedWeight, volumeCm3, confidence, 
                 referenceObjectType, plateDiameterCm, plateDepthCm,
-                containerType, pixelToCmRatio, foodRegionsJson
+                containerType, pixelToCmRatio, foodRegionsJson,
+                sideFile = sidePart
             )
 
             when {
@@ -65,11 +70,26 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         }
     }
 
-    private fun createImagePart(bitmap: Bitmap): MultipartBody.Part {
+    private fun createImagePart(bitmap: Bitmap, partName: String, fileName: String): MultipartBody.Part {
+        // Downscale to 800px max dimension for faster upload and significantly faster Gemini processing
+        val maxDim = 800f
+        val scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height)
+        
+        val scaledBitmap = if (scale < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * scale).toInt(),
+                (bitmap.height * scale).toInt(),
+                true
+            )
+        } else {
+            bitmap
+        }
+
         val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream)
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
         val byteArray = stream.toByteArray()
         val requestBody = byteArray.toRequestBody("image/jpeg".toMediaType())
-        return MultipartBody.Part.createFormData("file", "meal.jpg", requestBody)
+        return MultipartBody.Part.createFormData(partName, fileName, requestBody)
     }
 }

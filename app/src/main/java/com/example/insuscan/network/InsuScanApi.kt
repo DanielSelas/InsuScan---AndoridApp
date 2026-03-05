@@ -116,7 +116,9 @@ interface InsuScanApi {
         // v2 pipeline fields
         @Query("containerType") containerType: String? = null,
         @Query("pixelToCmRatio") pixelToCmRatio: Float? = null,
-        @Query("foodRegionsJson") foodRegionsJson: String? = null
+        @Query("foodRegionsJson") foodRegionsJson: String? = null,
+        // Side image for depth estimation fallback
+        @Part sideFile: MultipartBody.Part? = null
     ): Response<MealDto>
 
     // Search USDA food database
