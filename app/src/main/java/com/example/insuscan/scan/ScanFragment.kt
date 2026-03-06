@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
@@ -52,11 +53,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     companion object {
         private const val TAG = "ScanFragment"
     }
-    private lateinit var chipGroupRefObject: com.google.android.material.chip.ChipGroup
-    private lateinit var chipRefSyringe: com.google.android.material.chip.Chip
-    private lateinit var chipRefFork: com.google.android.material.chip.Chip
-    private lateinit var chipRefCard: com.google.android.material.chip.Chip
-    private lateinit var chipRefNone: com.google.android.material.chip.Chip
+    private lateinit var chipGroupRefObject: LinearLayout
+    private lateinit var chipRefSyringe: LinearLayout
+    private lateinit var chipRefFork: LinearLayout
+    private lateinit var chipRefCard: LinearLayout
+    private lateinit var chipRefNone: LinearLayout
     private lateinit var btnRefToggle: TextView
     private lateinit var viewTargetZone: View
     // Views
@@ -313,6 +314,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         chipRefCard = view.findViewById(R.id.chip_ref_card)
         chipRefNone = view.findViewById(R.id.chip_ref_none)
         btnRefToggle = view.findViewById(R.id.btn_ref_toggle)
+
         viewTargetZone = view.findViewById(R.id.view_target_zone)
 
         // AR Overlay Views (from include)
@@ -325,10 +327,32 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
+    /** All custom ref chips (for iterating during selection changes) */
+    private val allRefChips: List<LinearLayout> get() = listOf(chipRefSyringe, chipRefFork, chipRefCard, chipRefNone)
+
+    /** Apply selected / unselected backgrounds and text colors to a set of custom chips */
+    private fun setSelectedChip(selected: LinearLayout) {
+        allRefChips.forEach { chip ->
+            val isSelected = chip == selected
+            chip.setBackgroundResource(
+                if (isSelected) R.drawable.ref_chip_selected_bg
+                else R.drawable.ref_chip_unselected_bg
+            )
+            // Update label text color (second child)
+            val label = chip.getChildAt(1) as? TextView
+            label?.setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (isSelected) R.color.text_on_primary else R.color.primary
+                )
+            )
+        }
+    }
+
     private fun setupReferenceChips() {
         val defaultType = resolveDefaultReferenceType()
         applyReferenceSelection(defaultType)
-        checkDefaultChip(defaultType)
+        setSelectedChip(chipForType(defaultType))
 
         chipRefSyringe.setOnClickListener { onRefChipSelected(ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE) }
         chipRefFork.setOnClickListener { onRefChipSelected(ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE) }
@@ -356,16 +380,15 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-    private fun checkDefaultChip(type: ReferenceObjectHelper.ReferenceObjectType) {
-        when (type) {
-            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> chipRefSyringe.isChecked = true
-            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> chipRefFork.isChecked = true
-            ReferenceObjectHelper.ReferenceObjectType.CARD -> chipRefCard.isChecked = true
-            ReferenceObjectHelper.ReferenceObjectType.NONE -> chipRefNone.isChecked = true
-        }
+    private fun chipForType(type: ReferenceObjectHelper.ReferenceObjectType): LinearLayout = when (type) {
+        ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> chipRefSyringe
+        ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE   -> chipRefFork
+        ReferenceObjectHelper.ReferenceObjectType.CARD            -> chipRefCard
+        ReferenceObjectHelper.ReferenceObjectType.NONE            -> chipRefNone
     }
 
     private fun onRefChipSelected(type: ReferenceObjectHelper.ReferenceObjectType) {
+        setSelectedChip(chipForType(type))
         applyReferenceSelection(type)
         chipGroupRefObject.postDelayed({ chipGroupRefObject.visibility = View.GONE }, 300)
     }
