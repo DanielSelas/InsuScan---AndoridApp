@@ -42,7 +42,7 @@
         app:layout_constraintTop_toBottomOf="@id/tv_scan_subtitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tv_quality_status" />
+        app:layout_constraintBottom_toTopOf="@id/layout_quality_row" />
 
     <!-- Target Zone Overlay (Dashed Pen Outline on Right) -->
     <View
@@ -74,6 +74,63 @@
         app:layout_constraintStart_toStartOf="@id/camera_preview"
         app:layout_constraintEnd_toEndOf="@id/camera_preview" />
 
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_ref_object"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#50000000"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        app:singleLine="true"
+        app:chipSpacingHorizontal="@dimen/spacing_xs"
+        app:layout_constraintTop_toTopOf="@id/camera_preview"
+        app:layout_constraintBottom_toBottomOf="@id/camera_preview"
+        app:layout_constraintStart_toStartOf="@id/camera_preview"
+        app:layout_constraintEnd_toEndOf="@id/camera_preview"
+        app:layout_constraintVertical_bias="0.6">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_ref_syringe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💉 Syringe"
+            android:textSize="11sp"
+            app:chipStartPadding="4dp"
+            app:chipEndPadding="4dp"
+            style="@style/Widget.Material3.Chip.Filter" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_ref_fork"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🍴 Fork"
+            android:textSize="11sp"
+            app:chipStartPadding="4dp"
+            app:chipEndPadding="4dp"
+            style="@style/Widget.Material3.Chip.Filter" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_ref_card"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💳 Card"
+            android:textSize="11sp"
+            app:chipStartPadding="4dp"
+            app:chipEndPadding="4dp"
+            style="@style/Widget.Material3.Chip.Filter" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_ref_none"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="❌ None"
+            android:textSize="11sp"
+            app:chipStartPadding="4dp"
+            app:chipEndPadding="4dp"
+            style="@style/Widget.Material3.Chip.Filter" />
+
+    </com.google.android.material.chip.ChipGroup>
+
     <!-- Captured image preview - hidden by default, shown after capture -->
     <ImageView
         android:id="@+id/iv_captured_image"
@@ -88,24 +145,44 @@
         app:layout_constraintTop_toBottomOf="@id/tv_scan_subtitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tv_quality_status" />
+        app:layout_constraintBottom_toTopOf="@id/layout_quality_row" />
 
-    <TextView
-        android:id="@+id/tv_quality_status"
+    <LinearLayout
+        android:id="@+id/layout_quality_row"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/scan_validating_preview"
-        android:textAlignment="center"
-        android:textSize="@dimen/text_body2"
-        android:textColor="@color/text_primary"
-        android:padding="@dimen/spacing_small"
-        android:background="@color/divider"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/spacing_small"
+        android:paddingEnd="@dimen/spacing_small"
         android:layout_marginStart="@dimen/spacing_medium"
         android:layout_marginEnd="@dimen/spacing_medium"
         android:layout_marginBottom="@dimen/spacing_small"
         app:layout_constraintBottom_toTopOf="@id/buttons_container"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/btn_ref_toggle"
+            android:layout_width="@dimen/icon_large"
+            android:layout_height="@dimen/icon_large"
+            android:text="💉"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Change reference object" />
+
+        <TextView
+            android:id="@+id/tv_quality_status"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/scan_validating_preview"
+            android:textAlignment="center"
+            android:textSize="@dimen/text_body2"
+            android:textColor="@color/text_primary" />
+
+    </LinearLayout>
 
     <!-- Buttons container -->
     <LinearLayout
