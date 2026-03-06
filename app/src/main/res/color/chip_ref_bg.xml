@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Selected state: filled primary blue (like btn_capture) -->
+    <item android:state_checked="true" android:color="@color/primary" />
+    <!-- Default/unselected state: transparent (like btn_gallery outlined style) -->
+    <item android:color="@color/white" />
+</selector>

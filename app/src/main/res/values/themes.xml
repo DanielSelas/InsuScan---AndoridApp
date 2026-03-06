@@ -38,4 +38,24 @@
 
     <style name="Theme.InsuScan" parent="Base.Theme.InsuScan" />
 
+    <style name="Widget.InsuScan.Chip.RefObject" parent="Widget.Material3.Chip.Filter">
+        <!-- Background: transparent (unselected, like btn_gallery) / primary fill (selected, like btn_capture) -->
+        <item name="chipBackgroundColor">@color/chip_ref_bg</item>
+        <!-- Text: primary blue (unselected) / white (selected) -->
+        <item name="android:textColor">@color/chip_ref_text</item>
+        <item name="android:textSize">12sp</item>
+        <item name="chipMinHeight">36dp</item>
+        <item name="chipStartPadding">10dp</item>
+        <item name="chipEndPadding">10dp</item>
+        <item name="chipCornerRadius">20dp</item>
+        <!-- Stroke: primary blue border when unselected (like btn_gallery outline) -->
+        <item name="chipStrokeWidth">1.5dp</item>
+        <item name="chipStrokeColor">@color/primary</item>
+        <item name="chipIconVisible">false</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="chipMinTouchTargetSize">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+    </style>
+
+
 </resources>

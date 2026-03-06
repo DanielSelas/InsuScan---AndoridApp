@@ -74,67 +74,145 @@
         app:layout_constraintStart_toStartOf="@id/camera_preview"
         app:layout_constraintEnd_toEndOf="@id/camera_preview" />
 
-    <com.google.android.material.chip.ChipGroup
+    <!-- Reference object selector — custom chips with emoji badge inside chips_background -->
+    <LinearLayout
         android:id="@+id/chip_group_ref_object"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/spacing_medium"
-        android:layout_marginEnd="@dimen/spacing_medium"
+        android:orientation="horizontal"
         android:layout_marginBottom="@dimen/spacing_xxl"
-        android:paddingStart="@dimen/spacing_medium"
-        android:paddingEnd="@dimen/spacing_medium"
+        android:padding="4dp"
         android:background="@drawable/chips_container"
-        app:singleSelection="true"
-        app:selectionRequired="true"
-        android:elevation="14dp"
-        app:singleLine="true"
-        app:chipSpacingHorizontal="@dimen/spacing_xs"
+        android:elevation="6dp"
+        android:gravity="center_vertical"
         app:layout_constraintBottom_toBottomOf="@id/camera_preview"
         app:layout_constraintStart_toStartOf="@id/camera_preview"
         app:layout_constraintEnd_toEndOf="@id/camera_preview">
 
-        <com.google.android.material.chip.Chip
+        <!-- Syringe chip -->
+        <LinearLayout
             android:id="@+id/chip_ref_syringe"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="💉 Syringe"
-            android:textSize="11sp"
-            app:chipStartPadding="4dp"
-            app:chipEndPadding="4dp"
-            style="@style/Widget.Material3.Chip.Filter" />
+            android:layout_height="36dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/ref_chip_unselected_bg"
+            android:clickable="true"
+            android:focusable="true">
 
-        <com.google.android.material.chip.Chip
+            <TextView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:text="💉"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_icon_bg"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Syringe"
+                android:textSize="12sp"
+                android:textColor="@color/primary" />
+        </LinearLayout>
+
+        <!-- Fork chip -->
+        <LinearLayout
             android:id="@+id/chip_ref_fork"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🍴 Fork"
-            android:textSize="11sp"
-            app:chipStartPadding="4dp"
-            app:chipEndPadding="4dp"
-            style="@style/Widget.Material3.Chip.Filter" />
+            android:layout_height="36dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/ref_chip_unselected_bg"
+            android:clickable="true"
+            android:focusable="true">
 
-        <com.google.android.material.chip.Chip
+            <TextView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:text="🍴"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_icon_bg"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fork"
+                android:textSize="12sp"
+                android:textColor="@color/primary" />
+        </LinearLayout>
+
+        <!-- Card chip -->
+        <LinearLayout
             android:id="@+id/chip_ref_card"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="💳 Card"
-            android:textSize="11sp"
-            app:chipStartPadding="4dp"
-            app:chipEndPadding="4dp"
-            style="@style/Widget.Material3.Chip.Filter" />
+            android:layout_height="36dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/ref_chip_unselected_bg"
+            android:clickable="true"
+            android:focusable="true">
 
-        <com.google.android.material.chip.Chip
+            <TextView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:text="💳"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_icon_bg"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Card"
+                android:textSize="12sp"
+                android:textColor="@color/primary" />
+        </LinearLayout>
+
+        <!-- None chip -->
+        <LinearLayout
             android:id="@+id/chip_ref_none"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="❌ None"
-            android:textSize="11sp"
-            app:chipStartPadding="4dp"
-            app:chipEndPadding="4dp"
-            style="@style/Widget.Material3.Chip.Filter" />
+            android:layout_height="36dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="10dp"
+            android:background="@drawable/ref_chip_unselected_bg"
+            android:clickable="true"
+            android:focusable="true">
 
-    </com.google.android.material.chip.ChipGroup>
+            <TextView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:text="❌"
+                android:textSize="14sp"
+                android:gravity="center"
+                android:background="@drawable/chip_icon_bg"
+                android:layout_marginEnd="6dp" />
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="None"
+                android:textSize="12sp"
+                android:textColor="@color/primary" />
+        </LinearLayout>
+
+    </LinearLayout>
     <!-- Captured image preview - hidden by default, shown after capture -->
     <ImageView
         android:id="@+id/iv_captured_image"
@@ -173,6 +251,7 @@
             android:text="💉"
             android:background="@drawable/chips_background"
             android:textSize="18sp"
+            android:elevation="4dp"
             android:gravity="center"
             android:contentDescription="Change reference object" />
 
