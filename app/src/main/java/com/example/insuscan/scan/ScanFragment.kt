@@ -44,6 +44,7 @@ import androidx.activity.result.PickVisualMediaRequest
 import com.bumptech.glide.Glide
 import com.example.insuscan.analysis.FoodRegionAnalyzer
 import com.example.insuscan.network.repository.ScanRepositoryImpl
+import com.example.insuscan.utils.ReferenceObjectHelper
 
 // ScanFragment - food scan screen with camera preview and portion analysis
 class ScanFragment : Fragment(R.layout.fragment_scan) {
@@ -51,7 +52,13 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
     companion object {
         private const val TAG = "ScanFragment"
     }
-
+    private lateinit var chipGroupRefObject: com.google.android.material.chip.ChipGroup
+    private lateinit var chipRefSyringe: com.google.android.material.chip.Chip
+    private lateinit var chipRefFork: com.google.android.material.chip.Chip
+    private lateinit var chipRefCard: com.google.android.material.chip.Chip
+    private lateinit var chipRefNone: com.google.android.material.chip.Chip
+    private lateinit var btnRefToggle: TextView
+    private lateinit var viewTargetZone: View
     // Views
     private lateinit var cameraPreview: PreviewView
     private lateinit var capturedImageView: ImageView
@@ -124,14 +131,15 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         initializeListeners()
         checkCameraPermission()
 
-        // Add guide overlay for reference object
-        addReferenceObjectOverlay(view)
-
-        // Show reference object selection dialog immediately on screen entry
-        showReferenceDialogThenAction {
-            // Dialog done — user can now capture with the chosen type
-            Log.d(TAG, "Reference type selected on entry: $selectedReferenceType")
-        }
+//        // Add guide overlay for reference object
+//        addReferenceObjectOverlay(view)
+//
+//        // Show reference object selection dialog immediately on screen entry
+//        showReferenceDialogThenAction {
+//            // Dialog done — user can now capture with the chosen type
+//            Log.d(TAG, "Reference type selected on entry: $selectedReferenceType")
+//        }
+        setupReferenceChips()
 
         // Initialize Orientation Helper
         orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
@@ -235,54 +243,54 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-    private fun addReferenceObjectOverlay(rootView: View) {
-        val context = requireContext()
-        val container = rootView as? FrameLayout ?: return
-
-        // Create overlay container
-        val overlay = FrameLayout(context).apply {
-            // Semi-transparent overlay on the right side (20% width)
-            layoutParams = FrameLayout.LayoutParams(
-                (resources.displayMetrics.widthPixels * 0.25).toInt(),
-                FrameLayout.LayoutParams.MATCH_PARENT
-            ).apply {
-                gravity = android.view.Gravity.END
-            }
-            setBackgroundColor(android.graphics.Color.parseColor("#2000FF00")) // Very faint green tint
-
-            // Add border/stroke effect (using a simple view for border)
-            val border = View(context).apply {
-                layoutParams =
-                    FrameLayout.LayoutParams(4, FrameLayout.LayoutParams.MATCH_PARENT).apply {
-                        gravity = android.view.Gravity.START
-                    }
-                setBackgroundColor(android.graphics.Color.parseColor("#80FFFFFF"))
-            }
-            addView(border)
-
-            // Add Text Label
-            val label = TextView(context).apply {
-                text = "Reference\nObject\nZone"
-                setTextColor(ContextCompat.getColor(context, R.color.white))
-                textSize = 14f
-                gravity = android.view.Gravity.CENTER
-                layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    gravity = android.view.Gravity.CENTER
-                }
-            }
-            addView(label)
-        }
-
-        // Add behind the other UI elements but on top of camera
-        container.addView(overlay, 1) // Index 1 to be above camera (0) but below controls
-
-        // Reset force capture state
-        plateInFrameStartTime = 0L
-        isForceCaptureAllowed = false
-    }
+//    private fun addReferenceObjectOverlay(rootView: View) {
+//        val context = requireContext()
+//        val container = rootView as? FrameLayout ?: return
+//
+//        // Create overlay container
+//        val overlay = FrameLayout(context).apply {
+//            // Semi-transparent overlay on the right side (20% width)
+//            layoutParams = FrameLayout.LayoutParams(
+//                (resources.displayMetrics.widthPixels * 0.25).toInt(),
+//                FrameLayout.LayoutParams.MATCH_PARENT
+//            ).apply {
+//                gravity = android.view.Gravity.END
+//            }
+//            setBackgroundColor(android.graphics.Color.parseColor("#2000FF00")) // Very faint green tint
+//
+//            // Add border/stroke effect (using a simple view for border)
+//            val border = View(context).apply {
+//                layoutParams =
+//                    FrameLayout.LayoutParams(4, FrameLayout.LayoutParams.MATCH_PARENT).apply {
+//                        gravity = android.view.Gravity.START
+//                    }
+//                setBackgroundColor(android.graphics.Color.parseColor("#80FFFFFF"))
+//            }
+//            addView(border)
+//
+//            // Add Text Label
+//            val label = TextView(context).apply {
+//                text = "Reference\nObject\nZone"
+//                setTextColor(ContextCompat.getColor(context, R.color.white))
+//                textSize = 14f
+//                gravity = android.view.Gravity.CENTER
+//                layoutParams = FrameLayout.LayoutParams(
+//                    FrameLayout.LayoutParams.WRAP_CONTENT,
+//                    FrameLayout.LayoutParams.WRAP_CONTENT
+//                ).apply {
+//                    gravity = android.view.Gravity.CENTER
+//                }
+//            }
+//            addView(label)
+//        }
+//
+//        // Add behind the other UI elements but on top of camera
+//        container.addView(overlay, 1) // Index 1 to be above camera (0) but below controls
+//
+//        // Reset force capture state
+//        plateInFrameStartTime = 0L
+//        isForceCaptureAllowed = false
+//    }
 
     private lateinit var arGuidanceOverlay: View
     private lateinit var arStatusText: TextView
@@ -299,6 +307,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         subtitleText = view.findViewById(R.id.tv_scan_subtitle)
         tvCoachPill = view.findViewById(R.id.tv_coach_pill)
 
+        chipGroupRefObject = view.findViewById(R.id.chip_group_ref_object)
+        chipRefSyringe = view.findViewById(R.id.chip_ref_syringe)
+        chipRefFork = view.findViewById(R.id.chip_ref_fork)
+        chipRefCard = view.findViewById(R.id.chip_ref_card)
+        chipRefNone = view.findViewById(R.id.chip_ref_none)
+        btnRefToggle = view.findViewById(R.id.btn_ref_toggle)
+        viewTargetZone = view.findViewById(R.id.view_target_zone)
+
         // AR Overlay Views (from include)
         arGuidanceOverlay = view.findViewById(R.id.ar_guidance_overlay)
         arStatusText = view.findViewById(R.id.tv_ar_status)
@@ -309,7 +325,98 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-    // ... (rest of simple methods)
+    private fun setupReferenceChips() {
+        val defaultType = resolveDefaultReferenceType()
+        applyReferenceSelection(defaultType)
+        checkDefaultChip(defaultType)
+
+        chipRefSyringe.setOnClickListener { onRefChipSelected(ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE) }
+        chipRefFork.setOnClickListener { onRefChipSelected(ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE) }
+        chipRefCard.setOnClickListener { onRefChipSelected(ReferenceObjectHelper.ReferenceObjectType.CARD) }
+        chipRefNone.setOnClickListener { onRefChipSelected(ReferenceObjectHelper.ReferenceObjectType.NONE) }
+
+        btnRefToggle.setOnClickListener {
+            chipGroupRefObject.visibility =
+                if (chipGroupRefObject.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+
+        cameraPreview.setOnClickListener {
+            if (chipGroupRefObject.visibility == View.VISIBLE) {
+                chipGroupRefObject.visibility = View.GONE
+            }
+        }
+    }
+
+    private fun resolveDefaultReferenceType(): ReferenceObjectHelper.ReferenceObjectType {
+        val profileType = UserProfileManager.getReferenceObjectType(requireContext())
+        return when {
+            profileType.contains("Card", ignoreCase = true) -> ReferenceObjectHelper.ReferenceObjectType.CARD
+            profileType.contains("Pen", ignoreCase = true) -> ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE
+            else -> ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE
+        }
+    }
+
+    private fun checkDefaultChip(type: ReferenceObjectHelper.ReferenceObjectType) {
+        when (type) {
+            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> chipRefSyringe.isChecked = true
+            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> chipRefFork.isChecked = true
+            ReferenceObjectHelper.ReferenceObjectType.CARD -> chipRefCard.isChecked = true
+            ReferenceObjectHelper.ReferenceObjectType.NONE -> chipRefNone.isChecked = true
+        }
+    }
+
+    private fun onRefChipSelected(type: ReferenceObjectHelper.ReferenceObjectType) {
+        applyReferenceSelection(type)
+        chipGroupRefObject.postDelayed({ chipGroupRefObject.visibility = View.GONE }, 300)
+    }
+
+    private fun applyReferenceSelection(type: ReferenceObjectHelper.ReferenceObjectType) {
+        selectedReferenceType = type.serverValue
+        cameraManager.selectedReferenceType = type.serverValue
+        updateReferenceOverlay(type)
+        updateRefToggleIcon(type)
+    }
+
+    private fun updateRefToggleIcon(type: ReferenceObjectHelper.ReferenceObjectType) {
+        btnRefToggle.text = when (type) {
+            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "💉"
+            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "🍴"
+            ReferenceObjectHelper.ReferenceObjectType.CARD -> "💳"
+            ReferenceObjectHelper.ReferenceObjectType.NONE -> "⚙️"
+        }
+    }
+
+    private fun updateReferenceOverlay(type: ReferenceObjectHelper.ReferenceObjectType) {
+        val density = resources.displayMetrics.density
+
+        when (type) {
+            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> {
+                viewTargetZone.visibility = View.VISIBLE
+                viewTargetZone.layoutParams = (viewTargetZone.layoutParams).apply {
+                    width = (30 * density).toInt()
+                    height = (180 * density).toInt()
+                }
+            }
+            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> {
+                viewTargetZone.visibility = View.VISIBLE
+                viewTargetZone.layoutParams = (viewTargetZone.layoutParams).apply {
+                    width = (35 * density).toInt()
+                    height = (180 * density).toInt()
+                }
+            }
+            ReferenceObjectHelper.ReferenceObjectType.CARD -> {
+                viewTargetZone.visibility = View.VISIBLE
+                viewTargetZone.layoutParams = (viewTargetZone.layoutParams).apply {
+                    width = (100 * density).toInt()
+                    height = (65 * density).toInt()
+                }
+            }
+            ReferenceObjectHelper.ReferenceObjectType.NONE -> {
+                viewTargetZone.visibility = View.GONE
+            }
+        }
+        viewTargetZone.requestLayout()
+    }
 
     private fun showMissingRefObjectDialog() {
         val isArReady = arCoreManager?.isReady == true
@@ -538,14 +645,14 @@ class ScanFragment : Fragment(R.layout.fragment_scan) {
         }
     }
 
-    private fun showReferenceDialogThenAction(action: () -> Unit) {
-        com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
-            selectedReferenceType = selectedType.serverValue
-            // Sync to camera manager so live preview uses correct detection mode
-            cameraManager.selectedReferenceType = selectedType.serverValue
-            action()
-        }
-    }
+//    private fun showReferenceDialogThenAction(action: () -> Unit) {
+//        com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
+//            selectedReferenceType = selectedType.serverValue
+//            // Sync to camera manager so live preview uses correct detection mode
+//            cameraManager.selectedReferenceType = selectedType.serverValue
+//            action()
+//        }
+//    }
 
     private fun checkCameraPermission() {
         when {

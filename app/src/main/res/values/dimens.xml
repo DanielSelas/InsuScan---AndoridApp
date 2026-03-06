@@ -121,4 +121,11 @@
     <dimen name="text_emoji_large">60sp</dimen>
     <dimen name="input_width_icr">50dp</dimen>
 
+    <dimen name="ref_syringe_width">30dp</dimen>
+    <dimen name="ref_syringe_height">180dp</dimen>
+    <dimen name="ref_fork_width">35dp</dimen>
+    <dimen name="ref_fork_height">180dp</dimen>
+    <dimen name="ref_card_width">100dp</dimen>
+    <dimen name="ref_card_height">65dp</dimen>
+
 </resources>
