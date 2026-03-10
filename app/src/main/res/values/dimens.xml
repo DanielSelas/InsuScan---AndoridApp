@@ -51,7 +51,7 @@
     <dimen name="icon_standard">24dp</dimen>                <!-- Standard icons -->
     <dimen name="icon_large">32dp</dimen>                   <!-- Large feature icons -->
     <dimen name="icon_xl">48dp</dimen>                      <!-- Extra large icons -->
-    <dimen name="icon_profile">80dp</dimen>                 <!-- Profile picture -->
+    <dimen name="icon_profile">180dp</dimen>                 <!-- Profile picture -->
 
     <!-- ==================== Stroke/Border Widths ==================== -->
     <dimen name="stroke_thin">1dp</dimen>                   <!-- Thin borders -->
