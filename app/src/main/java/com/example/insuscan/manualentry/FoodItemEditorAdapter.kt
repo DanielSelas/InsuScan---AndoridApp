@@ -67,6 +67,8 @@ class FoodItemEditorAdapter(
         private val weightSlider: Slider = itemView.findViewById(R.id.slider_weight)
         private val btnMinus: ImageButton = itemView.findViewById(R.id.btn_minus)
         private val btnPlus: ImageButton = itemView.findViewById(R.id.btn_plus)
+
+        private val btnUndoItem: ImageButton = itemView.findViewById(R.id.btn_undo_item)
         private val btnDelete: ImageButton = itemView.findViewById(R.id.btn_delete)
         private val loadingText: TextView? = itemView.findViewById(R.id.tv_loading)
 
@@ -86,6 +88,7 @@ class FoodItemEditorAdapter(
                     item.weightGrams = value
                     updateDisplay(item)
                     onItemChanged()
+                    updateUndoVisibility(item)
                 }
             }
 
@@ -100,9 +103,10 @@ class FoodItemEditorAdapter(
                 // Update slider with ROUNDED value
                 val roundedWeight = getRoundedWeight(newWeight)
                 weightSlider.value = roundedWeight
-                
+
                 updateDisplay(item)
                 onItemChanged()
+                updateUndoVisibility(item)
             }
 
             // Plus button: +10g
@@ -113,19 +117,34 @@ class FoodItemEditorAdapter(
                 // Update slider with ROUNDED value
                 val roundedWeight = getRoundedWeight(newWeight)
                 weightSlider.value = roundedWeight
-                
+
                 updateDisplay(item)
                 onItemChanged()
+                updateUndoVisibility(item)
             }
 
             // Delete button
             btnDelete.setOnClickListener {
                 onItemRemoved(item)
             }
+
+            // Undo button: reset single item to original values
+            btnUndoItem.setOnClickListener {
+                item.resetToOriginal()
+                val roundedWeight = getRoundedWeight(item.weightGrams)
+                weightSlider.value = roundedWeight
+                updateDisplay(item)
+                updateUndoVisibility(item)
+                onItemChanged()
+            }
+            updateUndoVisibility(item)
         }
 
         private fun getRoundedWeight(weight: Float): Float {
             return (Math.round(weight / 5f) * 5f).coerceIn(10f, 500f)
+        }
+        private fun updateUndoVisibility(item: EditableFoodItem) {
+            btnUndoItem.visibility = if (item.isModified) View.VISIBLE else View.GONE
         }
 
         private fun updateDisplay(item: EditableFoodItem) {
@@ -150,6 +169,7 @@ class FoodItemEditorAdapter(
                     weightText.text = "${item.weightGrams.toInt()}g"
                     carbsText.text = "⚠️ No nutrition info (Tap to fix)"
                 }
+                updateUndoVisibility(item)
             }
         }
     }
