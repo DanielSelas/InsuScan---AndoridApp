@@ -36,6 +36,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val conversationManager = ConversationManager(application)
     private val scanRepository = ScanRepositoryImpl()
     private val mealRepository = MealRepositoryImpl()
+    private val pipelineManager = com.example.insuscan.scan.ScanPipelineManager(application)
 
     val currentState: ChatState get() = conversationManager.currentState
 
@@ -190,6 +191,98 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
         conversationManager.beginParallelQuestions()
         conversationManager.onScanSuccess(meal)
+    }
+
+    fun onImageCapturedFromCamera(data: com.example.insuscan.scan.CapturedScanData) {
+        addMessage(ChatMessage.UserImage(imagePath = data.imagePath))
+        val loadingMsg = ChatMessage.BotLoading(text = "Analyzing your meal…")
+        addMessage(loadingMsg)
+
+        conversationManager.beginParallelQuestions()
+
+        viewModelScope.launch {
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    BitmapFactory.decodeFile(data.imagePath)
+                }
+                if (bitmap == null) {
+                    removeMessage(loadingMsg.id)
+                    conversationManager.onScanError("Could not read image file.")
+                    return@launch
+                }
+
+                pipelineManager.isRefObjectExpectedInFrame =
+                    data.referenceType != null && data.referenceType != "NONE"
+                pipelineManager.wasRefFoundInLivePreview = data.wasRefFoundInPreview
+                pipelineManager.skipSidePhoto()
+                val imageFile = java.io.File(data.imagePath)
+
+                val refCheck = pipelineManager.checkReferenceObject(bitmap, data.referenceType)
+                val refTypeToUse = when (refCheck) {
+                    is com.example.insuscan.scan.RefCheckResult.Proceed -> refCheck.refType
+                    is com.example.insuscan.scan.RefCheckResult.AlternativeFound -> {
+                        val mode = refCheck.detectedMode
+                        when (mode) {
+                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
+                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
+                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
+                        }
+                    }
+                }
+
+                val result = pipelineManager.runAnalysis(
+                    bitmap, imageFile, refTypeToUse, data.imagePath
+                )
+
+                removeMessage(loadingMsg.id)
+
+                when (result) {
+                    is com.example.insuscan.scan.PipelineResult.Success -> {
+                        if (result.warning != null) {
+                            addMessage(ChatMessage.BotText(text = "⚠️ ${result.warning}"))
+                        }
+                        conversationManager.onScanSuccess(result.meal)
+                    }
+                    is com.example.insuscan.scan.PipelineResult.NeedSidePhoto -> {
+                        pipelineManager.skipSidePhoto()
+                        val fallbackResult = pipelineManager.runAnalysis(
+                            bitmap, imageFile, refTypeToUse, data.imagePath
+                        )
+                        removeMessage(loadingMsg.id)
+                        handleBackgroundPipelineResult(fallbackResult)
+                    }
+                    com.example.insuscan.scan.PipelineResult.NoFoodDetected -> {
+                        conversationManager.onScanError("No food detected in the image. Try again?")
+                    }
+                    is com.example.insuscan.scan.PipelineResult.Failed -> {
+                        conversationManager.onScanError(result.error.message ?: "Analysis failed")
+                    }
+                }
+            } catch (e: Exception) {
+                removeMessage(loadingMsg.id)
+                conversationManager.onScanError(e.message ?: "Unexpected error")
+            }
+        }
+    }
+
+    private fun handleBackgroundPipelineResult(result: com.example.insuscan.scan.PipelineResult) {
+        when (result) {
+            is com.example.insuscan.scan.PipelineResult.Success -> {
+                if (result.warning != null) {
+                    addMessage(ChatMessage.BotText(text = "⚠️ ${result.warning}"))
+                }
+                conversationManager.onScanSuccess(result.meal)
+            }
+            com.example.insuscan.scan.PipelineResult.NoFoodDetected -> {
+                conversationManager.onScanError("No food detected in the image.")
+            }
+            is com.example.insuscan.scan.PipelineResult.Failed -> {
+                conversationManager.onScanError(result.error.message ?: "Analysis failed")
+            }
+            is com.example.insuscan.scan.PipelineResult.NeedSidePhoto -> {
+                conversationManager.onScanError("Analysis incomplete. Try again?")
+            }
+        }
     }
 
     // -- Button actions (all routed from ChatFragment) --

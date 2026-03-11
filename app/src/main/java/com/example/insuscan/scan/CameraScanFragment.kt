@@ -70,6 +70,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
 
     private var selectedReferenceType: String? = null
     private var capturedImagePath: String? = null
+    private var isCaptureOnlyMode: Boolean = false
     private var isShowingCapturedImage = false
     private var isDeviceLevel = true
     private var isScanningSurface = false
@@ -117,6 +118,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         findViews(view)
 
         val openGalleryDirectly = arguments?.getBoolean("open_gallery_directly") == true
+        isCaptureOnlyMode = arguments?.getBoolean("capture_only_mode", false) ?: false
 
         if (openGalleryDirectly) {
             arguments?.putBoolean("open_gallery_directly", false)
@@ -471,6 +473,10 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     }
 
     private fun validateAndProcessImage(imageFile: File) {
+        if (isCaptureOnlyMode) {
+            returnCapturedImage(imageFile)
+            return
+        }
         val devMode = true
         if (devMode) {
             analyzePortionAndContinue(imageFile)
@@ -488,6 +494,20 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
                 ToastHelper.showShort(requireContext(), validationResult.message)
             }
         }
+    }
+
+    private fun returnCapturedImage(imageFile: File) {
+        showLoading(false)
+        val wasRefFound = if (::cameraManager.isInitialized)
+            cameraManager.lastQualityResult?.isReferenceObjectFound ?: false
+        else false
+
+        val data = CapturedScanData(
+            imagePath = imageFile.absolutePath,
+            referenceType = selectedReferenceType,
+            wasRefFoundInPreview = wasRefFound
+        )
+        callback?.onImageCapturedForBackground(data)
     }
 
     private fun analyzePortionAndContinue(imageFile: File) {
@@ -773,7 +793,12 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             }
             capturedImagePath = cacheFile.absolutePath
 
-            // Force reference object to NONE for gallery images
+            if (isCaptureOnlyMode) {
+                selectedReferenceType = "NONE"
+                returnCapturedImage(cacheFile)
+                return
+            }
+
             selectedReferenceType = "NONE"
             if (::cameraManager.isInitialized) {
                 cameraManager.selectedReferenceType = "NONE"
