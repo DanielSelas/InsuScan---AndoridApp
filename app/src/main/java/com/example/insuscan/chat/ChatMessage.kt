@@ -97,9 +97,11 @@ sealed class ChatMessage(
     ) : ChatMessage(msgId, ts)
 }
 
-// Simple button model for action chips
+enum class ChipStyle { PRIMARY, SECONDARY, TERTIARY }
+
 data class ActionButton(
-    val actionId: String, // key used by ConversationManager to handle the tap
+    val actionId: String,
     val label: String,
-    val row: Int = 0      // visual row grouping (0, 1, 2…)
+    val row: Int = 0,
+    val style: ChipStyle = ChipStyle.SECONDARY
 )

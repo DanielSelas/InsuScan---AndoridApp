@@ -42,6 +42,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Divider above sticky actions -->
+        <View
+            android:id="@+id/sticky_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider"
+            android:visibility="gone" />
+
         <!-- Sticky Actions — rows are built programmatically, each centered -->
         <LinearLayout
             android:id="@+id/ll_sticky_container"
