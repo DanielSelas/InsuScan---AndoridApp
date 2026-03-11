@@ -370,7 +370,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
 
     private fun navigateToHome() {
-        findNavController().navigate(R.id.action_loginFragment_to_homeFragment)
+        findNavController().navigate(R.id.action_loginFragment_to_splashAnimation)
     }
 
     // --- UI helpers ---

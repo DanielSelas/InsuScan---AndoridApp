@@ -51,7 +51,8 @@ class MainActivity : AppCompatActivity() {
         // Hide bottom nav on login screen
         navController.addOnDestinationChangedListener { _, destination, _ ->
             when (destination.id) {
-                R.id.loginFragment -> bottomNav.visibility = View.GONE
+                R.id.loginFragment,
+                R.id.splashAnimationFragment -> bottomNav.visibility = View.GONE
                 else -> bottomNav.visibility = View.VISIBLE
             }
         }
