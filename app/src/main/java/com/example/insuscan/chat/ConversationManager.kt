@@ -128,8 +128,7 @@ class ConversationManager(private val context: Context) {
                 showAwaitingImageActions()
                 callback?.onStateChanged(currentState)
             } else {
-                // Show inline notification; user will see it when questions finish
-                callback?.onBotMessage(ChatMessage.BotText(text = "⚠️ I couldn't identify food from the image. You can add items manually."))
+                // Suppress mid-question messages — will show in proceedToFoodReview()
             }
             return
         }
@@ -160,9 +159,7 @@ class ConversationManager(private val context: Context) {
             showAwaitingImageActions()
             callback?.onStateChanged(currentState)
         } else {
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = "⚠️ Analysis failed: $errorMessage. You can add items manually after the questions.")
-            )
+                // Suppress mid-question error — will show in proceedToFoodReview()
         }
     }
 
@@ -741,8 +738,9 @@ class ConversationManager(private val context: Context) {
         currentState = ChatState.DONE
         callback?.onBotMessage(ChatMessage.BotSaved(text = "Meal saved! ✅"))
         setActions(listOf(
-            ActionButton("new_scan", "📷 New Scan"),
-            ActionButton("history", "📋 History")
+            ActionButton("new_scan", "📷 New Scan", row = 0),
+            ActionButton("history", "📋 History", row = 0),
+            ActionButton("go_home", "🏠 Home", row = 1)
         ))
         callback?.onStateChanged(currentState)
 
@@ -846,8 +844,9 @@ class ConversationManager(private val context: Context) {
                     ChatMessage.BotText(text = "Start a new scan or check your history!")
                 )
                 setActions(listOf(
-                    ActionButton("new_scan", "📷 New Scan"),
-                    ActionButton("history", "📋 History")
+                    ActionButton("new_scan", "📷 New Scan", row = 0),
+                    ActionButton("history", "📋 History", row = 0),
+                    ActionButton("go_home", "🏠 Home", row = 1)
                 ))
             }
             else -> {

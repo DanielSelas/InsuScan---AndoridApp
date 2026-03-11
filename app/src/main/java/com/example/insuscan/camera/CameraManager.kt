@@ -138,6 +138,7 @@ class CameraManager(private val context: Context) {
     }
 
 
+
     // Captures a photo and saves it into the provided directory.
     fun captureImage(
         outputDirectory: File,
@@ -311,6 +312,10 @@ class CameraManager(private val context: Context) {
 
         // Return variance divided by mean to normalize across lighting conditions
         return (variance / data.size / (mean + 1)).toFloat() * 100f
+    }
+
+    fun stopPreview() {
+        cameraProvider?.unbindAll()
     }
 
     // Stops camera and releases resources.
