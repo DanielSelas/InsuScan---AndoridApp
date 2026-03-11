@@ -23,6 +23,8 @@ class SplashAnimationFragment : Fragment(R.layout.fragment_splash_animation) {
 
         val screenWidth = resources.displayMetrics.widthPixels.toFloat()
         duckWalking.translationX = -screenWidth
+        duckCamera.scaleX = SCALE_FROM
+        duckCamera.scaleY = SCALE_FROM
 
         buildAnimation(duckWalking, duckCamera, flashOverlay, screenWidth).start()
     }
@@ -108,9 +110,9 @@ class SplashAnimationFragment : Fragment(R.layout.fragment_splash_animation) {
 
     companion object {
         private const val SLIDE_DURATION = 1500L
-        private const val MIDPOINT_DELAY = 600L
-        private const val CROSSFADE_DURATION = 500L
-        private const val SCALE_START_DELAY = 1300L
+        private const val MIDPOINT_DELAY = 750L
+        private const val CROSSFADE_DURATION = 300L
+        private const val SCALE_START_DELAY = MIDPOINT_DELAY + CROSSFADE_DURATION
         private const val SCALE_DURATION = 1000L
         private const val SCALE_FROM = 0.6f
         private const val SCALE_TO = 1.4f
