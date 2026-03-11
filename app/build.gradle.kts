@@ -99,4 +99,7 @@ dependencies {
 
     // Paging
     implementation(libs.androidx.paging.runtime)
+
+    // Lottie
+    implementation(libs.lottie)
 }

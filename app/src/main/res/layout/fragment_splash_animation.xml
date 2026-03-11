@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2196F3"
+    android:clipChildren="false">
+
+    <ImageView
+        android:id="@+id/img_duck_walking"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:src="@drawable/duck_walking"
+        android:contentDescription="@null" />
+
+    <ImageView
+        android:id="@+id/img_duck_camera"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_gravity="center"
+        android:src="@drawable/duck_stand_camera"
+        android:alpha="0"
+        android:contentDescription="@null" />
+
+    <View
+        android:id="@+id/flash_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:alpha="0" />
+
+</FrameLayout>
