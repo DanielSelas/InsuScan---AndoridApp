@@ -20,6 +20,8 @@ import com.example.insuscan.scan.ReferenceChipsController
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.example.insuscan.scan.CapturedScanData
+
 import java.io.File
 
 // Main chat screen — RecyclerView + compact sticky buttons + input bar
@@ -92,8 +94,8 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
     private fun openScanDialog(openGalleryDirectly: Boolean) {
         val dialog = ChatScanDialogFragment.newInstance(openGalleryDirectly)
-        dialog.onResult = { meal ->
-            viewModel.onScanResultFromScanFragment(meal, meal.imagePath)
+        dialog.onImageCaptured = { data ->
+            viewModel.onImageCapturedFromCamera(data)
         }
         dialog.show(parentFragmentManager, "ChatScan")
     }
