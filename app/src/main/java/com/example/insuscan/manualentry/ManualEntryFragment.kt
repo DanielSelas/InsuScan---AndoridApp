@@ -268,16 +268,40 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
                 )
 
                 val response = api.aiSearchFood(request)
-                
+
                 if (response.isSuccessful) {
                     val results = response.body()?.results ?: emptyList()
                     handleSearchResults(foodName, weightGrams, results)
                 } else {
-                    showManualEntryDialog(foodName, weightGrams, "Search error")
+                    val code = response.code()
+                    val msg = when (code) {
+                        in 500..599 -> "Server error ($code). Make sure the InsuScan server is running."
+                        408 -> "Request timed out. Try again."
+                        else -> "Search failed (error $code). Try a different name or enter manually."
+                    }
+                    showManualEntryDialog(foodName, weightGrams, msg)
                 }
 
+            } catch (e: java.net.ConnectException) {
+                showManualEntryDialog(
+                    foodName, weightGrams,
+                    "Cannot connect to server.\nMake sure the InsuScan server is running."
+                )
+            } catch (e: java.net.SocketTimeoutException) {
+                showManualEntryDialog(
+                    foodName, weightGrams,
+                    "Server took too long to respond.\nCheck your connection and try again."
+                )
+            } catch (e: java.net.UnknownHostException) {
+                showManualEntryDialog(
+                    foodName, weightGrams,
+                    "No internet connection.\nPlease check your network settings."
+                )
             } catch (e: Exception) {
-                showManualEntryDialog(foodName, weightGrams, "Network error")
+                showManualEntryDialog(
+                    foodName, weightGrams,
+                    "Lookup failed: ${e.message ?: "Unknown error"}"
+                )
             } finally {
                 showSearchingState(false)
                 etFoodName.text?.clear()
@@ -293,7 +317,10 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     ) {
         when {
             results.isEmpty() -> {
-                showManualEntryDialog(originalQuery, weightGrams, "No results for: $originalQuery")
+                showManualEntryDialog(
+                    originalQuery, weightGrams,
+                    "No USDA match found for \"$originalQuery\".\nTry a different spelling or enter carbs manually."
+                )
             }
             
             (results.first().relevanceScore ?: 0) >= HIGH_CONFIDENCE_THRESHOLD -> {
@@ -306,9 +333,12 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
             (results.first().relevanceScore ?: 0) >= MEDIUM_CONFIDENCE_THRESHOLD -> {
                 showSelectFoodDialog(originalQuery, weightGrams, results.take(3))
             }
-            
+
             else -> {
-                showManualEntryDialog(originalQuery, weightGrams, "No good match for: $originalQuery")
+                showManualEntryDialog(
+                    originalQuery, weightGrams,
+                    "No accurate match for \"$originalQuery\".\nEnter the nutrition info manually below."
+                )
             }
         }
     }

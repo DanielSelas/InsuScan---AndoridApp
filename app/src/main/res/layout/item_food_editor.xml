@@ -36,6 +36,15 @@
                 android:ellipsize="end" />
 
             <ImageButton
+                android:id="@+id/btn_undo_item"
+                android:layout_width="@dimen/button_height_small"
+                android:layout_height="@dimen/button_height_small"
+                android:src="@android:drawable/ic_menu_revert"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Reset item to original"
+                android:visibility="gone" />
+
+            <ImageButton
                 android:id="@+id/btn_delete"
                 android:layout_width="@dimen/button_height_small"
                 android:layout_height="@dimen/button_height_small"
@@ -103,7 +112,7 @@
                 android:id="@+id/btn_minus"
                 android:layout_width="@dimen/spacing_xl"
                 android:layout_height="@dimen/spacing_xl"
-                android:src="@android:drawable/ic_menu_revert"
+                android:src="@drawable/ic_minus"
                 android:background="@drawable/btn_circle_outline"
                 android:contentDescription="@string/content_desc_decrease_weight" />
 
