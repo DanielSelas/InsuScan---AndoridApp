@@ -33,7 +33,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private lateinit var sendButton: ImageButton
     private lateinit var cameraButton: ImageButton
     private lateinit var stickyContainer: LinearLayout
-
+    private lateinit var stickyDivider: View
     // Keep references to open sheets for item injection
     private var openEditMealSheet: EditMealBottomSheet? = null
 
@@ -57,6 +57,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         sendButton = view.findViewById(R.id.btn_send)
         cameraButton = view.findViewById(R.id.btn_camera)
         stickyContainer = view.findViewById(R.id.ll_sticky_container)
+        stickyDivider = view.findViewById(R.id.sticky_divider)
     }
 
     private fun setupTopBar(rootView: View) {
@@ -120,62 +121,32 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
             if (actions.isNullOrEmpty()) {
                 stickyContainer.visibility = View.GONE
+                stickyDivider.visibility = View.GONE
                 return@observe
             }
 
             stickyContainer.visibility = View.VISIBLE
+            stickyDivider.visibility = View.VISIBLE
 
-            // Group buttons by row, preserving order
-            val rows = actions.groupBy { it.row }
-                .toSortedMap()
+            val rows = actions.groupBy { it.row }.toSortedMap()
+            val ctx = requireContext()
 
-            rows.forEach { (rowIndex, rowButtons) ->
-                val chipGroup = ChipGroup(requireContext()).apply {
+            rows.forEach { (_, rowButtons) ->
+                val chipGroup = ChipGroup(ctx).apply {
                     isSingleLine = false
-                    chipSpacingHorizontal = 10.dpToPx()
-                    chipSpacingVertical = 6.dpToPx()
+                    chipSpacingHorizontal = 8.dpToPx()
+                    chipSpacingVertical = 4.dpToPx()
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
                         gravity = android.view.Gravity.CENTER_HORIZONTAL
-                        topMargin = 4.dpToPx()
-                        bottomMargin = 4.dpToPx()
                     }
                 }
 
                 rowButtons.forEach { button ->
-                    val chip = Chip(requireContext()).apply {
-                        text = button.label
-                        isClickable = true
-                        isCheckable = false
-                        textSize = 14f
-                        chipMinHeight = 48f
-                        chipStartPadding = 16f
-                        chipEndPadding = 16f
-
-                        // Save button — larger and highlighted
-                        if (button.actionId == "save_meal") {
-                            textSize = 17f
-                            chipMinHeight = 56f
-                            chipStartPadding = 24f
-                            chipEndPadding = 24f
-                            setChipBackgroundColorResource(R.color.primary)
-                            setTextColor(resources.getColor(R.color.white, null))
-                        }
-
-                        // Edit adjustments — bordered to stand out
-                        if (button.actionId == "edit_adjustments") {
-                            setChipStrokeWidth(2f)
-                            setChipStrokeColorResource(R.color.primary)
-                        }
-
-                        // Active adjustments (✓) — tinted background
-                        if (button.label.contains("✓")) {
-                            setChipBackgroundColorResource(R.color.primary_light)
-                        }
-
-                        setOnClickListener { viewModel.onActionButton(button.actionId) }
+                    val chip = ChatChipFactory.create(ctx, button) { actionId ->
+                        viewModel.onActionButton(actionId)
                     }
                     chipGroup.addView(chip)
                 }

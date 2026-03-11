@@ -95,8 +95,8 @@ class ConversationManager(private val context: Context) {
 
     private fun showAwaitingImageActions() {
         setActions(listOf(
-            ActionButton("take_photo", "📷 Photo"),
-            ActionButton("pick_gallery", "🖼️ Gallery")
+            ActionButton("take_photo", "📷 Photo", row = 0, style = ChipStyle.PRIMARY),
+            ActionButton("pick_gallery", "🖼️ Gallery", row = 0, style = ChipStyle.SECONDARY)
         ))
     }
 
@@ -199,8 +199,8 @@ class ConversationManager(private val context: Context) {
 
     private fun showFoodActions() {
         setActions(listOf(
-            ActionButton("confirm_food", "✅ Confirm"),
-            ActionButton("edit_food", "✏️ Edit Items")
+            ActionButton("confirm_food", "✅ Confirm", row = 0, style = ChipStyle.PRIMARY),
+            ActionButton("edit_food", "✏️ Edit Items", row = 0, style = ChipStyle.SECONDARY)
         ))
     }
 
@@ -281,7 +281,7 @@ class ConversationManager(private val context: Context) {
                 ChatMessage.BotText(text = "⚠️ Medical profile incomplete. Set ICR, ISF, and target in your Profile first.")
             )
             setActions(listOf(
-                ActionButton("open_profile", "Open Profile")
+                ActionButton("open_profile", "Open Profile", style = ChipStyle.PRIMARY)
             ))
             return
         }
@@ -303,8 +303,8 @@ class ConversationManager(private val context: Context) {
 
     private fun showMedicalActions() {
         setActions(listOf(
-            ActionButton("confirm_medical", "✅ Confirm"),
-            ActionButton("edit_medical", "✏️ Edit")
+            ActionButton("confirm_medical", "✅ Confirm", row = 0, style = ChipStyle.PRIMARY),
+            ActionButton("edit_medical", "✏️ Edit", row = 0, style = ChipStyle.SECONDARY)
         ))
     }
 
@@ -327,7 +327,7 @@ class ConversationManager(private val context: Context) {
         callback?.onRequestEditMedicalSheet()
 
         setActions(listOf(
-            ActionButton("cancel_edit_medical", "Cancel")
+            ActionButton("cancel_edit_medical", "Cancel", style = ChipStyle.TERTIARY)
         ))
         callback?.onStateChanged(currentState)
     }
@@ -376,7 +376,7 @@ class ConversationManager(private val context: Context) {
             ChatMessage.BotText(text = "🩸 What's your current blood glucose level?\nType a number or tap Skip if you haven't measured.")
         )
         setActions(listOf(
-            ActionButton("skip_glucose", "Skip")
+            ActionButton("skip_glucose", "Skip", style = ChipStyle.TERTIARY)
         ))
         callback?.onStateChanged(currentState)
     }
@@ -416,10 +416,10 @@ class ConversationManager(private val context: Context) {
         val intensePct = pm.getIntenseExerciseAdjustment(context)
 
         setActions(listOf(
-            ActionButton("activity_none", "None", row = 0),
-            ActionButton("activity_light", "🏃 Light (-${lightPct}%)", row = 1),
-            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)", row = 1),
-            ActionButton("edit_activity_pct", "✏️ Edit %", row = 2)
+            ActionButton("activity_none", "None", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("activity_light", "🏃 Light (-${lightPct}%)", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("edit_activity_pct", "✏️ Edit %", row = 1, style = ChipStyle.TERTIARY)
         ))
     }
 
@@ -465,11 +465,11 @@ class ConversationManager(private val context: Context) {
         val stressPct = pm.getStressAdjustment(context)
 
         setActions(listOf(
-            ActionButton("adj_none", "No", row = 0),
-            ActionButton("adj_sick", "🤒 Sick (+${sickPct}%)", row = 1),
-            ActionButton("adj_stress", "😫 Stress (+${stressPct}%)", row = 1),
-            ActionButton("adj_both", "Both (+${sickPct + stressPct}%)", row = 1),
-            ActionButton("edit_sick_stress_pct", "✏️ Edit %", row = 2)
+            ActionButton("adj_none", "No", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("adj_sick", "🤒 Sick (+${sickPct}%)", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("adj_stress", "😫 Stress (+${stressPct}%)", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("adj_both", "Both (+${sickPct + stressPct}%)", row = 1, style = ChipStyle.SECONDARY),
+            ActionButton("edit_sick_stress_pct", "✏️ Edit %", row = 1, style = ChipStyle.TERTIARY)
         ))
     }
 
@@ -620,8 +620,8 @@ class ConversationManager(private val context: Context) {
 
     private fun showResultActions() {
         setActions(listOf(
-            ActionButton("save_meal", "💾 Save Meal", row = 0),
-            ActionButton("edit_step", "✏️ Edit a Step", row = 1)
+            ActionButton("save_meal", "💾 Save Meal", row = 0, style = ChipStyle.PRIMARY),
+            ActionButton("edit_step", "✏️ Edit a Step", row = 1, style = ChipStyle.TERTIARY)
         ))
     }
 
@@ -633,12 +633,12 @@ class ConversationManager(private val context: Context) {
             ChatMessage.BotText(text = "Which step would you like to edit?")
         )
         setActions(listOf(
-            ActionButton("edit_step_food", "🍽️ Food Items", row = 0),
-            ActionButton("edit_step_medical", "⚕️ Medical", row = 1),
-            ActionButton("edit_step_glucose", "🩸 Glucose", row = 1),
-            ActionButton("edit_step_activity", "🏃 Activity", row = 2),
-            ActionButton("edit_step_adjustments", "🔧 Adjustments", row = 2),
-            ActionButton("back_to_result", "← Back", row = 3)
+            ActionButton("edit_step_food", "🍽️ Food Items", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("edit_step_medical", "⚕️ Medical", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("edit_step_glucose", "🩸 Glucose", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("edit_step_activity", "🏃 Activity", row = 1, style = ChipStyle.SECONDARY),
+            ActionButton("edit_step_adjustments", "🔧 Adjustments", row = 1, style = ChipStyle.SECONDARY),
+            ActionButton("back_to_result", "← Back", row = 2, style = ChipStyle.TERTIARY)
         ))
         callback?.onStateChanged(currentState)
     }
@@ -683,10 +683,10 @@ class ConversationManager(private val context: Context) {
         val intensePct = pm.getIntenseExerciseAdjustment(context)
 
         setActions(listOf(
-            ActionButton("activity_none", "No Exercise"),
-            ActionButton("activity_light", "🏃 Light (-${lightPct}%)"),
-            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)"),
-            ActionButton("back_to_result", "← Back")
+            ActionButton("activity_none", "No Exercise", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("activity_light", "🏃 Light (-${lightPct}%)", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("back_to_result", "← Back", row = 1, style = ChipStyle.TERTIARY)
         ))
         callback?.onStateChanged(currentState)
     }
@@ -738,9 +738,9 @@ class ConversationManager(private val context: Context) {
         currentState = ChatState.DONE
         callback?.onBotMessage(ChatMessage.BotSaved(text = "Meal saved! ✅"))
         setActions(listOf(
-            ActionButton("new_scan", "📷 New Scan", row = 0),
-            ActionButton("history", "📋 History", row = 0),
-            ActionButton("go_home", "🏠 Home", row = 1)
+            ActionButton("new_scan", "📷 New Scan", row = 0, style = ChipStyle.PRIMARY),
+            ActionButton("history", "📋 History", row = 0, style = ChipStyle.SECONDARY),
+            ActionButton("go_home", "🏠 Home", row = 1, style = ChipStyle.TERTIARY)
         ))
         callback?.onStateChanged(currentState)
 
@@ -962,14 +962,14 @@ class ConversationManager(private val context: Context) {
             ChatState.AWAITING_IMAGE -> showAwaitingImageActions()
             ChatState.REVIEWING_FOOD -> showFoodActions()
             ChatState.REVIEWING_MEDICAL -> showMedicalActions()
-            ChatState.EDITING_MEDICAL -> setActions(listOf(ActionButton("cancel_edit_medical", "Cancel")))
-            ChatState.ASKING_GLUCOSE -> setActions(listOf(ActionButton("skip_glucose", "Skip")))
+            ChatState.EDITING_MEDICAL -> setActions(listOf(ActionButton("cancel_edit_medical", "Cancel", style = ChipStyle.TERTIARY)))
+            ChatState.ASKING_GLUCOSE -> setActions(listOf(ActionButton("skip_glucose", "Skip", style = ChipStyle.TERTIARY)))
             ChatState.ASKING_ACTIVITY -> showActivityOptions()
             ChatState.SHOWING_RESULT -> showResultActions()
             ChatState.ADJUSTING_ACTIVITY -> onAdjustActivity()
             ChatState.DONE -> setActions(listOf(
-                ActionButton("new_scan", "📷 New Scan"),
-                ActionButton("history", "📋 History")
+                ActionButton("new_scan", "📷 New Scan", style = ChipStyle.PRIMARY),
+                ActionButton("history", "📋 History", style = ChipStyle.SECONDARY)
             ))
             else -> clearActions()
         }
