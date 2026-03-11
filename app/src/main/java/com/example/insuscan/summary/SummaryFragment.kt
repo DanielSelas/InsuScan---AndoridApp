@@ -469,9 +469,22 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         if (weight != null && weight > 0) {
             val weightText = TextView(ctx).apply {
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                text = "Weight: ${weight}g ✎" // Add pencil icon to indicate editability
+
+                val fullText = "Weight: ${weight}g ✎"
+                val spannable = android.text.SpannableString(fullText)
+
+                // Only change the color of the last character (the icon)
+                val iconColor = ContextCompat.getColor(ctx, R.color.status_normal)
+                spannable.setSpan(
+                    android.text.style.ForegroundColorSpan(iconColor),
+                    fullText.length - 1,
+                    fullText.length,
+                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+
+                text = spannable
                 textSize = 13f
-                setTextColor(ContextCompat.getColor(ctx, R.color.primary)) // Blue to indicate interaction
+                setTextColor(ContextCompat.getColor(ctx, R.color.primary))
                 setPadding(16, 0, 16, 0)
                 setOnClickListener {
                     showWeightEditDialog(index, item)

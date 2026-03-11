@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.72" />
+        app:layout_constraintGuide_percent="0.8" />
 
     <ImageView
         android:id="@+id/iv_home_avatar"
@@ -64,7 +64,7 @@
         android:id="@+id/card_temporary_modes"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/spacing_xl"
+        android:layout_marginTop="@dimen/spacing_xxl"
         app:cardCornerRadius="@dimen/corner_radius_card"
         app:cardElevation="@dimen/elevation_card"
         app:cardBackgroundColor="@color/surface"
@@ -83,17 +83,17 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/spacing_xs"
                 android:text="@string/home_temporary_modes"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
                 android:textColor="@color/text_secondary"
-                android:layout_marginBottom="@dimen/spacing_xs" />
+                android:textSize="@dimen/text_body2"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingVertical="@dimen/spacing_xs">
 
                 <TextView
@@ -118,8 +118,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingVertical="@dimen/spacing_xs">
 
                 <TextView
@@ -144,8 +144,8 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingVertical="@dimen/spacing_xs">
 
                 <TextView
