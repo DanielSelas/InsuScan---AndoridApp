@@ -184,8 +184,15 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    // -- Button actions (all routed from ChatFragment) --
+    fun onScanResultFromScanFragment(meal: com.example.insuscan.meal.Meal, imagePath: String?) {
+        if (imagePath != null) {
+            addMessage(ChatMessage.UserImage(imagePath = imagePath))
+        }
+        conversationManager.beginParallelQuestions()
+        conversationManager.onScanSuccess(meal)
+    }
 
+    // -- Button actions (all routed from ChatFragment) --
     fun onActionButton(actionId: String) {
         when (actionId) {
             // ... (Photo/Gallery/Food/Medical confirmed/edit - no changes)
@@ -314,6 +321,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 _messages.value = emptyList()
                 conversationManager.resetForNewScan()
             }
+            "go_home" -> fireEvent(_navigationEvent, "home")
             "history" -> fireEvent(_navigationEvent, "history")
         }
     }

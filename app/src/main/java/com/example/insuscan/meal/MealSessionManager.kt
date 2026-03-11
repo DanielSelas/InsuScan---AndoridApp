@@ -20,4 +20,7 @@ object MealSessionManager {
     fun clearSession() {
         currentMeal = null
     }
+    fun clearCurrentMeal() {
+        currentMeal = null
+    }
 }

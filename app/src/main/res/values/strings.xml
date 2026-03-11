@@ -64,7 +64,7 @@
     <string name="meal_time">Time</string>
 
     <!-- ==================== Nutritional Info ==================== -->
-    <string name="nutrition_carbs">Carbohydrates</string>
+    <string name="nutrition_carbs">Total carbohydrates in the meal</string>
     <string name="nutrition_carbs_short">Carbs</string>
     <string name="nutrition_protein">Protein</string>
     <string name="nutrition_fat">Fat</string>
@@ -294,6 +294,7 @@
     <string name="home_exercise_planned">Exercise Planned</string>
     <string name="home_sick_warning">Sick mode increases insulin resistance. Monitor glucose closely.</string>
     <string name="home_previous_meals">Previous Meals</string>
+    <string name="nav_quick_scan">Quick scan</string>
     <!-- Login screen -->
     <string name="auth_password_hint">At least 6 characters</string>
     <string name="auth_no_account">Don\'t have an account?</string>

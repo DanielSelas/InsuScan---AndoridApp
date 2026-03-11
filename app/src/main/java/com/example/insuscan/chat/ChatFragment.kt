@@ -11,10 +11,12 @@ import android.widget.LinearLayout
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
 import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.scan.ReferenceChipsController
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -22,7 +24,6 @@ import java.io.File
 
 // Main chat screen — RecyclerView + compact sticky buttons + input bar
 class ChatFragment : Fragment(R.layout.fragment_chat) {
-
     private lateinit var viewModel: ChatViewModel
     private lateinit var chatAdapter: ChatAdapter
     private lateinit var recyclerView: RecyclerView
@@ -34,26 +35,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     // Keep references to open sheets for item injection
     private var openEditMealSheet: EditMealBottomSheet? = null
 
-    // Selected reference object type (chosen before capture)
-    private var selectedReferenceType: String? = null
 
-    private val cameraLauncher = registerForActivityResult(
-        ActivityResultContracts.TakePicturePreview()
-    ) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            val file = File(requireContext().cacheDir, "chat_photo_${System.currentTimeMillis()}.jpg")
-            file.outputStream().use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
-            }
-            viewModel.onImageReceived(file.absolutePath, selectedReferenceType)
-        }
-    }
-
-    private val galleryLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        if (uri != null) processGalleryUri(uri)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -104,11 +86,16 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             }
         }
         cameraButton.setOnClickListener {
-            com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
-                selectedReferenceType = selectedType.serverValue
-                cameraLauncher.launch(null)
-            }
+            openScanDialog(false)
         }
+    }
+
+    private fun openScanDialog(openGalleryDirectly: Boolean) {
+        val dialog = ChatScanDialogFragment.newInstance(openGalleryDirectly)
+        dialog.onResult = { meal ->
+            viewModel.onScanResultFromScanFragment(meal, meal.imagePath)
+        }
+        dialog.show(parentFragmentManager, "ChatScan")
     }
 
     private fun observeMessages() {
@@ -142,16 +129,16 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
             rows.forEach { (rowIndex, rowButtons) ->
                 val chipGroup = ChipGroup(requireContext()).apply {
-                    isSingleLine = (rowIndex == 0) // force adjustment toggles on one line
-                    chipSpacingHorizontal = 8.dpToPx()
-                    chipSpacingVertical = 4.dpToPx()
+                    isSingleLine = false
+                    chipSpacingHorizontal = 10.dpToPx()
+                    chipSpacingVertical = 6.dpToPx()
                     layoutParams = LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT
                     ).apply {
                         gravity = android.view.Gravity.CENTER_HORIZONTAL
-                        topMargin = 2.dpToPx()
-                        bottomMargin = 2.dpToPx()
+                        topMargin = 4.dpToPx()
+                        bottomMargin = 4.dpToPx()
                     }
                 }
 
@@ -160,17 +147,17 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                         text = button.label
                         isClickable = true
                         isCheckable = false
-                        textSize = 13f
-                        chipMinHeight = 44f
-                        chipStartPadding = 12f
-                        chipEndPadding = 12f
+                        textSize = 14f
+                        chipMinHeight = 48f
+                        chipStartPadding = 16f
+                        chipEndPadding = 16f
 
                         // Save button — larger and highlighted
                         if (button.actionId == "save_meal") {
-                            textSize = 16f
-                            chipMinHeight = 52f
-                            chipStartPadding = 20f
-                            chipEndPadding = 20f
+                            textSize = 17f
+                            chipMinHeight = 56f
+                            chipStartPadding = 24f
+                            chipEndPadding = 24f
                             setChipBackgroundColorResource(R.color.primary)
                             setTextColor(resources.getColor(R.color.white, null))
                         }
@@ -203,13 +190,8 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
     private fun observeEvents() {
         viewModel.imagePickEvent.observe(viewLifecycleOwner) { event ->
             when (event) {
-                "camera", "gallery" -> {
-                    com.example.insuscan.utils.ReferenceObjectHelper.showSelectionDialog(requireContext()) { selectedType ->
-                        selectedReferenceType = selectedType.serverValue
-                        if (event == "camera") cameraLauncher.launch(null)
-                        else galleryLauncher.launch("image/*")
-                    }
-                }
+                "camera" -> openScanDialog(false)
+                "gallery" -> openScanDialog(true)
             }
         }
 
@@ -226,6 +208,10 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
                 "history" -> {
                     val navController = androidx.navigation.fragment.NavHostFragment.findNavController(this)
                     navController.navigate(R.id.historyFragment)
+                }
+                "home" -> {
+                    val navController = androidx.navigation.fragment.NavHostFragment.findNavController(this)
+                    navController.navigate(R.id.homeFragment)
                 }
             }
         }
@@ -252,6 +238,7 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
     }
 
+
     private fun showEditMedicalBottomSheet() {
         val sheet = EditMedicalBottomSheet { icr, isf, target ->
             viewModel.updateMedicalSettings(icr, isf, target)
@@ -259,17 +246,6 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         sheet.show(parentFragmentManager, "EditMedicalBottomSheet")
     }
 
-    private fun processGalleryUri(uri: Uri) {
-        try {
-            val inputStream = requireContext().contentResolver.openInputStream(uri) ?: return
-            val file = File(requireContext().cacheDir, "chat_gallery_${System.currentTimeMillis()}.jpg")
-            file.outputStream().use { out -> inputStream.copyTo(out) }
-            inputStream.close()
-            viewModel.onImageReceived(file.absolutePath, selectedReferenceType)
-        } catch (e: Exception) {
-            com.example.insuscan.utils.FileLogger.log("CHAT", "Gallery error: ${e.message}")
-        }
-    }
 
     private fun showEditMealDialog() {
         val currentMeal = com.example.insuscan.meal.MealSessionManager.currentMeal ?: return
@@ -283,7 +259,6 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         sheet.show(parentFragmentManager, "EditMealBottomSheet")
     }
 
-    // ... (rest of methods)
 
     private fun showEditActivityDialog() {
         val ctx = requireContext()
@@ -357,5 +332,8 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+    override fun onResume() {
+        super.onResume()
     }
 }
