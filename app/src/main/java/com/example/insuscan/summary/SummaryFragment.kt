@@ -278,6 +278,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             }
         })
 
+        // Initialize activity level based on Profile BEFORE attaching listener
+        if (UserProfileManager.isExerciseModeEnabled(ctx)) {
+            // Default to Light exercise if Exercise mode is globally enabled
+            rbLight.isChecked = true
+        }
+
         // Activity level listener
         activityRadioGroup.setOnCheckedChangeListener { _, _ ->
             calculateDose()
