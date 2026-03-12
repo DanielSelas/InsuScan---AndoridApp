@@ -14,6 +14,12 @@
             app:destination="@id/splashAnimationFragment"
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
+            
+        <action
+            android:id="@+id/action_loginFragment_to_registrationStep1"
+            app:destination="@id/registrationStep1Fragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
     </fragment>
 
     <fragment
@@ -25,6 +31,35 @@
             android:id="@+id/action_splashAnimation_to_homeFragment"
             app:destination="@id/homeFragment"
             app:popUpTo="@id/splashAnimationFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+    
+    <fragment
+        android:id="@+id/registrationStep1Fragment"
+        android:name="com.example.insuscan.registration.RegistrationStep1Fragment"
+        android:label="Registration Step 1">
+        <action
+            android:id="@+id/action_registrationStep1_to_registrationStep2"
+            app:destination="@id/registrationStep2Fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registrationStep2Fragment"
+        android:name="com.example.insuscan.registration.RegistrationStep2Fragment"
+        android:label="Registration Step 2">
+        <action
+            android:id="@+id/action_registrationStep2_to_registrationStep3"
+            app:destination="@id/registrationStep3Fragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/registrationStep3Fragment"
+        android:name="com.example.insuscan.registration.RegistrationStep3Fragment"
+        android:label="Registration Step 3">
+        <action
+            android:id="@+id/action_registrationStep3_to_splashAnimation"
+            app:destination="@id/splashAnimationFragment"
+            app:popUpTo="@id/registrationStep1Fragment"
             app:popUpToInclusive="true" />
     </fragment>
 

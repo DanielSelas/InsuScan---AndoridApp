@@ -32,6 +32,7 @@ object UserProfileManager {
     private const val KEY_STRESS_MODE_ENABLED = "stress_mode_enabled"
     private const val KEY_EXERCISE_MODE_ENABLED = "exercise_mode_enabled"
     private const val KEY_PROFILE_PHOTO_URL = "profile_photo_url"
+    private const val KEY_REGISTRATION_COMPLETE = "registration_complete"
 
     // small helper to get prefs once
     private fun prefs(context: Context) =
@@ -144,6 +145,24 @@ object UserProfileManager {
         FileLogger.log("PROFILE", "   Target: ${profile.targetGlucose}")
         FileLogger.log("PROFILE", "   Active Insulin Time: ${profile.activeInsulinTime}")
         return profile
+    }
+
+    fun isRegistrationComplete(context: Context): Boolean {
+        val p = prefs(context)
+        // If explicitly set
+        if (p.contains(KEY_REGISTRATION_COMPLETE)) {
+            return p.getBoolean(KEY_REGISTRATION_COMPLETE, false)
+        }
+        // Graceful fallback for existing users updating to this version:
+        // If they have a target glucose set, we assume they are fully registered
+        if (p.contains(KEY_TARGET_GLUCOSE)) {
+            return true
+        }
+        return false
+    }
+
+    fun setRegistrationComplete(context: Context, complete: Boolean) {
+        prefs(context).edit().putBoolean(KEY_REGISTRATION_COMPLETE, complete).apply()
     }
 
     fun saveUserName(context: Context, name: String) {
@@ -468,6 +487,9 @@ object UserProfileManager {
 
         // Preferences
         user.glucoseUnits?.let { saveGlucoseUnits(context, it) }
+
+        // If they have synchronized profile fields, they are a registered user
+        setRegistrationComplete(context, true)
 
         // Reset temporary modes
         resetTransientModes(context)
