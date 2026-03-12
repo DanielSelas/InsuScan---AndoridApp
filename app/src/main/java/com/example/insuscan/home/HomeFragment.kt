@@ -113,11 +113,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         loadProfileImage()
                     }
                 } else {
-                    try {
-                        userRepository.register(email, name)
-                    } catch (e: Exception) {
-                        android.util.Log.e("HomeFragment", "Registration failed", e)
-                    }
+                    android.util.Log.e("HomeFragment", "Server profile fetch failed, likely network issue or user not strictly registered but somehow bypassed.")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("HomeFragment", "Error fetching user profile", e)

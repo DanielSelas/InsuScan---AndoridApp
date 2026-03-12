@@ -88,12 +88,18 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         // Check if already logged in (Auto-Login)
         val existingEmail = UserProfileManager.getUserEmail(requireContext())
         if (!existingEmail.isNullOrBlank() && AuthManager.isLoggedIn()) {
-            // Use the stored name or a default
-            val storedName = UserProfileManager.getUserName(requireContext()) ?: "User"
-            // Call onLoginSuccess to perform Sync + Reset before navigating
-            val storedPhoto = UserProfileManager.getProfilePhotoUrl(requireContext())
-            onLoginSuccess(existingEmail, storedName, storedPhoto)
-            return
+            if (UserProfileManager.isRegistrationComplete(requireContext())) {
+                // Use the stored name or a default
+                val storedName = UserProfileManager.getUserName(requireContext()) ?: "User"
+                // Call onLoginSuccess to perform Sync + Reset before navigating
+                val storedPhoto = UserProfileManager.getProfilePhotoUrl(requireContext())
+                onLoginSuccess(existingEmail, storedName, storedPhoto)
+                return
+            } else {
+                // Not completely registered, jump to registration
+                findNavController().navigate(R.id.action_loginFragment_to_registrationStep1)
+                return
+            }
         }
 
         updateUI()
@@ -365,9 +371,39 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             android.util.Log.e("LoginFragment", "PhotoURL is NULL from Google/Auth!")
         }
 
-        navigateToHome()
+        checkRegistrationAndNavigate(email)
     }
 
+    private fun checkRegistrationAndNavigate(email: String) {
+        if (UserProfileManager.isRegistrationComplete(requireContext())) {
+            navigateToHome()
+            return
+        }
+
+        showLoading(true)
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val result = userRepository.getUser(email)
+                showLoading(false)
+                
+                if (result.isSuccess && result.getOrNull() != null) {
+                    val userDto = result.getOrNull()!!
+                    UserProfileManager.syncFromServer(requireContext(), userDto)
+                    // Ensure flag is double checked/set
+                    UserProfileManager.setRegistrationComplete(requireContext(), true)
+                    navigateToHome()
+                } else {
+                    // Does not exist on server, user needs to complete registration
+                    findNavController().navigate(R.id.action_loginFragment_to_registrationStep1)
+                }
+            } catch (e: Exception) {
+                showLoading(false)
+                android.util.Log.e("LoginFragment", "Error checking registration", e)
+                // Default to registration on error to be safe, or we could just show error
+                findNavController().navigate(R.id.action_loginFragment_to_registrationStep1)
+            }
+        }
+    }
 
     private fun navigateToHome() {
         findNavController().navigate(R.id.action_loginFragment_to_splashAnimation)
