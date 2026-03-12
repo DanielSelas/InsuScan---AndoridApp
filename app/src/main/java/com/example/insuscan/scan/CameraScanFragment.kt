@@ -276,17 +276,53 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
         orientationHelper.onOrientationChanged = { pitch, _, isLevel ->
             if (isSidePhotoCaptureMode) {
-                val isUpright = Math.abs(pitch) < 30.0
+                val pitchAbs = Math.abs(pitch)
                 activity?.runOnUiThread {
-                    if (isUpright) {
-                        tvCoachPill.text = "✅ Good angle"
-                        tvCoachPill.setBackgroundResource(R.drawable.bg_coach_pill)
-                        captureButton.isEnabled = true
-                    } else {
-                        tvCoachPill.text = "📐 Hold phone vertically"
-                        tvCoachPill.setBackgroundResource(R.drawable.bg_pill_warning)
-                        captureButton.isEnabled = false
+                    val statusText: String
+                    val statusColor: Int
+                    val canCapture: Boolean
+
+                    when {
+                        pitchAbs < 15.0 -> {
+                            statusText = "✅ Perfect Angle"
+                            statusColor = R.color.status_normal
+                            canCapture = true
+                        }
+                        pitchAbs < 30.0 -> {
+                            statusText = "⚠️ Good enough for capture"
+                            statusColor = R.color.status_warning
+                            canCapture = true
+                        }
+                        else -> {
+                            statusText = "❌ Hold phone vertically"
+                            statusColor = R.color.status_critical
+                            canCapture = false
+                        }
                     }
+
+                    val colorWithAlpha = androidx.core.graphics.ColorUtils.setAlphaComponent(
+                        ContextCompat.getColor(requireContext(), statusColor),
+                        0x99
+                    )
+
+                    tvCoachPill.apply {
+                        text = statusText
+                        background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+                        background.setTint(colorWithAlpha)
+                        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+                        visibility = View.VISIBLE
+                    }
+
+                    qualityStatusText.apply {
+                        text = statusText
+                        background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+                        background.setTint(colorWithAlpha)
+                        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+                        visibility = View.VISIBLE
+                    }
+
+                    captureButton.isEnabled = canCapture
+                    captureButton.alpha = if (canCapture) 1.0f else 0.5f
                 }
             } else {
                 if (isDeviceLevel != isLevel) {
@@ -353,13 +389,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         }
         qualityStatusText.text = validationMsg
 
-        val statusColor = when {
-            quality.isValid && isDeviceLevel -> R.color.secondary_light
-            isForceCaptureAllowed -> R.color.warning
-            else -> R.color.error
-        }
-        qualityStatusText.setBackgroundColor(ContextCompat.getColor(requireContext(), statusColor))
-
+        // Removed old statusColor/setBackgroundColor logic to avoid overriding pill shape
         captureButton.isEnabled = (quality.isValid && isDeviceLevel) || isForceCaptureAllowed
         captureButton.alpha = if (captureButton.isEnabled) 1.0f else 0.5f
 
@@ -371,24 +401,67 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             else -> "Place Ref Obj"
         }
 
-        val coachMessage = when {
-            !isDeviceLevel -> "Phone Tilted 📐"
-            !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
-            !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
-            !quality.isSharpnessOk -> "Image Blurry 📷"
-            !quality.isPlateFound -> "Find Plate 🍽️"
-            isRefObjectExpectedInFrame() && !quality.isReferenceObjectFound -> refObjLabel
-            else -> "Perfect! ✅"
+        val coachMessage: String
+        val coachColor: Int
+        var canCapture = false
+
+        when {
+            !isDeviceLevel -> {
+                coachMessage = "Phone Tilted 📐"
+                coachColor = R.color.status_critical
+            }
+            !quality.isPlateFound -> {
+                coachMessage = "Find Plate 🍽️"
+                coachColor = R.color.status_critical
+            }
+            isRefObjectExpectedInFrame() && !quality.isReferenceObjectFound -> {
+                coachMessage = refObjLabel
+                coachColor = R.color.status_critical
+            }
+            !quality.isValid -> {
+                // Orange state: plate found but quality issues (dark, blurry, etc)
+                // If force capture is allowed (waited 5s), we show warning
+                if (isForceCaptureAllowed) {
+                    coachMessage = "⚠️ Quality low, capture if needed"
+                    coachColor = R.color.status_warning
+                    canCapture = true
+                } else {
+                    coachMessage = when {
+                        !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
+                        !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
+                        !quality.isSharpnessOk -> "Image Blurry 📷"
+                        else -> "Improving quality..."
+                    }
+                    coachColor = R.color.status_critical
+                }
+            }
+            else -> {
+                coachMessage = "Perfect! ✅"
+                coachColor = R.color.status_normal
+                canCapture = true
+            }
         }
 
         tvCoachPill.apply {
             text = coachMessage
             visibility = View.VISIBLE
-            background.setTint(
-                if (coachMessage == "Perfect! ✅") android.graphics.Color.parseColor("#994CAF50")
-                else android.graphics.Color.parseColor("#99F44336")
-            )
+            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+            val color = ContextCompat.getColor(requireContext(), coachColor)
+            background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x99))
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
         }
+
+        qualityStatusText.apply {
+            text = coachMessage
+            visibility = View.VISIBLE
+            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+            val color = ContextCompat.getColor(requireContext(), coachColor)
+            background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x99))
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+        }
+
+        captureButton.isEnabled = canCapture
+        captureButton.alpha = if (canCapture) 1.0f else 0.5f
     }
 
     private fun onCaptureClicked() {

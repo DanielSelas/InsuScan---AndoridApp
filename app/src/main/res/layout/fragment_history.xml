@@ -16,205 +16,568 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <TextView
-        android:id="@+id/tv_history_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/history_meal_history"
-        android:textSize="@dimen/text_h2"
-        android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:layout_marginTop="@dimen/spacing_medium"
-        android:layout_marginStart="@dimen/spacing_medium"
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/top_bar"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <LinearLayout
-        android:id="@+id/btn_filter_container"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="@drawable/bg_filter_button"
-        android:paddingHorizontal="@dimen/spacing_medium"
-        android:paddingVertical="@dimen/spacing_small"
-        android:layout_marginEnd="@dimen/spacing_medium"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintBottom_toBottomOf="@+id/tv_history_title"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tv_history_title">
-
-        <ImageView
-            android:layout_width="@dimen/icon_standard"
-            android:layout_height="@dimen/icon_standard"
-            android:src="@android:drawable/ic_menu_my_calendar"
-            app:tint="@color/primary"
-            android:layout_marginEnd="@dimen/spacing_small"/>
-
-        <TextView
-            android:id="@+id/tv_filter_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/history_filter"
-            android:textColor="@color/primary"
-            android:textSize="@dimen/text_body2"
-            android:textStyle="bold" />
-
-    </LinearLayout>
-
-    <ImageView
-        android:id="@+id/btn_clear_filter"
-        android:layout_width="@dimen/icon_large"
-        android:layout_height="@dimen/icon_large"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:padding="@dimen/spacing_small"
-        app:tint="@color/text_secondary"
-        android:visibility="gone"
-        android:layout_marginEnd="@dimen/spacing_xs"
-        app:layout_constraintEnd_toStartOf="@id/btn_filter_container"
-        app:layout_constraintTop_toTopOf="@id/btn_filter_container"
-        app:layout_constraintBottom_toBottomOf="@id/btn_filter_container"/>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_latest_meal"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/spacing_medium"
-        android:layout_marginTop="@dimen/spacing_medium"
-        app:cardCornerRadius="@dimen/corner_radius_card"
-        app:cardElevation="@dimen/elevation_card"
-        app:cardBackgroundColor="@color/surface"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tv_history_title"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="@dimen/padding_card">
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/spacing_large">
 
-            <TextView
-                android:id="@+id/tv_latest_label"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/history_recent"
-                android:textColor="@color/primary"
-                android:textSize="@dimen/text_caption"
-                android:textStyle="bold"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:paddingTop="@dimen/spacing_medium"
+                android:paddingBottom="@dimen/spacing_small">
 
-            <TextView
-                android:id="@+id/tv_latest_time"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:text="19:24"
-                android:textColor="@color/text_secondary"
-                android:textSize="@dimen/text_caption"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                <TextView
+                    android:id="@+id/tv_history_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_meal_history"
+                    android:textSize="@dimen/text_h2"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginStart="@dimen/spacing_medium"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
 
-            <TextView
-                android:id="@+id/tv_latest_title"
-                android:layout_width="0dp"
+                <LinearLayout
+                    android:id="@+id/btn_filter_container"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/bg_filter_button"
+                    android:paddingHorizontal="@dimen/spacing_medium"
+                    android:paddingVertical="@dimen/spacing_small"
+                    android:layout_marginEnd="@dimen/spacing_medium"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:layout_constraintBottom_toBottomOf="@+id/tv_history_title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/tv_history_title">
+
+                    <ImageView
+                        android:layout_width="@dimen/icon_standard"
+                        android:layout_height="@dimen/icon_standard"
+                        android:src="@android:drawable/ic_menu_my_calendar"
+                        app:tint="@color/primary"
+                        android:layout_marginEnd="@dimen/spacing_small"/>
+
+                    <TextView
+                        android:id="@+id/tv_filter_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/history_filter"
+                        android:textColor="@color/primary"
+                        android:textSize="@dimen/text_body2"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/btn_clear_filter"
+                    android:layout_width="@dimen/icon_large"
+                    android:layout_height="@dimen/icon_large"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:padding="@dimen/spacing_small"
+                    app:tint="@color/text_secondary"
+                    android:visibility="gone"
+                    android:layout_marginEnd="@dimen/spacing_xs"
+                    app:layout_constraintEnd_toStartOf="@id/btn_filter_container"
+                    app:layout_constraintTop_toTopOf="@id/btn_filter_container"
+                    app:layout_constraintBottom_toBottomOf="@id/btn_filter_container"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card_latest_meal"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                tools:text="Meal Name"
-                android:textSize="@dimen/text_h3"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
+                android:layout_marginHorizontal="@dimen/spacing_medium"
                 android:layout_marginTop="@dimen/spacing_small"
-                app:layout_constraintTop_toBottomOf="@id/tv_latest_label"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:cardCornerRadius="@dimen/corner_radius_card"
+                app:cardElevation="@dimen/elevation_card"
+                app:cardBackgroundColor="@color/surface"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Header (Toggle) -->
+                    <LinearLayout
+                        android:id="@+id/layout_latest_header"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="@dimen/spacing_medium"
+                        android:background="?attr/selectableItemBackground">
+
+                        <TextView
+                            android:id="@+id/tv_latest_label"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/history_recent"
+                            android:textColor="@color/primary"
+                            android:textSize="@dimen/text_caption"
+                            android:textStyle="bold"
+                            android:layout_marginBottom="@dimen/spacing_small"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tv_latest_title"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="Meal Name"
+                                    android:textSize="@dimen/text_h3"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="@color/text_primary"
+                                    android:letterSpacing="0.01"
+                                    android:maxLines="1"
+                                    android:ellipsize="end" />
+
+                                <TextView
+                                    android:id="@+id/tv_latest_subtitle"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="@dimen/spacing_xs"
+                                    tools:text="Good glucose - Light activity"
+                                    android:textSize="@dimen/text_caption"
+                                    android:textColor="@color/text_secondary"
+                                    android:fontFamily="sans-serif"
+                                    android:letterSpacing="0.02"
+                                    android:maxLines="1"
+                                    android:ellipsize="end" />
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:layout_marginTop="@dimen/spacing_small">
+
+                                    <TextView
+                                        android:id="@+id/tv_latest_carbs"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        tools:text="45g"
+                                        android:textSize="@dimen/text_body2"
+                                        android:textColor="@color/text_secondary" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text=" • "
+                                        android:textSize="@dimen/text_body2"
+                                        android:textColor="@color/text_secondary" />
+
+                                    <TextView
+                                        android:id="@+id/tv_latest_time"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        tools:text="14:30"
+                                        android:textSize="@dimen/text_body2"
+                                        android:textColor="@color/text_secondary" />
+
+                                    <TextView
+                                        android:id="@+id/tv_latest_indicator_sick"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/history_sick_mode"
+                                        android:visibility="gone"
+                                        android:textSize="@dimen/text_button"
+                                        android:layout_marginStart="@dimen/spacing_small" />
+
+                                    <TextView
+                                        android:id="@+id/tv_latest_indicator_stress"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/history_high_stress"
+                                        android:visibility="gone"
+                                        android:layout_marginStart="@dimen/spacing_small" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <TextView
+                                android:id="@+id/tv_latest_dose_badge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_dose_badge"
+                                android:paddingHorizontal="@dimen/padding_button_horizontal"
+                                android:paddingVertical="@dimen/spacing_small"
+                                tools:text="4.5u"
+                                android:textColor="@color/text_on_primary"
+                                android:fontFamily="sans-serif-medium"
+                                android:textSize="@dimen/text_body2" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Expanded Section -->
+                    <LinearLayout
+                        android:id="@+id/layout_latest_expanded"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone"
+                        android:background="@color/background_secondary"
+                        android:paddingHorizontal="@dimen/spacing_large"
+                        android:paddingBottom="@dimen/spacing_large">
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="@dimen/divider_height"
+                            android:background="@color/divider"
+                            android:layout_marginBottom="@dimen/spacing_medium" />
+
+                        <!-- Context Row -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="@dimen/spacing_medium">
+
+                            <LinearLayout
+                                android:id="@+id/layout_latest_context_glucose"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/history_label_glucose"
+                                    android:textSize="@dimen/text_caption"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_secondary"
+                                    android:layout_marginBottom="@dimen/spacing_xs"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_context_glucose"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="✓ 120 mg/dL"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/text_primary" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layout_latest_context_activity"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/history_label_activity"
+                                    android:textSize="@dimen/text_caption"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_secondary"
+                                    android:layout_marginBottom="@dimen/spacing_xs"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_context_activity"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="🚶 Light"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/text_primary" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/layout_latest_context_modes"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:visibility="gone">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/history_label_status"
+                                    android:textSize="@dimen/text_caption"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/text_secondary"
+                                    android:layout_marginBottom="@dimen/spacing_xs"/>
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal">
+                                    <TextView
+                                        android:id="@+id/tv_latest_status_sick"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/history_status_sick"
+                                        android:textColor="@color/status_critical"
+                                        android:visibility="gone" />
+                                    <TextView
+                                        android:id="@+id/tv_latest_status_stress"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="@string/history_status_stress"
+                                        android:textColor="@color/status_warning"
+                                        android:layout_marginStart="@dimen/spacing_small"
+                                        android:visibility="gone" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Food Items Title -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/history_label_food_items"
+                            android:textSize="@dimen/text_caption"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_secondary"
+                            android:letterSpacing="0.05"
+                            android:layout_marginBottom="@dimen/spacing_small"/>
+
+                        <TextView
+                            android:id="@+id/tv_latest_food_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            tools:text="• Item 1\n• Item 2"
+                            android:lineSpacingExtra="@dimen/spacing_small"
+                            android:textSize="@dimen/text_body2"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="@dimen/spacing_large"/>
+
+                        <!-- Dose Calculation Section -->
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/history_label_dose_calc"
+                            android:textSize="@dimen/text_caption"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_secondary"
+                            android:letterSpacing="0.05"
+                            android:layout_marginBottom="@dimen/spacing_small"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:background="@drawable/bg_receipt_warm"
+                            android:padding="@dimen/padding_card">
+
+                            <!-- Carb Dose -->
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_xs">
+                                <TextView
+                                    android:id="@+id/tv_latest_receipt_carb_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="Insulin for Food (45g)"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/text_secondary"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_receipt_carb_value"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    tools:text="4.5u"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/primary"/>
+                            </RelativeLayout>
+
+                            <!-- Correction -->
+                            <RelativeLayout
+                                android:id="@+id/row_latest_receipt_correction"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_xs"
+                                android:visibility="gone">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/insulin_correction"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/text_secondary"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_receipt_correction_value"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    tools:text="+0.5u"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/status_warning"/>
+                            </RelativeLayout>
+
+                            <!-- Exercise -->
+                            <RelativeLayout
+                                android:id="@+id/row_latest_receipt_exercise"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_xs"
+                                android:visibility="gone">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/history_adj_exercise"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/text_secondary"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_receipt_exercise_value"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    tools:text="-0.5u"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/secondary"/>
+                            </RelativeLayout>
+
+                            <!-- Sick -->
+                            <RelativeLayout
+                                android:id="@+id/row_latest_receipt_sick"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_xs"
+                                android:visibility="gone">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/history_adj_sick"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/text_secondary"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_receipt_sick_value"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    tools:text="+1.2u"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/status_critical"/>
+                            </RelativeLayout>
+
+                            <!-- Stress -->
+                            <RelativeLayout
+                                android:id="@+id/row_latest_receipt_stress"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="@dimen/spacing_xs"
+                                android:visibility="gone">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/history_adj_stress"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/text_secondary"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_receipt_stress_value"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    tools:text="+0.8u"
+                                    android:textSize="@dimen/text_body2"
+                                    android:textColor="@color/status_warning"/>
+                            </RelativeLayout>
+
+                            <View
+                                android:layout_width="match_parent"
+                                android:layout_height="@dimen/divider_height"
+                                android:background="@color/divider"
+                                android:layout_marginVertical="@dimen/spacing_medium" />
+
+                            <!-- Total -->
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/history_final_dose"
+                                    android:textSize="@dimen/text_body1"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="@color/text_primary"/>
+                                <TextView
+                                    android:id="@+id/tv_latest_receipt_total"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_alignParentEnd="true"
+                                    tools:text="5.2u"
+                                    android:textSize="@dimen/text_h3"
+                                    android:fontFamily="sans-serif-medium"
+                                    android:textColor="@color/primary"/>
+                            </RelativeLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
             <TextView
-                android:id="@+id/tv_latest_details"
-                android:layout_width="0dp"
+                android:id="@+id/tv_previous_label"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="45g carbs | 6.5 units"
+                android:text="@string/home_previous_meals"
                 android:textSize="@dimen/text_body2"
-                android:textColor="@color/text_secondary"
-                android:layout_marginTop="@dimen/spacing_xs"
-                app:layout_constraintTop_toBottomOf="@id/tv_latest_title"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                android:textColor="@color/text_hint"
+                android:textStyle="bold"
+                android:layout_marginStart="@dimen/spacing_medium"
+                android:layout_marginTop="@dimen/spacing_medium"
+                android:visibility="gone" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_meal_history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/spacing_small"
+                android:layout_marginHorizontal="@dimen/spacing_medium"
+                android:clipToPadding="false"
+                android:nestedScrollingEnabled="false" />
 
-    </androidx.cardview.widget.CardView>
+            <LinearLayout
+                android:id="@+id/layout_empty"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginTop="@dimen/spacing_xxl"
+                android:visibility="gone">
 
-    <TextView
-        android:id="@+id/tv_previous_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/home_previous_meals"
-        android:textSize="@dimen/text_body2"
-        android:textColor="@color/text_hint"
-        android:textStyle="bold"
-        android:layout_marginStart="@dimen/spacing_medium"
-        android:layout_marginTop="@dimen/spacing_medium"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/card_latest_meal"
-        app:layout_constraintStart_toStartOf="parent" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🍽️"
+                    android:textSize="@dimen/text_emoji_medium" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_meal_history"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="@dimen/spacing_small"
-        android:layout_marginHorizontal="@dimen/spacing_medium"
-        android:clipToPadding="false"
-        android:paddingBottom="@dimen/scroll_padding_bottom_nav"
-        app:layout_constraintTop_toBottomOf="@id/tv_previous_label"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+                <TextView
+                    android:id="@+id/tv_empty_history"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/history_no_meals"
+                    android:textSize="@dimen/text_body1"
+                    android:textColor="@color/text_hint"
+                    android:textAlignment="center"
+                    android:layout_marginTop="@dimen/spacing_small"
+                    android:paddingHorizontal="@dimen/spacing_medium" />
 
-    <LinearLayout
-        android:id="@+id/layout_empty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tv_history_title"
-        app:layout_constraintBottom_toTopOf="@id/btn_scan_next"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+            </LinearLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🍽️"
-            android:textSize="@dimen/text_emoji_medium" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-        <TextView
-            android:id="@+id/tv_empty_history"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/history_no_meals"
-            android:textSize="@dimen/text_body1"
-            android:textColor="@color/text_hint"
-            android:textAlignment="center"
-            android:layout_marginTop="@dimen/spacing_small" />
 
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/btn_scan_next"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/button_height_large"
-        android:layout_marginHorizontal="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_medium"
-        android:text="@string/scan_take_photo"
-        android:textColor="@color/text_on_primary"
-        android:background="@drawable/button_primary"
-        android:textAllCaps="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

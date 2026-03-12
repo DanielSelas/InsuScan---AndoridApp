@@ -30,7 +30,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyState: LinearLayout
     private lateinit var emptyStateText: TextView
-    private lateinit var btnScanNext: Button
     private lateinit var adapter: MealHistoryAdapter
     private lateinit var btnFilterContainer: View
     private lateinit var tvFilterStatus: TextView
@@ -56,7 +55,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         recyclerView = view.findViewById(R.id.rv_meal_history)
         emptyState = view.findViewById(R.id.layout_empty)
         emptyStateText = view.findViewById(R.id.tv_empty_history)
-        btnScanNext = view.findViewById(R.id.btn_scan_next)
         btnFilterContainer = view.findViewById(R.id.btn_filter_container)
         tvFilterStatus = view.findViewById(R.id.tv_filter_status)
         btnClearFilter = view.findViewById(R.id.btn_clear_filter)
@@ -69,11 +67,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     }
 
     private fun setupListeners() {
-        btnScanNext.setOnClickListener {
-            requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
-                .selectedItemId = R.id.scanFragment
-        }
-
         // Handle empty states based on loading state
         adapter.addLoadStateListener { loadState ->
             val isListEmpty = loadState.refresh is LoadState.NotLoading && adapter.itemCount == 0
@@ -156,10 +149,15 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         }
     }
 
+    private var isLatestMealExpanded = false
+    private var currentLatestMeal: com.example.insuscan.meal.Meal? = null
+
     private fun updateLatestMealCard(meal: com.example.insuscan.meal.Meal?) {
         val cardLatest = view?.findViewById<androidx.cardview.widget.CardView>(R.id.card_latest_meal)
         val tvPreviousLabel = view?.findViewById<android.widget.TextView>(R.id.tv_previous_label)
         
+        currentLatestMeal = meal
+
         if (meal == null) {
             cardLatest?.visibility = View.GONE
             tvPreviousLabel?.visibility = View.GONE
@@ -169,21 +167,92 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         cardLatest?.visibility = View.VISIBLE
         tvPreviousLabel?.visibility = View.VISIBLE
 
-        val tvTitle = view?.findViewById<android.widget.TextView>(R.id.tv_latest_title)
-        val tvTime = view?.findViewById<android.widget.TextView>(R.id.tv_latest_time)
-        val tvDetails = view?.findViewById<android.widget.TextView>(R.id.tv_latest_details)
-
-        tvTitle?.text = meal.title
+        val header = view?.findViewById<View>(R.id.layout_latest_header)
+        val expanded = view?.findViewById<View>(R.id.layout_latest_expanded)
         
-        // Format Time HH:mm
+        val tvTitle = view?.findViewById<TextView>(R.id.tv_latest_title)
+        val tvSubtitle = view?.findViewById<TextView>(R.id.tv_latest_subtitle)
+        val tvCarbs = view?.findViewById<TextView>(R.id.tv_latest_carbs)
+        val tvTime = view?.findViewById<TextView>(R.id.tv_latest_time)
+        val tvDoseBadge = view?.findViewById<TextView>(R.id.tv_latest_dose_badge)
+        val tvIndicatorSick = view?.findViewById<TextView>(R.id.tv_latest_indicator_sick)
+        val tvIndicatorStress = view?.findViewById<TextView>(R.id.tv_latest_indicator_stress)
+
+        val uiModel = HistoryUiModel.MealItem(meal)
+
+        // Header Binding
+        tvTitle?.text = uiModel.displayTitle
+        tvSubtitle?.text = uiModel.displaySubtitle
+        tvCarbs?.text = "${meal.carbs.toInt()}g"
         tvTime?.text = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault()).format(java.util.Date(meal.timestamp))
         
-        // Format Details
-        val dose = if (meal.insulinDose != null) "${com.example.insuscan.utils.DoseFormatter.formatDose(meal.insulinDose)} units" else "No Dose"
-        tvDetails?.text = "${meal.carbs.toInt()}g carbs | $dose"
+        tvIndicatorSick?.isVisible = meal.wasSickMode
+        tvIndicatorStress?.isVisible = meal.wasStressMode
         
-        // Refresh paging list to ensure consistency? 
-        // adapter.refresh() // Might cause loop if not careful, skip for now
+        tvDoseBadge?.isVisible = meal.insulinDose != null || meal.recommendedDose != null
+        tvDoseBadge?.text = uiModel.totalDoseValue
+
+        // Expanded Section Binding
+        expanded?.isVisible = isLatestMealExpanded
+        if (isLatestMealExpanded) {
+            // Context Row
+            val layoutGlucose = view?.findViewById<View>(R.id.layout_latest_context_glucose)
+            val tvGlucose = view?.findViewById<TextView>(R.id.tv_latest_context_glucose)
+            val layoutActivity = view?.findViewById<View>(R.id.layout_latest_context_activity)
+            val tvActivity = view?.findViewById<TextView>(R.id.tv_latest_context_activity)
+            val layoutModes = view?.findViewById<View>(R.id.layout_latest_context_modes)
+            val tvStatusSick = view?.findViewById<TextView>(R.id.tv_latest_status_sick)
+            val tvStatusStress = view?.findViewById<TextView>(R.id.tv_latest_status_stress)
+
+            layoutGlucose?.isVisible = uiModel.isGlucoseVisible
+            tvGlucose?.text = uiModel.glucoseText
+            layoutActivity?.isVisible = uiModel.isActivityVisible
+            tvActivity?.text = uiModel.activityText
+            
+            val hasModes = meal.wasSickMode || meal.wasStressMode
+            layoutModes?.isVisible = hasModes
+            tvStatusSick?.isVisible = meal.wasSickMode
+            tvStatusStress?.isVisible = meal.wasStressMode
+
+            // Food List
+            val tvFoodList = view?.findViewById<TextView>(R.id.tv_latest_food_list)
+            tvFoodList?.text = uiModel.receiptFoodList
+
+            // Receipt
+            val tvReceiptCarbLabel = view?.findViewById<TextView>(R.id.tv_latest_receipt_carb_label)
+            val tvReceiptCarbValue = view?.findViewById<TextView>(R.id.tv_latest_receipt_carb_value)
+            val rowCorrection = view?.findViewById<View>(R.id.row_latest_receipt_correction)
+            val tvCorrectionValue = view?.findViewById<TextView>(R.id.tv_latest_receipt_correction_value)
+            val rowExercise = view?.findViewById<View>(R.id.row_latest_receipt_exercise)
+            val tvExerciseValue = view?.findViewById<TextView>(R.id.tv_latest_receipt_exercise_value)
+            val rowSick = view?.findViewById<View>(R.id.row_latest_receipt_sick)
+            val tvSickValue = view?.findViewById<TextView>(R.id.tv_latest_receipt_sick_value)
+            val rowStress = view?.findViewById<View>(R.id.row_latest_receipt_stress)
+            val tvStressValue = view?.findViewById<TextView>(R.id.tv_latest_receipt_stress_value)
+            val tvReceiptTotal = view?.findViewById<TextView>(R.id.tv_latest_receipt_total)
+
+            tvReceiptCarbLabel?.text = uiModel.carbDoseLabel
+            tvReceiptCarbValue?.text = uiModel.carbDoseValue
+            
+            rowCorrection?.isVisible = uiModel.isCorrectionVisible
+            tvCorrectionValue?.text = uiModel.correctionDoseValue
+            
+            rowExercise?.isVisible = uiModel.isExerciseVisible
+            tvExerciseValue?.text = uiModel.exerciseDoseValue
+            
+            rowSick?.isVisible = uiModel.isSickVisible
+            tvSickValue?.text = uiModel.sickDoseValue
+            
+            rowStress?.isVisible = uiModel.isStressVisible
+            tvStressValue?.text = uiModel.stressDoseValue
+            
+            tvReceiptTotal?.text = uiModel.totalDoseValue
+        }
+
+        header?.setOnClickListener {
+            isLatestMealExpanded = !isLatestMealExpanded
+            updateLatestMealCard(currentLatestMeal)
+        }
     }
 
     override fun onResume() {

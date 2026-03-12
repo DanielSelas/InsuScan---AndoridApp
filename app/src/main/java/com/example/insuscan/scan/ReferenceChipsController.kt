@@ -94,7 +94,7 @@ class ReferenceChipsController(
             ReferenceObjectType.INSULIN_SYRINGE -> "💉"
             ReferenceObjectType.SYRINGE_KNIFE -> "🍴"
             ReferenceObjectType.CARD -> "💳"
-            ReferenceObjectType.NONE -> "⚙️"
+            ReferenceObjectType.NONE -> "❌"
         }
     }
 
@@ -120,8 +120,8 @@ class ReferenceChipsController(
             ReferenceObjectType.CARD -> {
                 zone.visibility = View.VISIBLE
                 zone.layoutParams = zone.layoutParams.apply {
-                    width = (100 * density).toInt()
-                    height = (65 * density).toInt()
+                    width = (65 * density).toInt()
+                    height = (100 * density).toInt()
                 }
             }
             ReferenceObjectType.NONE -> {
