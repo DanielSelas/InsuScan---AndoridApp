@@ -7,6 +7,10 @@ import com.example.insuscan.analysis.ContainerType
 import com.google.ar.core.*
 import com.google.ar.core.exceptions.UnavailableException
 
+import android.opengl.GLSurfaceView
+import javax.microedition.khronos.egl.EGLConfig
+import javax.microedition.khronos.opengles.GL10
+
 /**
  * Centralized ARCore session manager.
  * Provides real-world depth and scale measurements using ARCore's Depth API
@@ -18,7 +22,7 @@ import com.google.ar.core.exceptions.UnavailableException
  *  3. Call [measurePlate] at capture time to get real depth + plate diameter.
  *  4. Call [release] when done.
  */
-class ArCoreManager(private val context: Context) {
+class ArCoreManager(private val context: Context) : GLSurfaceView.Renderer {
 
     companion object {
         private const val TAG = "ArCoreManager"
@@ -30,9 +34,10 @@ class ArCoreManager(private val context: Context) {
     private var session: Session? = null
     private var isAvailable = false
     private var isDepthSupported = false
-    private var latestFrame: Frame? = null
     private var validDepthFrameCount = 0
     private var hasPlanes = false
+    @Volatile private var latestFrame: Frame? = null
+    @Volatile private var isPaused = true
 
     /** True when ARCore has accumulated enough depth data OR detected planes to provide measurements. */
     val isReady: Boolean
@@ -53,9 +58,54 @@ class ArCoreManager(private val context: Context) {
     // ────────────────────────────────────────────────────────────────────
 
     /**
-     * Initialize ARCore session with depth enabled.
-     * Returns true if ARCore + depth are available.
-     * @param activity The activity context needed for installation checks and session setup.
+     * (Deprecated) Bind the ArSceneView. This allows ArCoreManager to get frames without managing the GL thread manually.
+     */
+    // fun bindArSceneView(view: com.google.ar.sceneform.ArSceneView) {
+    //     this.arSceneView = view
+    //     isAvailable = true // Assume available if view is created successfully
+
+    //     // Configure session when it becomes available
+    //     view.scene.addOnUpdateListener { frameTime ->
+    //         val frame = view.arFrame ?: return@addOnUpdateListener
+    //         val session = view.session ?: return@addOnUpdateListener
+
+    //         if (!isDepthSupported) {
+    //             isDepthSupported = session.isDepthModeSupported(Config.DepthMode.AUTOMATIC)
+    //             if (isDepthSupported && session.config.depthMode != Config.DepthMode.AUTOMATIC) {
+    //                 val config = session.config
+    //                 config.depthMode = Config.DepthMode.AUTOMATIC
+    //                 session.configure(config)
+    //                 Log.d(TAG, "ARCore depth mode AUTOMATIC enabled on ArSceneView")
+    //             }
+    //         }
+
+    //         // 1. Accumulate depth frames if supported
+    //         if (isDepthSupported) {
+    //             try {
+    //                 val depthImage = frame.acquireDepthImage16Bits()
+    //                 if (depthImage != null) {
+    //                     val isValid = depthImage.width > 0 && depthImage.height > 0
+    //                     depthImage.close()
+    //                     if (isValid) {
+    //                         validDepthFrameCount++
+    //                         if (validDepthFrameCount == 1 || validDepthFrameCount == 5 || validDepthFrameCount % 50 == 0) {
+    //                             Log.d(TAG, "Depth frame accumulated. Count: $validDepthFrameCount")
+    //                         }
+    //                     }
+    //                 }
+    //             } catch (e: Exception) {
+    //                 // Depth not yet available in this frame
+    //             }
+    //         }
+
+    //         // 2. Always track planes as fallback
+    //         val planes = session.getAllTrackables(Plane::class.java)
+    //         hasPlanes = planes.any { it.trackingState == TrackingState.TRACKING && it.type == Plane.Type.HORIZONTAL_UPWARD_FACING }
+    //     }
+    // }
+
+    /**
+     * (Deprecated) Initialize was for manual session. Now handled by ArSceneView.
      */
     fun initialize(activity: android.app.Activity): Boolean {
         return try {
@@ -89,8 +139,6 @@ class ArCoreManager(private val context: Context) {
             }
 
             Log.d(TAG, "ARCore session initialized (depth=$isDepthSupported)")
-            val isDepthSupported = session?.isDepthModeSupported(Config.DepthMode.AUTOMATIC) == true
-            Log.i(TAG, "ARCore Session created. Depth support: $isDepthSupported")
             true
         } catch (e: UnavailableException) {
             Log.e(TAG, "ARCore unavailable: ${e.message}")
@@ -103,21 +151,29 @@ class ArCoreManager(private val context: Context) {
         }
     }
 
-    /**
-     * Call on every live preview frame to keep ARCore session alive and accumulate depth data.
-     * This is cheap — ARCore processes asynchronously.
-     */
-    fun updateFrame() {
+    // ────────────────────────────────────────────────────────────────────
+    // GLSurfaceView.Renderer implementation
+    // ────────────────────────────────────────────────────────────────────
+
+    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+        // Prepare ARCore session texture
+        val textureId = IntArray(1)
+        android.opengl.GLES20.glGenTextures(1, textureId, 0)
+        session?.setCameraTextureName(textureId[0])
+    }
+
+    override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+        session?.setDisplayGeometry(android.view.Surface.ROTATION_0, width, height)
+    }
+
+    override fun onDrawFrame(gl: GL10?) {
+        if (isPaused) return
         val s = session ?: return
         try {
-            // Log state occasionally
-            if (Math.random() < 0.01) {
-                Log.v(TAG, "Attempting frame update")
-            }
-            latestFrame = s.update()
-            val frame = latestFrame ?: return
+            // This is the critical update loop running on the GL thread
+            val frame = s.update()
+            latestFrame = frame
 
-            // 1. Accumulate depth frames if supported
             if (isDepthSupported) {
                 try {
                     val depthImage = frame.acquireDepthImage16Bits()
@@ -126,9 +182,6 @@ class ArCoreManager(private val context: Context) {
                         depthImage.close()
                         if (isValid) {
                             validDepthFrameCount++
-                            if (validDepthFrameCount == 1 || validDepthFrameCount == 5 || validDepthFrameCount % 50 == 0) {
-                                Log.d(TAG, "Depth frame accumulated. Count: $validDepthFrameCount")
-                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -136,15 +189,11 @@ class ArCoreManager(private val context: Context) {
                 }
             }
 
-            // 2. Always track planes as fallback
             val planes = s.getAllTrackables(Plane::class.java)
             hasPlanes = planes.any { it.trackingState == TrackingState.TRACKING && it.type == Plane.Type.HORIZONTAL_UPWARD_FACING }
 
         } catch (e: Exception) {
-            // Session may not be resumed — this is OK during startup
-            if (Math.random() < 0.05) {
-                Log.e(TAG, "Error updating AR frame", e)
-            }
+            // Ignore MissinGlContextException if it occurs occasionally during pause
         }
     }
 
@@ -154,9 +203,10 @@ class ArCoreManager(private val context: Context) {
     fun resume() {
         try {
             session?.resume()
-            Log.i(TAG, "ARCore Session resumed")
+            isPaused = false
+            Log.i(TAG, "ARCore session resumed")
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to resume ARCore session", e)
+            Log.e(TAG, "Failed to resume session", e)
         }
     }
 
@@ -165,10 +215,11 @@ class ArCoreManager(private val context: Context) {
      */
     fun pause() {
         try {
+            isPaused = true
             session?.pause()
             Log.d(TAG, "ARCore session paused")
         } catch (e: Exception) {
-            Log.w(TAG, "ARCore pause failed: ${e.message}")
+            Log.w(TAG, "ARCore session pause failed: ${e.message}")
         }
     }
 

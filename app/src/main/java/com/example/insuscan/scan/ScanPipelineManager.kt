@@ -124,15 +124,18 @@ class ScanPipelineManager(private val context: Context) {
             val rawVolume = successRes?.volumeCm3
             val volumeCm3 = if (rawVolume != null && rawVolume > 0f) rawVolume else null
 
-            val diameter = if (successRes?.referenceObjectDetected == true) {
-                null
+            val diameter = if (successRes?.referenceObjectDetected == true && successRes.plateDiameterCm > 0) {
+                successRes.plateDiameterCm
             } else if (successRes?.arMeasurementUsed == true) {
                 successRes.plateDiameterCm
             } else null
 
-            val depth = if (successRes?.referenceObjectDetected == true) {
-                null
-            } else if (successRes?.arMeasurementUsed == true && successRes.arDepthIsReal) {
+            // Use the depth estimated by PortionEstimator, whether it's from ARCore or the heuristic fallback.
+            // When AR is unavailable, DepthEstimator uses aspect ratio on the reference object to estimate container type and a low-confidence depth.
+            // We want to pass this to the server so we can test the fallback flow, instead of nulling it out and relying completely on the server's Gemini estimation.
+            val depth = if (successRes?.referenceObjectDetected == true && successRes.depthCm > 0) {
+                successRes.depthCm
+            } else if (successRes?.arMeasurementUsed == true) {
                 successRes.depthCm
             } else null
 

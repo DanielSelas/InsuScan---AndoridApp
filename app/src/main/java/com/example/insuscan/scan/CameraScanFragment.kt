@@ -59,6 +59,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     private lateinit var arGuidanceOverlay: View
     private lateinit var arStatusText: TextView
     private lateinit var btnCancelAr: Button
+    private lateinit var hiddenArSurfaceView: android.opengl.GLSurfaceView
 
     private lateinit var cameraManager: CameraManager
     private lateinit var pipelineManager: ScanPipelineManager
@@ -151,12 +152,14 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         super.onResume()
         if (::orientationHelper.isInitialized) orientationHelper.start()
         arCoreManager?.resume()
+        hiddenArSurfaceView.onResume()
     }
 
     override fun onPause() {
         super.onPause()
         if (::orientationHelper.isInitialized) orientationHelper.stop()
         arCoreManager?.pause()
+        hiddenArSurfaceView.onPause()
     }
 
     override fun onDestroyView() {
@@ -184,6 +187,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         arGuidanceOverlay = view.findViewById(R.id.ar_guidance_overlay)
         arStatusText = view.findViewById(R.id.tv_ar_status)
         btnCancelAr = view.findViewById(R.id.btn_cancel_ar)
+        hiddenArSurfaceView = view.findViewById(R.id.hidden_ar_surface_view)
         btnCancelAr.setOnClickListener { stopArScanMode() }
     }
 
@@ -191,6 +195,13 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         arCoreManager = com.example.insuscan.ar.ArCoreManager(requireContext())
         val arReady = arCoreManager?.initialize(requireActivity()) == true
         Log.d(TAG, "ArCoreManager initialized: $arReady (supported=${arCoreManager?.isSupported})")
+
+        // Set up the hidden GLSurfaceView to drive ARCore
+        hiddenArSurfaceView.preserveEGLContextOnPause = true
+        hiddenArSurfaceView.setEGLContextClientVersion(2)
+        hiddenArSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0) // Alpha used to hide view
+        hiddenArSurfaceView.setRenderer(arCoreManager)
+        hiddenArSurfaceView.renderMode = android.opengl.GLSurfaceView.RENDERMODE_CONTINUOUSLY
     }
 
     private fun initializeCameraManager() {
