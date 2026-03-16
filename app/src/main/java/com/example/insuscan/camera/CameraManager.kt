@@ -180,9 +180,9 @@ class CameraManager(private val context: Context) {
     // Analysis loop
     private fun analyzeImageQuality(imageProxy: ImageProxy) {
         try {
-            // Keep ARCore session alive by updating on every frame
-            arCoreManager?.updateFrame()
-            // existing quality checks...
+            // ARCore session is now updated via an external GL context (e.g. from CameraScanFragment's ArSceneView).
+            // Do not call updateFrame() from this CameraX background analyzer thread!
+            
             val buffer = imageProxy.planes[0].buffer
             val data = ByteArray(buffer.remaining())
             buffer.get(data)

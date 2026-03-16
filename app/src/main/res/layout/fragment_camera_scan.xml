@@ -20,6 +20,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Hidden GLSurfaceView strictly to maintain ARCore GL context in the background -->
+    <android.opengl.GLSurfaceView
+        android:id="@+id/hidden_ar_surface_view"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:alpha="0.0"
+        app:layout_constraintTop_toTopOf="@id/camera_preview"
+        app:layout_constraintBottom_toBottomOf="@id/camera_preview"
+        app:layout_constraintStart_toStartOf="@id/camera_preview"
+        app:layout_constraintEnd_toEndOf="@id/camera_preview" />
+
     <androidx.camera.view.PreviewView
         android:id="@+id/camera_preview"
         android:layout_width="0dp"
