@@ -11,8 +11,7 @@ class CameraCoachEvaluator {
     fun evaluate(
         quality: ImageQualityResult?,
         isDeviceLevel: Boolean,
-        selectedRefType: String?,
-        isSidePhotoCaptureMode: Boolean
+        selectedRefType: String?
     ): CameraCoachState {
         if (quality == null) return CameraCoachState.FindPlate()
 
@@ -22,7 +21,7 @@ class CameraCoachEvaluator {
 
         if (!quality.isPlateFound) return CameraCoachState.FindPlate()
 
-        val refExpected = isRefExpected(selectedRefType, isSidePhotoCaptureMode)
+        val refExpected = isRefExpected(selectedRefType)
         if (refExpected && !quality.isReferenceObjectFound) {
             val refName = getRefDisplayName(selectedRefType)
             return CameraCoachState.PlaceRefObject(refName)
@@ -60,8 +59,7 @@ class CameraCoachEvaluator {
         }
     }
 
-    private fun isRefExpected(selectedRefType: String?, isSidePhotoCaptureMode: Boolean): Boolean {
-        if (isSidePhotoCaptureMode) return false
+    private fun isRefExpected(selectedRefType: String?): Boolean {
         val refType = ReferenceObjectHelper.fromServerValue(selectedRefType)
         return refType != null && refType != ReferenceObjectHelper.ReferenceObjectType.NONE
     }
@@ -76,12 +74,5 @@ class CameraCoachEvaluator {
         }
     }
 
-    fun evaluateSidePhoto(pitchDegrees: Float): CameraCoachState {
-        val pitchAbs = Math.abs(pitchDegrees)
-        return when {
-            pitchAbs < 15.0 -> CameraCoachState.SidePhotoReady()
-            pitchAbs < 30.0 -> CameraCoachState.SidePhotoAlmost()
-            else -> CameraCoachState.SidePhotoTilt()
-        }
-    }
+
 }

@@ -3,6 +3,8 @@ package com.example.insuscan.scan
 import android.content.Context
 import android.view.View
 import android.widget.LinearLayout
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.example.insuscan.R
@@ -35,6 +37,10 @@ class ReferenceChipsController(
         val defaultType = resolveDefaultType()
         applySelection(defaultType)
         setSelectedChip(chipForType(defaultType))
+        
+        // Initial state: Bar visible, Toggle hidden
+        chipGroup.visibility = View.VISIBLE
+        toggleButton?.visibility = View.GONE
 
         chipSyringe.setOnClickListener { onChipSelected(ReferenceObjectType.INSULIN_SYRINGE) }
         chipFork.setOnClickListener { onChipSelected(ReferenceObjectType.SYRINGE_KNIFE) }
@@ -42,15 +48,41 @@ class ReferenceChipsController(
         chipNone.setOnClickListener { onChipSelected(ReferenceObjectType.NONE) }
 
         toggleButton?.setOnClickListener {
-            chipGroup.visibility =
-                if (chipGroup.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            if (chipGroup.visibility != View.VISIBLE) {
+                animateSwap(toggleButton, chipGroup)
+            }
         }
 
         dismissAnchor?.setOnClickListener {
-            if (chipGroup.visibility == View.VISIBLE) {
-                chipGroup.visibility = View.GONE
+            if (chipGroup.visibility == View.VISIBLE && toggleButton != null) {
+                animateSwap(chipGroup, toggleButton)
             }
         }
+    }
+
+    private fun animateSwap(viewOut: View, viewIn: View) {
+        val shrink = ScaleAnimation(
+            1f, 0f, 1f, 0f,
+            Animation.RELATIVE_TO_SELF, 0.5f,
+            Animation.RELATIVE_TO_SELF, 0.5f
+        ).apply {
+            duration = 200
+            setAnimationListener(object : Animation.AnimationListener {
+                override fun onAnimationStart(a: Animation?) {}
+                override fun onAnimationRepeat(a: Animation?) {}
+                override fun onAnimationEnd(a: Animation?) {
+                    viewOut.visibility = View.GONE
+                    viewIn.visibility = View.VISIBLE
+                    val expand = ScaleAnimation(
+                        0f, 1f, 0f, 1f,
+                        Animation.RELATIVE_TO_SELF, 0.5f,
+                        Animation.RELATIVE_TO_SELF, 0.5f
+                    ).apply { duration = 200 }
+                    viewIn.startAnimation(expand)
+                }
+            })
+        }
+        viewOut.startAnimation(shrink)
     }
 
     fun setType(type: ReferenceObjectType) {
@@ -77,8 +109,10 @@ class ReferenceChipsController(
     private fun onChipSelected(type: ReferenceObjectType) {
         setSelectedChip(chipForType(type))
         applySelection(type)
-        if (toggleButton != null) {
-            chipGroup.postDelayed({ chipGroup.visibility = View.GONE }, 300)
+        if (toggleButton != null && chipGroup.visibility == View.VISIBLE) {
+            chipGroup.postDelayed({ 
+                animateSwap(chipGroup, toggleButton)
+            }, 100)
         }
     }
 

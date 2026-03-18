@@ -36,9 +36,9 @@ class PlateDetector {
         private const val TAG = "PlateDetector"
         private const val MIN_PLATE_AREA_RATIO = 0.04 // 4% — allow wider shots
         private const val MAX_PLATE_AREA_RATIO = 0.90 // Plate usually won't cover >90%
-        private const val PRIMARY_CIRCULARITY_THRESHOLD = 0.55
-        private const val FALLBACK_CIRCULARITY_THRESHOLD = 0.35 // For ovals/bowls seen from angle
-        private const val LAST_RESORT_CIRCULARITY_THRESHOLD = 0.25 // Very relaxed for difficult images
+        private const val PRIMARY_CIRCULARITY_THRESHOLD = 0.65
+        private const val FALLBACK_CIRCULARITY_THRESHOLD = 0.45 // For ovals/bowls seen from angle
+        private const val LAST_RESORT_CIRCULARITY_THRESHOLD = 0.35 // Lowest acceptable circularity
         private const val TARGET_PROCESSING_WIDTH = 640 // Normalize to this width before processing
         private const val TEMPORAL_HISTORY_SIZE = 5 // Number of frames to average for smoothing
     }
@@ -99,21 +99,15 @@ class PlateDetector {
                 bestResult = tryCanny(enhanced, imageArea)
             }
 
-            // Strategy 3: HoughCircles (specifically designed for circular plates)
+            // Strategy 3: Otsu threshold with heavy morphology
             if (bestResult == null) {
-                Log.d(TAG, "Strategy 2 (Canny) failed, trying HoughCircles")
-                bestResult = tryHoughCircles(enhanced, imgWidth, imgHeight)
-            }
-
-            // Strategy 4: Otsu threshold with heavy morphology
-            if (bestResult == null) {
-                Log.d(TAG, "Strategy 3 (HoughCircles) failed, trying Otsu threshold")
+                Log.d(TAG, "Strategy 2 (Canny) failed, trying Otsu threshold")
                 bestResult = tryOtsu(enhanced, imageArea)
             }
 
-            // Strategy 5: Gradient magnitude (Sobel-based, catches subtle plate rims)
+            // Strategy 4: Gradient magnitude (Sobel-based, catches subtle plate rims)
             if (bestResult == null) {
-                Log.d(TAG, "Strategy 4 (Otsu) failed, trying gradient magnitude")
+                Log.d(TAG, "Strategy 3 (Otsu) failed, trying gradient magnitude")
                 bestResult = tryGradientMagnitude(enhanced, imageArea)
             }
 
@@ -259,91 +253,6 @@ class PlateDetector {
         hierarchy.release()
         contours.forEach { it.release() }
         return result
-    }
-
-    /**
-     * Strategy 3: HoughCircles — specifically designed for finding circular plates.
-     * Tries two passes: strict then relaxed parameters.
-     * Uses center-bias check to reject circles at image edges.
-     */
-    private fun tryHoughCircles(gray: Mat, width: Int, height: Int): PlateDetectionResult? {
-        val blurred = Mat()
-        Imgproc.GaussianBlur(gray, blurred, Size(9.0, 9.0), 2.0, 2.0)
-
-        // Pass 1: moderate sensitivity
-        var result = runHoughCircles(blurred, width, height, 80.0, 25.0, "pass1")
-
-        // Pass 2: high sensitivity (more false positives, but catches faint circles)
-        if (result == null) {
-            result = runHoughCircles(blurred, width, height, 60.0, 18.0, "pass2")
-        }
-
-        blurred.release()
-        return result
-    }
-
-    private fun runHoughCircles(blurred: Mat, width: Int, height: Int,
-                                 param1: Double, param2: Double, passName: String): PlateDetectionResult? {
-        val circles = Mat()
-        val minRadius = (minOf(width, height) * 0.10).toInt()
-        val maxRadius = (minOf(width, height) * 0.48).toInt()
-
-        Imgproc.HoughCircles(
-            blurred, circles, Imgproc.HOUGH_GRADIENT,
-            1.2, (minOf(width, height) * 0.25), // slightly lower minDist
-            param1, param2, minRadius, maxRadius
-        )
-
-        val centerX = width / 2.0
-        val centerY = height / 2.0
-        val maxCenterDist = minOf(width, height) * 0.40
-
-        if (circles.cols() > 0) {
-            var bestScore = -1.0
-            var bestRadius = 0.0
-            var bestX = 0.0
-            var bestY = 0.0
-
-            for (i in 0 until circles.cols()) {
-                val data = circles.get(0, i)
-                val cx = data[0]
-                val cy = data[1]
-                val r = data[2]
-
-                val distFromCenter = Math.sqrt((cx - centerX) * (cx - centerX) + (cy - centerY) * (cy - centerY))
-                if (distFromCenter > maxCenterDist) {
-                    Log.d(TAG, "HoughCircles($passName): rejected edge circle center=(${cx.toInt()},${cy.toInt()}) r=${r.toInt()} dist=${distFromCenter.toInt()}")
-                    continue
-                }
-
-                val centerScore = 1.0 - (distFromCenter / maxCenterDist)
-                val score = r * (0.5 + 0.5 * centerScore)
-
-                if (score > bestScore) {
-                    bestScore = score
-                    bestRadius = r
-                    bestX = cx
-                    bestY = cy
-                }
-            }
-
-            if (bestScore > 0) {
-                val rect = android.graphics.Rect(
-                    (bestX - bestRadius).toInt().coerceAtLeast(0),
-                    (bestY - bestRadius).toInt().coerceAtLeast(0),
-                    (bestX + bestRadius).toInt().coerceAtMost(width),
-                    (bestY + bestRadius).toInt().coerceAtMost(height)
-                )
-
-                Log.d(TAG, "HoughCircles($passName) found plate! center=(${bestX.toInt()},${bestY.toInt()}) r=${bestRadius.toInt()} score=${"%.1f".format(bestScore)}")
-                circles.release()
-                return PlateDetectionResult(true, rect, 0.85f, ShapeType.CIRCULAR)
-            }
-        }
-
-        Log.d(TAG, "HoughCircles($passName): no valid circles (total=${circles.cols()})")
-        circles.release()
-        return null
     }
 
     /**
@@ -515,10 +424,16 @@ class PlateDetector {
                 continue
             }
 
+            val shapeType = classifyShape(contour)
+            if (shapeType == ShapeType.UNKNOWN) {
+                notCircular++ // Count as rejected reason
+                Log.d(TAG, "[$strategyName] Rejected: Shape is UNKNOWN (not circular, oval, or rectangular)")
+                continue
+            }
+
             if (area > bestArea) {
                 val rect = Imgproc.boundingRect(contour)
                 val androidRect = android.graphics.Rect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height)
-                val shapeType = classifyShape(contour)
 
                 bestArea = area
                 bestResult = PlateDetectionResult(true, androidRect, circularity.toFloat(), shapeType)
@@ -540,6 +455,25 @@ class PlateDetector {
     private fun classifyShape(contour: MatOfPoint): ShapeType {
         val contour2f = MatOfPoint2f(*contour.toArray())
 
+        // 1. REJECT NON-ELLIPTICAL SHAPES GEOMETRICALLY
+        // A perfect circle/ellipse has an area of precisely ~78.5% (π/4) of its minimum bounding rectangle.
+        // A rectangle (like a keyboard, phone, tablet) has an area of ~100%.
+        // Irregular blobs/stars usually have < 65%.
+        val area = Imgproc.contourArea(contour)
+        val minRect = Imgproc.minAreaRect(contour2f)
+        val rectArea = minRect.size.width * minRect.size.height
+
+        if (rectArea > 0) {
+            val extent = area / rectArea
+            // Accept only shapes that fall perfectly in the ellipse mathematical range
+            // (0.785 is perfect. Allow [0.68, 0.88] for noise and perspective slight distortions)
+            if (extent > 0.88 || extent < 0.68) {
+                Log.d(TAG, "Shape: REJECTED (Extent ${"%.3f".format(extent)} doesn't match a plate. A plate must be ~0.785)")
+                return ShapeType.UNKNOWN
+            }
+        }
+
+        // 2. CHECK IF OVAL/CIRCLE
         if (contour2f.rows() >= 5) {
             try {
                 val ellipse = Imgproc.fitEllipse(contour2f)
@@ -557,32 +491,18 @@ class PlateDetector {
                             Log.d(TAG, "Shape: OVAL (axis ratio ${"%.2f".format(axisRatio)})")
                             ShapeType.OVAL
                         }
-                        else -> checkRectangular(contour2f)
+                        else -> {
+                            Log.d(TAG, "Shape: UNKNOWN (too elongated, axis ratio ${"%.2f".format(axisRatio)})")
+                            ShapeType.UNKNOWN
+                        }
                     }
                 }
             } catch (e: Exception) {
-                Log.w(TAG, "fitEllipse failed, trying approxPolyDP", e)
+                Log.w(TAG, "fitEllipse failed", e)
             }
         }
 
-        return checkRectangular(contour2f)
-    }
-
-    /**
-     * Checks if contour is rectangular using polygon approximation.
-     */
-    private fun checkRectangular(contour2f: MatOfPoint2f): ShapeType {
-        val peri = Imgproc.arcLength(contour2f, true)
-        val approxCurve = MatOfPoint2f()
-        Imgproc.approxPolyDP(contour2f, approxCurve, 0.02 * peri, true)
-
-        return if (approxCurve.rows() == 4) {
-            Log.d(TAG, "Shape: RECTANGULAR (4 vertices)")
-            ShapeType.RECTANGULAR
-        } else {
-            Log.d(TAG, "Shape: UNKNOWN (${approxCurve.rows()} vertices)")
-            ShapeType.UNKNOWN
-        }
+        return ShapeType.UNKNOWN
     }
 }
 

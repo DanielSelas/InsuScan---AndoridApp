@@ -339,7 +339,7 @@ data class ImageQualityResult(
 ) {
 
     // Helper to determine the "State" for UI logic
-    val isValid: Boolean get() = isBrightnessOk && isSharpnessOk && isResolutionOk && isPlateFound && isReferenceObjectFound
+    val isValid: Boolean get() = isBrightnessOk && isSharpnessOk && isResolutionOk && isPlateFound
 
     // Returns a user-facing message based on the current quality status.
     fun getValidationMessage(): String {
