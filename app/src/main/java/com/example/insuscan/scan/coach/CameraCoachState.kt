@@ -31,17 +31,6 @@ sealed class CameraCoachState(
         3, 3, "Perfect! Tap to capture ✅", CoachSeverity.GOOD, true
     )
 
-    class SidePhotoReady : CameraCoachState(
-        1, 1, "Perfect angle — tap to capture ✅", CoachSeverity.GOOD, true
-    )
-
-    class SidePhotoAlmost : CameraCoachState(
-        1, 1, "Good enough — tap to capture ⚠️", CoachSeverity.ACCEPTABLE, true
-    )
-
-    class SidePhotoTilt : CameraCoachState(
-        1, 1, "Hold phone upright at table level 📐", CoachSeverity.BLOCKING, false
-    )
 }
 
 enum class CoachSeverity {
