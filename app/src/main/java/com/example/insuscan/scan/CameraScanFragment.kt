@@ -33,6 +33,14 @@ import com.example.insuscan.utils.ReferenceObjectHelper
 import com.example.insuscan.utils.ToastHelper
 import kotlinx.coroutines.launch
 import java.io.File
+// new
+import android.content.res.ColorStateList
+import android.view.animation.Animation
+import android.view.animation.ScaleAnimation
+import com.example.insuscan.scan.coach.CameraCoachEvaluator
+import com.example.insuscan.scan.coach.CameraCoachState
+import com.example.insuscan.scan.coach.CoachSeverity
+import com.example.insuscan.scan.coach.MeasurementStrategy
 
 class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
 
@@ -75,13 +83,16 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     private var isShowingCapturedImage = false
     private var isDeviceLevel = true
     private var isScanningSurface = false
-    private var plateInFrameStartTime: Long = 0L
-    private var isForceCaptureAllowed = false
+//    private var plateInFrameStartTime: Long = 0L
+//    private var isForceCaptureAllowed = false
 
     private var isSidePhotoCaptureMode = false
     private var pendingSidePhotoBitmap: android.graphics.Bitmap? = null
     private var pendingSidePhotoFile: File? = null
     private var pendingSidePhotoRefType: String? = null
+
+    private lateinit var arIndicatorDot: View
+    private val coachEvaluator = CameraCoachEvaluator()
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -188,7 +199,19 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         arStatusText = view.findViewById(R.id.tv_ar_status)
         btnCancelAr = view.findViewById(R.id.btn_cancel_ar)
         hiddenArSurfaceView = view.findViewById(R.id.hidden_ar_surface_view)
-        btnCancelAr.setOnClickListener { stopArScanMode() }
+//        btnCancelAr.setOnClickListener { stopArScanMode() }
+        arIndicatorDot = view.findViewById(R.id.view_ar_indicator)
+        arIndicatorDot.setOnClickListener {
+            val arReady = arCoreManager?.isReady == true
+            val arSupported = arCoreManager?.isSupported == true
+            val message = when {
+                arReady -> "3D depth scanning active — improves portion accuracy"
+                arSupported -> "3D scanning warming up — move phone slightly"
+                else -> "3D scanning not available on this device"
+            }
+            ToastHelper.showShort(requireContext(), message)
+        }
+
     }
 
     private fun initializeArCore() {
@@ -247,27 +270,68 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         }
     }
 
+//    private fun initializeListeners() {
+//        captureButton.setOnClickListener {
+//            if (isShowingCapturedImage) {
+//                switchToCameraMode()
+//            } else {
+//                val result = cameraManager.lastQualityResult
+//                if (result != null) {
+//                    if (result.isPlateFound) {
+//                        if (isRefObjectExpectedInFrame() && !result.isReferenceObjectFound) {
+//                            showMissingRefObjectDialog()
+//                        } else {
+//                            onCaptureClicked()
+//                        }
+//                    } else {
+//                        ToastHelper.showShort(requireContext(), "Please center the food plate first")
+//                    }
+//                } else {
+//                    ToastHelper.showShort(requireContext(), "Camera initializing...")
+//                }
+//            }
+//        }
+//        galleryButton.setOnClickListener {
+//            selectedReferenceType = "NONE"
+//            refChipsController.setType(ReferenceObjectHelper.ReferenceObjectType.NONE)
+//            if (::cameraManager.isInitialized) {
+//                cameraManager.selectedReferenceType = "NONE"
+//                cameraManager.stopPreview()
+//            }
+//            galleryLauncher.launch(
+//                androidx.activity.result.PickVisualMediaRequest(
+//                    androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+//                )
+//            )
+//        }
+//    }
+
     private fun initializeListeners() {
         captureButton.setOnClickListener {
             if (isShowingCapturedImage) {
                 switchToCameraMode()
-            } else {
-                val result = cameraManager.lastQualityResult
-                if (result != null) {
-                    if (result.isPlateFound) {
-                        if (isRefObjectExpectedInFrame() && !result.isReferenceObjectFound) {
-                            showMissingRefObjectDialog()
-                        } else {
-                            onCaptureClicked()
-                        }
-                    } else {
-                        ToastHelper.showShort(requireContext(), "Please center the food plate first")
-                    }
-                } else {
-                    ToastHelper.showShort(requireContext(), "Camera initializing...")
-                }
+                return@setOnClickListener
             }
+
+            val quality = cameraManager.lastQualityResult
+            if (quality == null) {
+                ToastHelper.showShort(requireContext(), "Camera initializing...")
+                return@setOnClickListener
+            }
+
+            if (!quality.isPlateFound) {
+                ToastHelper.showShort(requireContext(), "Center the plate first")
+                return@setOnClickListener
+            }
+
+            if (!isDeviceLevel) {
+                ToastHelper.showShort(requireContext(), "Hold phone flat first")
+                return@setOnClickListener
+            }
+
+            onCaptureClicked()
         }
+
         galleryButton.setOnClickListener {
             selectedReferenceType = "NONE"
             refChipsController.setType(ReferenceObjectHelper.ReferenceObjectType.NONE)
@@ -276,9 +340,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
                 cameraManager.stopPreview()
             }
             galleryLauncher.launch(
-                androidx.activity.result.PickVisualMediaRequest(
-                    androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
-                )
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
         }
     }
@@ -286,54 +348,60 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     private fun initializeOrientationHelper() {
         orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
         orientationHelper.onOrientationChanged = { pitch, _, isLevel ->
+//            if (isSidePhotoCaptureMode) {
+//                val pitchAbs = Math.abs(pitch)
+//                activity?.runOnUiThread {
+//                    val statusText: String
+//                    val statusColor: Int
+//                    val canCapture: Boolean
+//
+//                    when {
+//                        pitchAbs < 15.0 -> {
+//                            statusText = "✅ Perfect Angle"
+//                            statusColor = R.color.status_normal
+//                            canCapture = true
+//                        }
+//                        pitchAbs < 30.0 -> {
+//                            statusText = "⚠️ Good enough for capture"
+//                            statusColor = R.color.status_warning
+//                            canCapture = true
+//                        }
+//                        else -> {
+//                            statusText = "❌ Hold phone vertically"
+//                            statusColor = R.color.status_critical
+//                            canCapture = false
+//                        }
+//                    }
+//
+//                    val colorWithAlpha = androidx.core.graphics.ColorUtils.setAlphaComponent(
+//                        ContextCompat.getColor(requireContext(), statusColor),
+//                        0x99
+//                    )
+//
+//                    tvCoachPill.apply {
+//                        text = statusText
+//                        background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+//                        background.setTint(colorWithAlpha)
+//                        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+//                        visibility = View.VISIBLE
+//                    }
+//
+//                    qualityStatusText.apply {
+//                        text = statusText
+//                        background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+//                        background.setTint(colorWithAlpha)
+//                        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+//                        visibility = View.VISIBLE
+//                    }
+//
+//                    captureButton.isEnabled = canCapture
+//                    captureButton.alpha = if (canCapture) 1.0f else 0.5f
+//                }
+//            } else {
             if (isSidePhotoCaptureMode) {
-                val pitchAbs = Math.abs(pitch)
                 activity?.runOnUiThread {
-                    val statusText: String
-                    val statusColor: Int
-                    val canCapture: Boolean
-
-                    when {
-                        pitchAbs < 15.0 -> {
-                            statusText = "✅ Perfect Angle"
-                            statusColor = R.color.status_normal
-                            canCapture = true
-                        }
-                        pitchAbs < 30.0 -> {
-                            statusText = "⚠️ Good enough for capture"
-                            statusColor = R.color.status_warning
-                            canCapture = true
-                        }
-                        else -> {
-                            statusText = "❌ Hold phone vertically"
-                            statusColor = R.color.status_critical
-                            canCapture = false
-                        }
-                    }
-
-                    val colorWithAlpha = androidx.core.graphics.ColorUtils.setAlphaComponent(
-                        ContextCompat.getColor(requireContext(), statusColor),
-                        0x99
-                    )
-
-                    tvCoachPill.apply {
-                        text = statusText
-                        background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
-                        background.setTint(colorWithAlpha)
-                        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
-                        visibility = View.VISIBLE
-                    }
-
-                    qualityStatusText.apply {
-                        text = statusText
-                        background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
-                        background.setTint(colorWithAlpha)
-                        setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
-                        visibility = View.VISIBLE
-                    }
-
-                    captureButton.isEnabled = canCapture
-                    captureButton.alpha = if (canCapture) 1.0f else 0.5f
+                    val state = coachEvaluator.evaluateSidePhoto(pitch)
+                    applyCoachState(state)
                 }
             } else {
                 if (isDeviceLevel != isLevel) {
@@ -363,8 +431,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             lifecycleOwner = viewLifecycleOwner,
             previewView = cameraPreview,
             onCameraReady = {
-                captureButton.isEnabled = true
-                qualityStatusText.text = "Ready to capture"
+                captureButton.isEnabled = false
+                captureButton.alpha = 0.5f
             },
             onError = { errorMessage ->
                 ToastHelper.showShort(requireContext(), errorMessage)
@@ -379,82 +447,115 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         return refType != null && refType != ReferenceObjectHelper.ReferenceObjectType.NONE
     }
 
-    private fun updateQualityUI(quality: ImageQualityResult) {
+//    private fun updateQualityUI(quality: ImageQualityResult) {
+//        if (!isAdded || context == null) return
+//
+//        if (quality.isPlateFound) {
+//            if (plateInFrameStartTime == 0L) {
+//                plateInFrameStartTime = System.currentTimeMillis()
+//            } else if (System.currentTimeMillis() - plateInFrameStartTime > 5000) {
+//                isForceCaptureAllowed = true
+//            }
+//        } else {
+//            plateInFrameStartTime = 0L
+//            isForceCaptureAllowed = false
+//        }
+//
+//        val validationMsg = when {
+//            !isDeviceLevel -> "Hold Phone Flat 📱"
+//            !quality.isValid && isForceCaptureAllowed -> "Quality low, but you can capture now."
+//            else -> quality.getValidationMessage()
+//        }
+//        qualityStatusText.text = validationMsg
+//
+//        // Removed old statusColor/setBackgroundColor logic to avoid overriding pill shape
+//        captureButton.isEnabled = (quality.isValid && isDeviceLevel) || isForceCaptureAllowed
+//        captureButton.alpha = if (captureButton.isEnabled) 1.0f else 0.5f
+//
+//        val refType = ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+//        val refObjLabel = when (refType) {
+//            ReferenceObjectHelper.ReferenceObjectType.CARD -> "Place Card 💳"
+//            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "Place Pen 🖊️"
+//            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "Place Fork/Knife 🍴"
+//            else -> "Place Ref Obj"
+//        }
+//
+//        val coachMessage: String
+//        val coachColor: Int
+//        var canCapture = false
+//
+//        when {
+//            !isDeviceLevel -> {
+//                coachMessage = "Phone Tilted 📐"
+//                coachColor = R.color.status_critical
+//            }
+//            !quality.isPlateFound -> {
+//                coachMessage = "Find Plate 🍽️"
+//                coachColor = R.color.status_critical
+//            }
+//            isRefObjectExpectedInFrame() && !quality.isReferenceObjectFound -> {
+//                coachMessage = refObjLabel
+//                coachColor = R.color.status_critical
+//            }
+//            !quality.isValid -> {
+//                // Orange state: plate found but quality issues (dark, blurry, etc)
+//                // If force capture is allowed (waited 5s), we show warning
+//                if (isForceCaptureAllowed) {
+//                    coachMessage = "⚠️ Quality low, capture if needed"
+//                    coachColor = R.color.status_warning
+//                    canCapture = true
+//                } else {
+//                    coachMessage = when {
+//                        !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
+//                        !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
+//                        !quality.isSharpnessOk -> "Image Blurry 📷"
+//                        else -> "Improving quality..."
+//                    }
+//                    coachColor = R.color.status_critical
+//                }
+//            }
+//            else -> {
+//                coachMessage = "Perfect! ✅"
+//                coachColor = R.color.status_normal
+//                canCapture = true
+//            }
+//        }
+//
+//        tvCoachPill.apply {
+//            text = coachMessage
+//            visibility = View.VISIBLE
+//            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+//            val color = ContextCompat.getColor(requireContext(), coachColor)
+//            background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x99))
+//            setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+//        }
+//
+//        qualityStatusText.apply {
+//            text = coachMessage
+//            visibility = View.VISIBLE
+//            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+//            val color = ContextCompat.getColor(requireContext(), coachColor)
+//            background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x99))
+//            setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+//        }
+//
+//        captureButton.isEnabled = canCapture
+//        captureButton.alpha = if (canCapture) 1.0f else 0.5f
+//    }
+
+    private fun applyCoachState(state: CameraCoachState) {
         if (!isAdded || context == null) return
 
-        if (quality.isPlateFound) {
-            if (plateInFrameStartTime == 0L) {
-                plateInFrameStartTime = System.currentTimeMillis()
-            } else if (System.currentTimeMillis() - plateInFrameStartTime > 5000) {
-                isForceCaptureAllowed = true
-            }
-        } else {
-            plateInFrameStartTime = 0L
-            isForceCaptureAllowed = false
-        }
-
-        val validationMsg = when {
-            !isDeviceLevel -> "Hold Phone Flat 📱"
-            !quality.isValid && isForceCaptureAllowed -> "Quality low, but you can capture now."
-            else -> quality.getValidationMessage()
-        }
-        qualityStatusText.text = validationMsg
-
-        // Removed old statusColor/setBackgroundColor logic to avoid overriding pill shape
-        captureButton.isEnabled = (quality.isValid && isDeviceLevel) || isForceCaptureAllowed
-        captureButton.alpha = if (captureButton.isEnabled) 1.0f else 0.5f
-
-        val refType = ReferenceObjectHelper.fromServerValue(selectedReferenceType)
-        val refObjLabel = when (refType) {
-            ReferenceObjectHelper.ReferenceObjectType.CARD -> "Place Card 💳"
-            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "Place Pen 🖊️"
-            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "Place Fork/Knife 🍴"
-            else -> "Place Ref Obj"
-        }
-
-        val coachMessage: String
-        val coachColor: Int
-        var canCapture = false
-
-        when {
-            !isDeviceLevel -> {
-                coachMessage = "Phone Tilted 📐"
-                coachColor = R.color.status_critical
-            }
-            !quality.isPlateFound -> {
-                coachMessage = "Find Plate 🍽️"
-                coachColor = R.color.status_critical
-            }
-            isRefObjectExpectedInFrame() && !quality.isReferenceObjectFound -> {
-                coachMessage = refObjLabel
-                coachColor = R.color.status_critical
-            }
-            !quality.isValid -> {
-                // Orange state: plate found but quality issues (dark, blurry, etc)
-                // If force capture is allowed (waited 5s), we show warning
-                if (isForceCaptureAllowed) {
-                    coachMessage = "⚠️ Quality low, capture if needed"
-                    coachColor = R.color.status_warning
-                    canCapture = true
-                } else {
-                    coachMessage = when {
-                        !quality.isBrightnessOk && quality.brightness < 50f -> "Too Dark 🌑"
-                        !quality.isBrightnessOk && quality.brightness > 200f -> "Too Bright ☀️"
-                        !quality.isSharpnessOk -> "Image Blurry 📷"
-                        else -> "Improving quality..."
-                    }
-                    coachColor = R.color.status_critical
-                }
-            }
-            else -> {
-                coachMessage = "Perfect! ✅"
-                coachColor = R.color.status_normal
-                canCapture = true
-            }
+        val coachColor = when (state.severity) {
+            CoachSeverity.BLOCKING -> R.color.status_critical
+            CoachSeverity.WARNING -> R.color.status_critical
+            CoachSeverity.TIP -> R.color.status_warning
+            CoachSeverity.ACCEPTABLE -> R.color.status_warning
+            CoachSeverity.GOOD -> R.color.status_normal
         }
 
         tvCoachPill.apply {
-            text = coachMessage
+            text = state.message
             visibility = View.VISIBLE
             background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
             val color = ContextCompat.getColor(requireContext(), coachColor)
@@ -462,18 +563,99 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
         }
 
-        qualityStatusText.apply {
-            text = coachMessage
-            visibility = View.VISIBLE
-            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
-            val color = ContextCompat.getColor(requireContext(), coachColor)
-            background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x99))
-            setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
-        }
+        captureButton.isEnabled = state.canCapture
+        captureButton.alpha = if (state.canCapture) 1.0f else 0.5f
 
-        captureButton.isEnabled = canCapture
-        captureButton.alpha = if (canCapture) 1.0f else 0.5f
+        if (state.canCapture && state is CameraCoachState.Ready) {
+            animateCaptureButtonReady()
+        } else {
+            captureButton.clearAnimation()
+        }
     }
+
+
+    private fun updateQualityUI(quality: ImageQualityResult) {
+        if (!isAdded || context == null) return
+
+        val state = coachEvaluator.evaluate(
+            quality, isDeviceLevel, selectedReferenceType, isSidePhotoCaptureMode
+        )
+
+        applyCoachState(state)
+        qualityStatusText.visibility = View.GONE
+        updateArIndicator()
+    }
+
+//    private fun updateQualityUI(quality: ImageQualityResult) {
+//        if (!isAdded || context == null) return
+//
+//        val state = coachEvaluator.evaluate(
+//            quality, isDeviceLevel, selectedReferenceType, isSidePhotoCaptureMode
+//        )
+//
+//        val coachColor = when (state.severity) {
+//            CoachSeverity.BLOCKING -> R.color.status_critical
+//            CoachSeverity.WARNING -> R.color.status_critical
+//            CoachSeverity.TIP -> R.color.status_warning
+//            CoachSeverity.ACCEPTABLE -> R.color.status_warning
+//            CoachSeverity.GOOD -> R.color.status_normal
+//        }
+//
+//        tvCoachPill.apply {
+//            text = state.message
+//            visibility = View.VISIBLE
+//            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+//            val color = ContextCompat.getColor(requireContext(), coachColor)
+//            background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x99))
+//            setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+//        }
+//
+//        qualityStatusText.visibility = View.GONE
+//
+//        captureButton.isEnabled = state.canCapture
+//        captureButton.alpha = if (state.canCapture) 1.0f else 0.5f
+//
+//        if (state.canCapture && state is CameraCoachState.Ready) {
+//            animateCaptureButtonReady()
+//        } else {
+//            captureButton.clearAnimation()
+//        }
+//
+//        updateArIndicator()
+//    }
+
+    private fun animateCaptureButtonReady() {
+        if (captureButton.animation != null) return
+        val pulse = ScaleAnimation(
+            1.0f, 1.05f, 1.0f, 1.05f,
+            Animation.RELATIVE_TO_SELF, 0.5f,
+            Animation.RELATIVE_TO_SELF, 0.5f
+        ).apply {
+            duration = 600
+            repeatMode = Animation.REVERSE
+            repeatCount = Animation.INFINITE
+        }
+        captureButton.startAnimation(pulse)
+    }
+
+    private fun updateArIndicator() {
+        if (!::arIndicatorDot.isInitialized) return
+        val arReady = arCoreManager?.isReady == true
+        val arSupported = arCoreManager?.isSupported == true
+        val color = when {
+            arReady -> R.color.status_normal
+            arSupported -> R.color.primary
+            else -> R.color.text_disabled
+        }
+        arIndicatorDot.backgroundTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(requireContext(), color))
+        arIndicatorDot.visibility = View.VISIBLE
+        arIndicatorDot.contentDescription = when {
+            arReady -> "3D depth: active"
+            arSupported -> "3D depth: scanning"
+            else -> "3D depth: unavailable"
+        }    }
+
 
     private fun onCaptureClicked() {
         if (isSidePhotoCaptureMode) {
@@ -543,6 +725,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     }
 
     private fun switchToCameraMode() {
+        coachEvaluator.reset()
+
         isShowingCapturedImage = false
         capturedImagePath = null
         pipelineManager.resetState()
@@ -611,19 +795,39 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
 
         viewLifecycleOwner.lifecycleScope.launch {
             val refCheck = pipelineManager.checkReferenceObject(bitmap, selectedReferenceType)
-            when (refCheck) {
-                is RefCheckResult.Proceed -> {
-                    val result = pipelineManager.runAnalysis(
-                        bitmap, imageFile, selectedReferenceType, capturedImagePath
-                    )
-                    handlePipelineResult(result, bitmap, imageFile)
-                }
+            val effectiveRefType = when (refCheck) {
+                is RefCheckResult.Proceed -> selectedReferenceType
                 is RefCheckResult.AlternativeFound -> {
-                    showLoading(false)
-                    showAlternativeRefObjectDialog(bitmap, imageFile, refCheck.selectedType, refCheck.detectedMode)
+                    val autoType = when (refCheck.detectedMode) {
+                        com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
+                        com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
+                        com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
+                    }
+                    Log.d(TAG, "Auto-switching ref type: $selectedReferenceType -> $autoType")
+                    autoType
                 }
             }
+            val result = pipelineManager.runAnalysis(
+                bitmap, imageFile, effectiveRefType, capturedImagePath
+            )
+            handlePipelineResult(result, bitmap, imageFile)
         }
+
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            val refCheck = pipelineManager.checkReferenceObject(bitmap, selectedReferenceType)
+//            when (refCheck) {
+//                is RefCheckResult.Proceed -> {
+//                    val result = pipelineManager.runAnalysis(
+//                        bitmap, imageFile, selectedReferenceType, capturedImagePath
+//                    )
+//                    handlePipelineResult(result, bitmap, imageFile)
+//                }
+//                is RefCheckResult.AlternativeFound -> {
+//                    showLoading(false)
+//                    showAlternativeRefObjectDialog(bitmap, imageFile, refCheck.selectedType, refCheck.detectedMode)
+//                }
+//            }
+//        }
     }
 
     private fun handlePipelineResult(
@@ -632,8 +836,16 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         imageFile: File
     ) {
         when (result) {
+//            is PipelineResult.Success -> {
+//                showLoading(false)
+//                if (result.warning != null) {
+//                    ToastHelper.showLong(requireContext(), result.warning)
+//                }
+//                callback?.onScanSuccess(result.meal)
+//            }
             is PipelineResult.Success -> {
                 showLoading(false)
+                showConfidenceBanner()
                 if (result.warning != null) {
                     ToastHelper.showLong(requireContext(), result.warning)
                 }
@@ -657,6 +869,23 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
                 handleScanError(result.error)
             }
         }
+    }
+
+    private fun showConfidenceBanner() {
+        val hasRef = if (::cameraManager.isInitialized)
+            cameraManager.lastQualityResult?.isReferenceObjectFound ?: false
+        else false
+        val hasAr = arCoreManager?.isReady == true
+
+        val strategy = MeasurementStrategy.decide(hasRef, hasAr)
+
+        val icon = when (strategy.accuracy) {
+            MeasurementStrategy.Accuracy.HIGH -> "🟢"
+            MeasurementStrategy.Accuracy.GOOD -> "🟡"
+            MeasurementStrategy.Accuracy.MODERATE -> "🟠"
+        }
+
+        ToastHelper.showLong(requireContext(), "$icon ${strategy.label}")
     }
 
     private fun proceedWithPortionAnalysis(
@@ -712,114 +941,114 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             .show()
     }
 
-    private fun showAlternativeRefObjectDialog(
-        bitmap: android.graphics.Bitmap,
-        imageFile: File,
-        selectedType: ReferenceObjectHelper.ReferenceObjectType,
-        detectedMode: com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode
-    ) {
-        val selectedName = getString(selectedType.displayNameResId)
-        val detectedName = when (detectedMode) {
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> getString(R.string.ref_option_insulin_syringe)
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> getString(R.string.ref_option_syringe_knife)
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> getString(R.string.ref_option_card)
-        }
-        val detectedServerValue = when (detectedMode) {
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
-            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
-        }
+//    private fun showAlternativeRefObjectDialog(
+//        bitmap: android.graphics.Bitmap,
+//        imageFile: File,
+//        selectedType: ReferenceObjectHelper.ReferenceObjectType,
+//        detectedMode: com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode
+//    ) {
+//        val selectedName = getString(selectedType.displayNameResId)
+//        val detectedName = when (detectedMode) {
+//            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> getString(R.string.ref_option_insulin_syringe)
+//            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> getString(R.string.ref_option_syringe_knife)
+//            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> getString(R.string.ref_option_card)
+//        }
+//        val detectedServerValue = when (detectedMode) {
+//            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
+//            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
+//            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
+//        }
+//
+//        AlertDialog.Builder(requireContext())
+//            .setTitle("Different Object Detected")
+//            .setMessage("You selected \"$selectedName\" but we detected \"$detectedName\".\n\nUse the detected object for more accurate measurements?")
+//            .setPositiveButton("Use $detectedName") { dialog, _ ->
+//                dialog.dismiss()
+//                showLoading(true, "Analyzing with detected reference...")
+//                selectedReferenceType = detectedServerValue
+//                if (::cameraManager.isInitialized) cameraManager.selectedReferenceType = detectedServerValue
+//                proceedWithPortionAnalysis(bitmap, imageFile, detectedServerValue)
+//            }
+//            .setNegativeButton("Ignore, Capture Anyway") { dialog, _ ->
+//                dialog.dismiss()
+//                showLoading(true, "Analyzing without reference object...")
+//                proceedWithPortionAnalysis(bitmap, imageFile, "NONE")
+//            }
+//            .setNeutralButton("Retake") { dialog, _ ->
+//                dialog.dismiss()
+//                switchToCameraMode()
+//            }
+//            .setCancelable(false)
+//            .show()
+//    }
 
-        AlertDialog.Builder(requireContext())
-            .setTitle("Different Object Detected")
-            .setMessage("You selected \"$selectedName\" but we detected \"$detectedName\".\n\nUse the detected object for more accurate measurements?")
-            .setPositiveButton("Use $detectedName") { dialog, _ ->
-                dialog.dismiss()
-                showLoading(true, "Analyzing with detected reference...")
-                selectedReferenceType = detectedServerValue
-                if (::cameraManager.isInitialized) cameraManager.selectedReferenceType = detectedServerValue
-                proceedWithPortionAnalysis(bitmap, imageFile, detectedServerValue)
-            }
-            .setNegativeButton("Ignore, Capture Anyway") { dialog, _ ->
-                dialog.dismiss()
-                showLoading(true, "Analyzing without reference object...")
-                proceedWithPortionAnalysis(bitmap, imageFile, "NONE")
-            }
-            .setNeutralButton("Retake") { dialog, _ ->
-                dialog.dismiss()
-                switchToCameraMode()
-            }
-            .setCancelable(false)
-            .show()
-    }
+//    private fun showMissingRefObjectDialog() {
+//        val isArReady = arCoreManager?.isReady == true
+//        val isArSupported = arCoreManager?.isSupported == true
+//        val arButtonText = when {
+//            isArReady -> "Use AR Measurement ✅"
+//            isArSupported -> "Scan Surface (AR)"
+//            else -> "Scan Surface (N/A)"
+//        }
+//        val refType = ReferenceObjectHelper.fromServerValue(selectedReferenceType)
+//        val objectName = when (refType) {
+//            ReferenceObjectHelper.ReferenceObjectType.CARD -> "credit card"
+//            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "insulin pen"
+//            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "fork/knife"
+//            else -> "reference object"
+//        }
+//        val message = if (isArReady) {
+//            "The $objectName was not detected.\n\nAR is ready — we can measure automatically."
+//        } else {
+//            "The $objectName was not detected.\n\nMake sure it's visible, or scan the table surface."
+//        }
+//
+//        AlertDialog.Builder(requireContext())
+//            .setTitle("Reference Object Missing")
+//            .setMessage(message)
+//            .setPositiveButton(arButtonText) { dialog, _ ->
+//                if (isArReady) { dialog.dismiss(); onCaptureClicked() }
+//                else if (isArSupported) { dialog.dismiss(); startArScanMode() }
+//                else { dialog.dismiss(); ToastHelper.showLong(requireContext(), "Your device does not support AR.") }
+//            }
+//            .setNegativeButton("Capture Anyway") { dialog, _ -> dialog.dismiss(); onCaptureClicked() }
+//            .setNeutralButton("Cancel") { dialog, _ -> dialog.dismiss() }
+//            .show()
+//    }
 
-    private fun showMissingRefObjectDialog() {
-        val isArReady = arCoreManager?.isReady == true
-        val isArSupported = arCoreManager?.isSupported == true
-        val arButtonText = when {
-            isArReady -> "Use AR Measurement ✅"
-            isArSupported -> "Scan Surface (AR)"
-            else -> "Scan Surface (N/A)"
-        }
-        val refType = ReferenceObjectHelper.fromServerValue(selectedReferenceType)
-        val objectName = when (refType) {
-            ReferenceObjectHelper.ReferenceObjectType.CARD -> "credit card"
-            ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "insulin pen"
-            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "fork/knife"
-            else -> "reference object"
-        }
-        val message = if (isArReady) {
-            "The $objectName was not detected.\n\nAR is ready — we can measure automatically."
-        } else {
-            "The $objectName was not detected.\n\nMake sure it's visible, or scan the table surface."
-        }
+//    private fun startArScanMode() {
+//        isScanningSurface = true
+//        arGuidanceOverlay.visibility = View.VISIBLE
+//        captureButton.isEnabled = false
+//        galleryButton.isEnabled = false
+//
+//        viewLifecycleOwner.lifecycleScope.launch {
+//            var waitCycles = 0
+//            val maxWait = 30
+//            while (waitCycles < maxWait && arCoreManager?.isReady != true) {
+//                kotlinx.coroutines.delay(200)
+//                waitCycles++
+//                activity?.runOnUiThread { arStatusText.text = "Scanning surface... Move phone slowly" }
+//            }
+//            activity?.runOnUiThread {
+//                if (arCoreManager?.isReady == true) {
+//                    ToastHelper.showShort(requireContext(), "Surface detected! Capturing...")
+//                    stopArScanMode()
+//                    onCaptureClicked()
+//                } else {
+//                    ToastHelper.showShort(requireContext(), "AR Scan timed out. Try again.")
+//                    stopArScanMode()
+//                }
+//            }
+//        }
+//    }
 
-        AlertDialog.Builder(requireContext())
-            .setTitle("Reference Object Missing")
-            .setMessage(message)
-            .setPositiveButton(arButtonText) { dialog, _ ->
-                if (isArReady) { dialog.dismiss(); onCaptureClicked() }
-                else if (isArSupported) { dialog.dismiss(); startArScanMode() }
-                else { dialog.dismiss(); ToastHelper.showLong(requireContext(), "Your device does not support AR.") }
-            }
-            .setNegativeButton("Capture Anyway") { dialog, _ -> dialog.dismiss(); onCaptureClicked() }
-            .setNeutralButton("Cancel") { dialog, _ -> dialog.dismiss() }
-            .show()
-    }
-
-    private fun startArScanMode() {
-        isScanningSurface = true
-        arGuidanceOverlay.visibility = View.VISIBLE
-        captureButton.isEnabled = false
-        galleryButton.isEnabled = false
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            var waitCycles = 0
-            val maxWait = 30
-            while (waitCycles < maxWait && arCoreManager?.isReady != true) {
-                kotlinx.coroutines.delay(200)
-                waitCycles++
-                activity?.runOnUiThread { arStatusText.text = "Scanning surface... Move phone slowly" }
-            }
-            activity?.runOnUiThread {
-                if (arCoreManager?.isReady == true) {
-                    ToastHelper.showShort(requireContext(), "Surface detected! Capturing...")
-                    stopArScanMode()
-                    onCaptureClicked()
-                } else {
-                    ToastHelper.showShort(requireContext(), "AR Scan timed out. Try again.")
-                    stopArScanMode()
-                }
-            }
-        }
-    }
-
-    private fun stopArScanMode() {
-        isScanningSurface = false
-        arGuidanceOverlay.visibility = View.GONE
-        captureButton.isEnabled = true
-        galleryButton.isEnabled = true
-    }
+//    private fun stopArScanMode() {
+//        isScanningSurface = false
+//        arGuidanceOverlay.visibility = View.GONE
+//        captureButton.isEnabled = true
+//        galleryButton.isEnabled = true
+//    }
 
     private fun showNoFoodDetectedDialog() {
         AlertDialog.Builder(requireContext())
