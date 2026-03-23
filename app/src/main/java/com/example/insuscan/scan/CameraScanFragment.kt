@@ -91,6 +91,16 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     private lateinit var viewPlateTargetZone: View
     private var isSidePhotoMode = false
     private var isDeviceSideAngle = false
+    private var pendingMainBitmap: Bitmap? = null
+    private var pendingMainFile: File? = null
+    private var pendingRefType: String? = null
+    private var isTwoPhotoMode = false
+    private lateinit var layoutStepIndicator: LinearLayout
+    private lateinit var stepDot1: View
+    private lateinit var stepDot2: View
+    private lateinit var cardSidePhotoPrompt: androidx.cardview.widget.CardView
+    private lateinit var btnSidePhotoReady: Button
+    private lateinit var tvSideCardSkip: TextView
     private val coachEvaluator = CameraCoachEvaluator()
 
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -201,6 +211,12 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         arIndicatorDot = view.findViewById(R.id.view_ar_indicator)
         tvArExplanation = view.findViewById(R.id.tv_ar_explanation)
         layoutArIndicator = view.findViewById(R.id.layout_ar_indicator)
+        layoutStepIndicator = view.findViewById(R.id.layout_step_indicator)
+        stepDot1 = view.findViewById(R.id.view_step_dot_1)
+        stepDot2 = view.findViewById(R.id.view_step_dot_2)
+        cardSidePhotoPrompt = view.findViewById(R.id.card_side_photo_prompt)
+        btnSidePhotoReady = view.findViewById(R.id.btn_side_photo_ready)
+        tvSideCardSkip = view.findViewById(R.id.tv_side_card_skip)
         viewPlateTargetZone = view.findViewById(R.id.view_plate_target_zone)
 
         layoutArIndicator.setOnClickListener {
@@ -209,6 +225,22 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         }
     }
 
+    private fun setupSidePhotoCardListeners() {
+        btnSidePhotoReady.setOnClickListener {
+            val main = pendingMainBitmap ?: return@setOnClickListener
+            val file = pendingMainFile ?: return@setOnClickListener
+            hideSidePhotoCard { captureSidePhoto(main, file, pendingRefType) }
+        }
+        tvSideCardSkip.setOnClickListener {
+            val main = pendingMainBitmap ?: return@setOnClickListener
+            val file = pendingMainFile ?: return@setOnClickListener
+            hideSidePhotoCard {
+                showSkipAccuracyBanner()
+                pipelineManager.skipSidePhoto()
+                proceedWithPortionAnalysis(main, file, pendingRefType, sideImage = null)
+            }
+        }
+    }
     private fun initializeArCore() {
         arCoreManager = com.example.insuscan.ar.ArCoreManager(requireContext())
         val arReady = arCoreManager?.initialize(requireActivity()) == true
@@ -270,7 +302,11 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         isSidePhotoMode = false
         captureButton.setOnClickListener {
             if (isShowingCapturedImage) {
-                switchToCameraMode()
+                if (isSidePhotoMode) {
+                    showRetakeOptionsDialog()
+                } else {
+                    switchToCameraMode()
+                }
                 return@setOnClickListener
             }
 
@@ -299,6 +335,81 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
         }
+        setupSidePhotoCardListeners()
+
+    }
+    private fun showSidePhotoCard(bitmap: Bitmap, imageFile: File, refType: String?) {
+        pendingMainBitmap = bitmap
+        pendingMainFile = imageFile
+        pendingRefType = refType
+        isTwoPhotoMode = true
+        updateStepIndicator(1)
+        cardSidePhotoPrompt.visibility = View.VISIBLE
+        cardSidePhotoPrompt.translationY = cardSidePhotoPrompt.height.toFloat().coerceAtLeast(300f)
+        cardSidePhotoPrompt.animate()
+            .translationY(0f)
+            .setDuration(350)
+            .setInterpolator(android.view.animation.DecelerateInterpolator())
+            .start()
+    }
+    private fun updateStepIndicator(activeStep: Int) {
+        if (!isTwoPhotoMode) {
+            layoutStepIndicator.visibility = View.GONE
+            return
+        }
+        layoutStepIndicator.visibility = View.VISIBLE
+        val activeColor = ContextCompat.getColor(requireContext(), R.color.primary)
+        val inactiveColor = ContextCompat.getColor(requireContext(), R.color.text_disabled)
+        stepDot1.backgroundTintList = ColorStateList.valueOf(if (activeStep == 1) activeColor else inactiveColor)
+        stepDot2.backgroundTintList = ColorStateList.valueOf(if (activeStep == 2) activeColor else inactiveColor)
+    }
+
+    private fun updateTwoPhotoHint() {
+        val scanMode = ScanMode.detect(
+            arReady = arCoreManager?.isReady == true,
+            hasRealDepth = arCoreManager?.hasRealDepth == true,
+            hasRefObject = isRefObjectExpectedInFrame()
+        )
+        if (scanMode.requiresSidePhoto && !isShowingCapturedImage && !isSidePhotoMode) {
+            subtitleText.text = "📸 2-photo scan: top view + side view"
+            isTwoPhotoMode = true
+            updateStepIndicator(1)
+        } else if (!isShowingCapturedImage && !isSidePhotoMode) {
+            subtitleText.text = "Place your plate, then tap Capture"
+            isTwoPhotoMode = false
+            updateStepIndicator(1)
+        }
+    }
+    private fun hideSidePhotoCard(onComplete: () -> Unit) {
+        cardSidePhotoPrompt.animate()
+            .translationY(cardSidePhotoPrompt.height.toFloat().coerceAtLeast(300f))
+            .setDuration(250)
+            .setInterpolator(android.view.animation.AccelerateInterpolator())
+            .withEndAction {
+                cardSidePhotoPrompt.visibility = View.GONE
+                onComplete()
+            }
+            .start()
+    }
+    private fun showRetakeOptionsDialog() {
+        val main = pendingMainBitmap
+        val file = pendingMainFile
+        val refType = pendingRefType
+        AlertDialog.Builder(requireContext())
+            .setTitle("Retake Photo")
+            .setMessage("Which photo would you like to retake?")
+            .setPositiveButton("Side photo only") { d, _ ->
+                d.dismiss()
+                if (main != null && file != null) {
+                    captureSidePhoto(main, file, refType)
+                }
+            }
+            .setNegativeButton("Both photos") { d, _ ->
+                d.dismiss()
+                switchToCameraMode()
+            }
+            .setCancelable(true)
+            .show()
     }
 
     private fun initializeOrientationHelper() {
@@ -422,6 +533,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             arSupported -> "AR: calibrating"
             else -> "AR: basic mode"
         }
+        updateTwoPhotoHint()
+
     }
 
 
@@ -447,7 +560,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         Glide.with(this).load(imageFile).into(capturedImageView)
         cameraPreview.visibility = View.GONE
         capturedImageView.visibility = View.VISIBLE
-        captureButton.text = "Retake"
+        captureButton.text = if (isSidePhotoMode) "Retake Side" else "Retake"
         captureButton.setBackgroundResource(R.drawable.button_primary)
         captureButton.isEnabled = true
         captureButton.alpha = 1f
@@ -460,6 +573,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         btnRefToggle.visibility = View.GONE
         layoutArIndicator.visibility = View.GONE
         viewPlateTargetZone.visibility = View.GONE
+        cardSidePhotoPrompt.visibility = View.GONE
+
     }
 
     private fun switchToCameraMode() {
@@ -478,6 +593,11 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         btnRefToggle.visibility = View.VISIBLE
         isSidePhotoMode = false
         isDeviceSideAngle = false
+        pendingMainBitmap = null
+        pendingMainFile = null
+        pendingRefType = null
+        cardSidePhotoPrompt.visibility = View.GONE
+        layoutStepIndicator.visibility = View.GONE
         layoutArIndicator.visibility = View.VISIBLE
         viewPlateTargetZone.visibility = View.VISIBLE
         viewTargetZone.visibility = View.VISIBLE
@@ -589,7 +709,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             }
             is PipelineResult.NeedSidePhoto -> {
                 showLoading(false)
-                showSidePhotoDialog(result.bitmap, result.imageFile, result.refType)
+                showSidePhotoCard(result.bitmap, result.imageFile, result.refType)
             }
             PipelineResult.NoFoodDetected -> {
                 showLoading(false)
@@ -626,6 +746,17 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             visibility = View.VISIBLE
             background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
             val color = ContextCompat.getColor(requireContext(), bannerColor)
+            background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0xCC))
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
+        }
+    }
+
+    private fun showSkipAccuracyBanner() {
+        qualityStatusText.apply {
+            text = "🟠 Lower accuracy — no side photo"
+            visibility = View.VISIBLE
+            background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_status_pill)?.mutate()
+            val color = ContextCompat.getColor(requireContext(), R.color.status_warning)
             background.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0xCC))
             setTextColor(ContextCompat.getColor(requireContext(), R.color.text_on_primary))
         }
@@ -739,6 +870,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             }
             .setNegativeButton("Skip") { d, _ ->
                 d.dismiss()
+                showSkipAccuracyBanner()
                 pipelineManager.skipSidePhoto()
                 proceedWithPortionAnalysis(bitmap, imageFile, refType, sideImage = null)
             }
@@ -751,8 +883,12 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         originalFile: File,
         refType: String?
     ) {
+        pendingMainBitmap = originalBitmap
+        pendingMainFile = originalFile
+        pendingRefType = refType
         switchToCameraMode()
         isSidePhotoMode = true
+        updateStepIndicator(2)
         viewPlateTargetZone.visibility = View.GONE
         viewTargetZone.visibility = View.GONE
         applyCoachState(coachEvaluator.evaluateSidePhoto(isDeviceSideAngle))
