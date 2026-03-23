@@ -46,6 +46,8 @@ class CameraCoachEvaluator {
         isForceCaptureAllowed = false
     }
 
+    fun evaluateSidePhoto(isSideAngle: Boolean): CameraCoachState =
+        if (isSideAngle) CameraCoachState.SidePhotoReady() else CameraCoachState.SidePhotoNeedTilt()
     private fun updateForceCapture(isPlateFound: Boolean) {
         if (isPlateFound) {
             if (plateInFrameStartTime == 0L) {
