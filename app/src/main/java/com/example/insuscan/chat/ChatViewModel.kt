@@ -223,9 +223,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                     is com.example.insuscan.scan.RefCheckResult.AlternativeFound -> {
                         val mode = refCheck.detectedMode
                         when (mode) {
-                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
-                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
-                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
+                            com.example.insuscan.analysis.detection.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
+                            com.example.insuscan.analysis.detection.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
+                            com.example.insuscan.analysis.detection.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
                         }
                     }
                 }

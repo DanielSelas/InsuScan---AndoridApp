@@ -1,6 +1,6 @@
 package com.example.insuscan.scan.coach
 
-import com.example.insuscan.camera.ImageQualityResult
+import com.example.insuscan.camera.model.ImageQualityResult
 import com.example.insuscan.utils.ReferenceObjectHelper
 
 class CameraCoachEvaluator {

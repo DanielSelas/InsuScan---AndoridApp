@@ -6,12 +6,16 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.example.insuscan.analysis.detection.PlateDetector
+import com.example.insuscan.analysis.detection.ReferenceObjectDetector
+import com.example.insuscan.ar.ArCoreManager
+import com.example.insuscan.camera.analyzer.LiveFrameAnalyzer
+import com.example.insuscan.camera.model.ImageQualityResult
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -24,9 +28,8 @@ import java.util.concurrent.Executors
  * Responsibilities:
  * - Initialize and start the camera
  * - Capture high-quality images
- * - Analyze frames in real time for on-screen validation
+ * - Delegates analysis to [LiveFrameAnalyzer]
  */
-
 class CameraManager(private val context: Context) {
 
     private var imageCapture: ImageCapture? = null
@@ -34,12 +37,8 @@ class CameraManager(private val context: Context) {
     private var cameraProvider: ProcessCameraProvider? = null
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     
-    private val referenceObjectDetector = com.example.insuscan.analysis.ReferenceObjectDetector(context)
-    private val plateDetector = com.example.insuscan.analysis.PlateDetector()
-
-    // Stability counters (Debounce)
-    private var framesRefFound = 0
-    private var framesPlateFound = 0
+    private val referenceObjectDetector = ReferenceObjectDetector(context)
+    private val plateDetector = PlateDetector()
 
     // Callback for real-time image quality updates (UI uses this to show status)
     var onImageQualityUpdate: ((ImageQualityResult) -> Unit)? = null
@@ -47,26 +46,29 @@ class CameraManager(private val context: Context) {
     // Store last result for UI actions
     var lastQualityResult: ImageQualityResult? = null
 
+    private val liveFrameAnalyzer = LiveFrameAnalyzer(
+        context = context,
+        plateDetector = plateDetector,
+        referenceObjectDetector = referenceObjectDetector
+    ) { result ->
+        lastQualityResult = result
+        onImageQualityUpdate?.invoke(result)
+    }
+
     // Reference type selected from the dialog — set by ScanFragment
-    var selectedReferenceType: String? = null
+    var selectedReferenceType: String?
+        get() = liveFrameAnalyzer.selectedReferenceType
+        set(value) {
+            liveFrameAnalyzer.selectedReferenceType = value
+        }
 
     // ARCore manager for continuous depth frame updates during live preview
-    var arCoreManager: com.example.insuscan.ar.ArCoreManager? = null
+    var arCoreManager: ArCoreManager? = null
 
     companion object {
         private const val TAG = "CameraManager"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
-        // Brightness thresholds — synced with ImageValidator (40-220)
-        private const val BRIGHTNESS_MIN = 40f
-        private const val BRIGHTNESS_MAX = 220f
-        // Sharpness: live preview uses variance on low-res (640x480), so threshold is higher
-        // than ImageValidator's 100.0 (which uses std deviation on full-res capture)
-        private const val SHARPNESS_THRESHOLD = 1000f
-        // Lowered from 1080p to VGA (640x480) to ensure it works on all devices.
-        // The *Capture* will still be max resolution, this is just for the preview/analysis check.
-        private const val MIN_RESOLUTION = 640 * 480
     }
-
 
     // Starts the camera and attaches it to the given PreviewView.
     fun startCamera(
@@ -78,7 +80,6 @@ class CameraManager(private val context: Context) {
         // Initialize OpenCV/Detector
         if (!referenceObjectDetector.initialize()) {
             Log.e(TAG, "Failed to initialize ReferenceObjectDetector")
-            // We might want to notify error, but for now we proceed, detection will just fail/return not found
         }
         
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -99,17 +100,12 @@ class CameraManager(private val context: Context) {
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY)
                     .build()
 
-                // Image analysis use case (real-time validation)
-                // We request 1280x720 (HD) to have enough detail for the pen detector, 
-                // but CameraX might choose slightly different based on device.
                 imageAnalyzer = ImageAnalysis.Builder()
                     .setTargetResolution(android.util.Size(1280, 720))
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
                     .also { analysis ->
-                        analysis.setAnalyzer(cameraExecutor) { imageProxy ->
-                            analyzeImageQuality(imageProxy)
-                        }
+                        analysis.setAnalyzer(cameraExecutor, liveFrameAnalyzer)
                     }
 
                 // Use back camera
@@ -137,8 +133,6 @@ class CameraManager(private val context: Context) {
         }, ContextCompat.getMainExecutor(context))
     }
 
-
-
     // Captures a photo and saves it into the provided directory.
     fun captureImage(
         outputDirectory: File,
@@ -150,11 +144,9 @@ class CameraManager(private val context: Context) {
             return
         }
 
-        // Create a unique file name for the captured image
         val photoFile = File(
             outputDirectory,
-            SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-                .format(System.currentTimeMillis()) + ".jpg"
+            SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(System.currentTimeMillis()) + ".jpg"
         )
 
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
@@ -176,144 +168,6 @@ class CameraManager(private val context: Context) {
         )
     }
 
-
-    // Analysis loop
-    private fun analyzeImageQuality(imageProxy: ImageProxy) {
-        try {
-            // ARCore session is now updated via an external GL context (e.g. from CameraScanFragment's ArSceneView).
-            // Do not call updateFrame() from this CameraX background analyzer thread!
-            
-            val buffer = imageProxy.planes[0].buffer
-            val data = ByteArray(buffer.remaining())
-            buffer.get(data)
-            buffer.rewind() // Rewind buffer for other readers if any
-
-            // Average brightness
-            val brightness = calculateBrightness(data)
-
-            // Sharpness estimation (variance-based)
-            val sharpness = estimateSharpness(data, imageProxy.width)
-
-            // Resolution check
-            val resolution = imageProxy.width * imageProxy.height
-            val isResolutionOk = resolution >= MIN_RESOLUTION
-
-            // Convert to Bitmap for detectors (heavy operation)
-            val bitmap = imageProxy.toBitmap() 
-            
-            // 1. Reference Object Detection (Smart Fallback)
-            // Determine Mode from *dialog selection* (not profile) for accurate live feedback
-            val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(selectedReferenceType)
-            
-            val mode = when (refType) {
-                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD ->
-                    com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD
-                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
-                    com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
-                com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE ->
-                    com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
-                else -> {
-                    // Fallback to profile-based detection if no dialog selection
-                    val syringeType = com.example.insuscan.profile.UserProfileManager.getSyringeSize(context).lowercase()
-                    when {
-                        syringeType.contains("card") || syringeType.contains("id") ->
-                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.CARD
-                        syringeType.contains("syringe") || syringeType.contains("pen") ->
-                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.STRICT
-                        else ->
-                            com.example.insuscan.analysis.ReferenceObjectDetector.DetectionMode.FLEXIBLE
-                    }
-                }
-            }
-
-            // Use smart fallback: try selected mode first, then all others.
-            // For live preview, ANY known reference object counts as "found",
-            // even if it's a different type. The post-capture dialog handles the mismatch.
-            val fallbackResult = referenceObjectDetector.detectWithFallback(bitmap, null, mode)
-            val isRefFoundNow = fallbackResult.result is com.example.insuscan.analysis.DetectionResult.Found
-            
-            val debugInfoStr = when (fallbackResult.result) {
-                is com.example.insuscan.analysis.DetectionResult.Found -> (fallbackResult.result as com.example.insuscan.analysis.DetectionResult.Found).debugInfo
-                is com.example.insuscan.analysis.DetectionResult.NotFound -> (fallbackResult.result as com.example.insuscan.analysis.DetectionResult.NotFound).debugInfo
-            }
-            
-            // 2. Plate Detection (smoothed for stable live preview)
-            val isPlateFoundNow = plateDetector.detectPlateSmoothed(bitmap).isFound
-
-            // 3. Stability Logic (Hysteresis / Debounce)
-            // ... (keep existing stability logic) ...
-            val MAX_SCORE = 10
-            val THRESHOLD = 3 
-
-            if (isRefFoundNow) {
-                 framesRefFound = (framesRefFound + 3).coerceAtMost(MAX_SCORE)
-            } else {
-                 framesRefFound = (framesRefFound - 1).coerceAtLeast(0)
-            }
-            
-            if (isPlateFoundNow) {
-                framesPlateFound = (framesPlateFound + 3).coerceAtMost(MAX_SCORE)
-            } else {
-                framesPlateFound = (framesPlateFound - 1).coerceAtLeast(0)
-            }
-
-            // We consider it "Found" if counter >= THRESHOLD
-            val isReferenceObjectStable = framesRefFound >= THRESHOLD
-            val isPlateStable = framesPlateFound >= THRESHOLD
-
-            val qualityResult = ImageQualityResult(
-                brightness = brightness,
-                isBrightnessOk = brightness in BRIGHTNESS_MIN..BRIGHTNESS_MAX,
-                sharpness = sharpness,
-                isSharpnessOk = sharpness >= SHARPNESS_THRESHOLD,
-                resolution = resolution,
-                isResolutionOk = isResolutionOk,
-                isReferenceObjectFound = isReferenceObjectStable,
-                isPlateFound = isPlateStable,
-                debugInfo = debugInfoStr
-            )
-
-            lastQualityResult = qualityResult
-
-            // Notify on main thread (UI updates happen there)
-            ContextCompat.getMainExecutor(context).execute {
-                onImageQualityUpdate?.invoke(qualityResult)
-            }
-
-        } catch (e: Exception) {
-            Log.e(TAG, "Error analyzing image", e)
-        } finally {
-            imageProxy.close()
-        }
-    }
-
-
-    // Computes average brightness from the Y plane.
-    private fun calculateBrightness(data: ByteArray): Float {
-        var sum = 0L
-        for (byte in data) {
-            sum += (byte.toInt() and 0xFF)
-        }
-        return sum.toFloat() / data.size
-    }
-
-
-    // Estimates sharpness using pixel variance.
-    private fun estimateSharpness(data: ByteArray, width: Int): Float {
-        if (data.size < width * 2) return 0f
-
-        var variance = 0.0
-        val mean = data.map { it.toInt() and 0xFF }.average()
-
-        for (byte in data) {
-            val value = byte.toInt() and 0xFF
-            variance += (value - mean) * (value - mean)
-        }
-
-        // Return variance divided by mean to normalize across lighting conditions
-        return (variance / data.size / (mean + 1)).toFloat() * 100f
-    }
-
     fun stopPreview() {
         cameraProvider?.unbindAll()
     }
@@ -322,35 +176,5 @@ class CameraManager(private val context: Context) {
     fun shutdown() {
         cameraProvider?.unbindAll()
         cameraExecutor.shutdown()
-    }
-}
-
-// Image quality check result.
-data class ImageQualityResult(
-    val brightness: Float,
-    val isBrightnessOk: Boolean,
-    val sharpness: Float,
-    val isSharpnessOk: Boolean,
-    val resolution: Int,
-    val isResolutionOk: Boolean,
-    val isReferenceObjectFound: Boolean,
-    val isPlateFound: Boolean,
-    val debugInfo: String = "" // Added debug info
-) {
-
-    // Helper to determine the "State" for UI logic
-    val isValid: Boolean get() = isBrightnessOk && isSharpnessOk && isResolutionOk && isPlateFound
-
-    // Returns a user-facing message based on the current quality status.
-    fun getValidationMessage(): String {
-        return when {
-            !isPlateFound -> "Plate not detected. Center the food."
-            !isReferenceObjectFound -> "Reference Object not detected."
-            !isBrightnessOk && brightness < 50f -> "Image is too dark. Add light."
-            !isBrightnessOk && brightness > 200f -> "Image is too bright. Reduce light."
-            !isSharpnessOk -> "Image is blurry. Hold steady."
-            !isResolutionOk -> "Resolution too low."
-            else -> "Perfect! Ready to capture."
-        }
     }
 }
