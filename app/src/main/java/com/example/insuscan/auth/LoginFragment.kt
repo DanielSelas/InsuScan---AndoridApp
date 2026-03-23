@@ -1,27 +1,29 @@
 package com.example.insuscan.auth
 
-
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
-import com.example.insuscan.network.repository.UserRepository
+import com.example.insuscan.auth.helper.GoogleSignInHelper
+import com.example.insuscan.auth.helper.LoginFlowManager
+import com.example.insuscan.auth.util.AuthErrorHandler
+import com.example.insuscan.auth.validation.AuthValidator
 import com.example.insuscan.network.repository.UserRepositoryImpl
-import com.example.insuscan.profile.UserProfileManager
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.launch
 
+/**
+ * Handles the visual presentation layer of Login and Sign Up.
+ * Delegates string validation, error formatting, registration syncing,
+ * and Google Sign-in to their respective helper classes.
+ */
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
     // UI elements
@@ -41,66 +43,41 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private lateinit var progressBar: ProgressBar
     private lateinit var loadingOverlay: View
 
-    private val userRepository = UserRepositoryImpl()
-
-    // true = Sign In mode, false = Sign Up mode
     private var isLoginMode = true
 
-    // Google Sign-In launcher
-    private val googleSignInLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-        try {
-            val account = task.getResult(ApiException::class.java)
-            account.idToken?.let { token ->
-                showLoading(true)
-                AuthManager.signInWithGoogle(token) { success, error ->
-                    showLoading(false)
-                    if (success) {
-                        val email = AuthManager.getUserEmail()
-                        if (email.isNullOrBlank()) {
-                            showError("Google sign-in succeeded but email is missing")
-                            return@signInWithGoogle
-                        }
-                        val displayName = AuthManager.currentUser()?.displayName
-                            ?: email.substringBefore("@")
-                        val photoUrl = AuthManager.currentUser()?.photoUrl?.toString()
-                        onLoginSuccess(email, displayName, photoUrl)
-                    } else {
-                        showError("Google sign-in failed: $error")
-                    }
-                }
-            }
-        } catch (e: ApiException) {
-            android.util.Log.e("LoginFragment", "Google Sign-In failed code=${e.statusCode}", e)
-            showError("Google sign-in failed: ${e.statusCode} ${com.google.android.gms.common.api.CommonStatusCodes.getStatusCodeString(e.statusCode)}")
-        }
+    private lateinit var flowManager: LoginFlowManager
+    private lateinit var googleSignInHelper: GoogleSignInHelper
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        googleSignInHelper = GoogleSignInHelper(
+            fragment = this,
+            webClientId = getString(R.string.default_web_client_id),
+            onLoading = { showLoading(it) },
+            onSuccess = { email, name, photo -> flowManager.handleLoginSuccess(email, name, photo) },
+            onError = { showError(it) }
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         findViews(view)
-        setupGoogleSignIn()
+
+        flowManager = LoginFlowManager(
+            context = requireContext(),
+            scope = viewLifecycleOwner.lifecycleScope,
+            userRepository = UserRepositoryImpl(),
+            onNavigateToHome = { findNavController().navigate(R.id.action_loginFragment_to_splashAnimation) },
+            onNavigateToRegistration = { findNavController().navigate(R.id.action_loginFragment_to_registrationStep1) },
+            onLoading = { showLoading(it) }
+        )
+
+        googleSignInHelper.setup()
         setupListeners()
 
         // Check if already logged in (Auto-Login)
-        val existingEmail = UserProfileManager.getUserEmail(requireContext())
-        if (!existingEmail.isNullOrBlank() && AuthManager.isLoggedIn()) {
-            if (UserProfileManager.isRegistrationComplete(requireContext())) {
-                // Use the stored name or a default
-                val storedName = UserProfileManager.getUserName(requireContext()) ?: "User"
-                // Call onLoginSuccess to perform Sync + Reset before navigating
-                val storedPhoto = UserProfileManager.getProfilePhotoUrl(requireContext())
-                onLoginSuccess(existingEmail, storedName, storedPhoto)
-                return
-            } else {
-                // Not completely registered, jump to registration
-                findNavController().navigate(R.id.action_loginFragment_to_registrationStep1)
-                return
-            }
-        }
+        if (flowManager.checkAutoLogin()) return
 
         updateUI()
     }
@@ -123,23 +100,12 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         loadingOverlay = view.findViewById(R.id.loading_overlay)
     }
 
-    private fun setupGoogleSignIn() {
-        val webClientId = getString(R.string.default_web_client_id)
-        AuthManager.setupGoogleSignIn(requireContext(), webClientId)
-    }
-
     private fun setupListeners() {
-        // Main action button
         btnAction.setOnClickListener {
             clearErrors()
-            if (isLoginMode) {
-                performLogin()
-            } else {
-                performSignUp()
-            }
+            if (isLoginMode) performLogin() else performSignUp()
         }
 
-        // Toggle between login and sign up
         tvToggleAction.setOnClickListener {
             isLoginMode = !isLoginMode
             clearErrors()
@@ -147,25 +113,18 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             updateUI()
         }
 
-        // Forgot password
         tvForgotPassword.setOnClickListener {
             val email = etEmail.text.toString().trim()
-            if (email.isEmpty()) {
-                tilEmail.error = "Enter your email first"
-                return@setOnClickListener
-            }
-            if (!isValidEmail(email)) {
-                tilEmail.error = "Enter a valid email"
+            val error = AuthValidator.validateEmail(email)
+            if (error != null) {
+                tilEmail.error = error
                 return@setOnClickListener
             }
             sendPasswordReset(email)
         }
 
-        // Google sign in
         btnGoogle.setOnClickListener {
-            AuthManager.getGoogleSignInIntent()?.let { intent ->
-                googleSignInLauncher.launch(intent)
-            }
+            googleSignInHelper.launch()
         }
     }
 
@@ -193,19 +152,20 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString()
 
-        // Validate
-        if (!validateEmail(email)) return
-        if (!validatePasswordNotEmpty(password)) return
+        val emailError = AuthValidator.validateEmail(email)
+        if (emailError != null) { tilEmail.error = emailError; return }
+
+        val passError = AuthValidator.validatePasswordNotEmpty(password)
+        if (passError != null) { tilPassword.error = passError; return }
 
         showLoading(true)
         AuthManager.signInWithEmail(email, password) { success, error ->
             showLoading(false)
             if (success) {
-                val displayName = AuthManager.currentUser()?.displayName
-                    ?: email.substringBefore("@")
-                onLoginSuccess(email, displayName, null)
+                val displayName = AuthManager.currentUser()?.displayName ?: email.substringBefore("@")
+                flowManager.handleLoginSuccess(email, displayName, null)
             } else {
-                showError(mapFirebaseError(error))
+                showError(AuthErrorHandler.mapFirebaseError(error))
             }
         }
     }
@@ -215,95 +175,39 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val password = etPassword.text.toString()
         val confirmPassword = etConfirmPassword.text.toString()
 
-        // Validate all fields
-        if (!validateEmail(email)) return
-        if (!validatePassword(password)) return
-        if (!validatePasswordsMatch(password, confirmPassword)) return
+        val emailError = AuthValidator.validateEmail(email)
+        if (emailError != null) { tilEmail.error = emailError; return }
+
+        val passError = AuthValidator.validatePassword(password)
+        if (passError != null) { tilPassword.error = passError; return }
+
+        val matchError = AuthValidator.validatePasswordsMatch(password, confirmPassword)
+        if (matchError != null) { tilConfirmPassword.error = matchError; return }
 
         showLoading(true)
         AuthManager.registerWithEmail(email, password) { success, error ->
             if (success) {
                 val displayName = email.substringBefore("@")
-                onLoginSuccess(email, displayName, null)
+                flowManager.handleLoginSuccess(email, displayName, null)
             } else {
                 showLoading(false)
-                showError(mapFirebaseError(error))
+                showError(AuthErrorHandler.mapFirebaseError(error))
             }
         }
     }
 
-    // --- Validation functions ---
-
-    private fun validateEmail(email: String): Boolean {
-        return when {
-            email.isEmpty() -> {
-                tilEmail.error = "Email is required"
-                false
+    private fun sendPasswordReset(email: String) {
+        showLoading(true)
+        com.google.firebase.auth.FirebaseAuth.getInstance()
+            .sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                showLoading(false)
+                if (task.isSuccessful) {
+                    Toast.makeText(requireContext(), "Password reset email sent to $email", Toast.LENGTH_LONG).show()
+                } else {
+                    showError(AuthErrorHandler.mapFirebaseError(task.exception?.message))
+                }
             }
-            !isValidEmail(email) -> {
-                tilEmail.error = "Enter a valid email address"
-                false
-            }
-            else -> true
-        }
-    }
-
-    private fun validatePasswordNotEmpty(password: String): Boolean {
-        return when {
-            password.isEmpty() -> {
-                tilPassword.error = "Password is required"
-                false
-            }
-            else -> true
-        }
-    }
-
-    private fun validatePassword(password: String): Boolean {
-        return when {
-            password.isEmpty() -> {
-                tilPassword.error = "Password is required"
-                false
-            }
-            password.length < 8 -> {
-                tilPassword.error = "At least 8 characters"
-                false
-            }
-            !password.any { it.isUpperCase() } -> {
-                tilPassword.error = "Must contain an uppercase letter"
-                false
-            }
-            !password.any { it.isLowerCase() } -> {
-                tilPassword.error = "Must contain a lowercase letter"
-                false
-            }
-            !password.any { it.isDigit() } -> {
-                tilPassword.error = "Must contain a number"
-                false
-            }
-            !password.any { it in "!@#\$%^&*()_+-=[]{}|;':\",./<>?" } -> {
-                tilPassword.error = "Must contain a special character"
-                false
-            }
-            else -> true
-        }
-    }
-
-    private fun validatePasswordsMatch(password: String, confirmPassword: String): Boolean {
-        return when {
-            confirmPassword.isEmpty() -> {
-                tilConfirmPassword.error = "Please confirm your password"
-                false
-            }
-            password != confirmPassword -> {
-                tilConfirmPassword.error = "Passwords don't match"
-                false
-            }
-            else -> true
-        }
-    }
-
-    private fun isValidEmail(email: String): Boolean {
-        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
     private fun clearErrors() {
@@ -317,99 +221,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         etPassword.text?.clear()
         etConfirmPassword.text?.clear()
     }
-
-    // --- Firebase error mapping ---
-
-    private fun mapFirebaseError(error: String?): String {
-        return when {
-            error == null -> "An unknown error occurred"
-            error.contains("no user record", ignoreCase = true) ->
-                "No account found with this email"
-            error.contains("password is invalid", ignoreCase = true) ->
-                "Incorrect password"
-            error.contains("email address is already in use", ignoreCase = true) ->
-                "An account with this email already exists"
-            error.contains("badly formatted", ignoreCase = true) ->
-                "Invalid email format"
-            error.contains("network error", ignoreCase = true) ->
-                "Network error. Check your connection"
-            error.contains("too many requests", ignoreCase = true) ->
-                "Too many attempts. Try again later"
-            else -> error
-        }
-    }
-
-    // --- Password reset ---
-
-    private fun sendPasswordReset(email: String) {
-        showLoading(true)
-        com.google.firebase.auth.FirebaseAuth.getInstance()
-            .sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                showLoading(false)
-                if (task.isSuccessful) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Password reset email sent to $email",
-                        Toast.LENGTH_LONG
-                    ).show()
-                } else {
-                    showError(mapFirebaseError(task.exception?.message))
-                }
-            }
-    }
-
-    // --- Success handling ---
-
-    private fun onLoginSuccess(email: String, displayName: String, photoUrl: String?) {
-        android.util.Log.e("LoginFragment", "Login Success! PhotoURL: $photoUrl")
-        UserProfileManager.saveUserEmail(requireContext(), email)
-        UserProfileManager.saveUserName(requireContext(), displayName)
-        if (photoUrl != null) {
-            UserProfileManager.saveProfilePhotoUrl(requireContext(), photoUrl)
-        } else {
-            android.util.Log.e("LoginFragment", "PhotoURL is NULL from Google/Auth!")
-        }
-
-        checkRegistrationAndNavigate(email)
-    }
-
-    private fun checkRegistrationAndNavigate(email: String) {
-        if (UserProfileManager.isRegistrationComplete(requireContext())) {
-            navigateToHome()
-            return
-        }
-
-        showLoading(true)
-        viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val result = userRepository.getUser(email)
-                showLoading(false)
-                
-                if (result.isSuccess && result.getOrNull() != null) {
-                    val userDto = result.getOrNull()!!
-                    UserProfileManager.syncFromServer(requireContext(), userDto)
-                    // Ensure flag is double checked/set
-                    UserProfileManager.setRegistrationComplete(requireContext(), true)
-                    navigateToHome()
-                } else {
-                    // Does not exist on server, user needs to complete registration
-                    findNavController().navigate(R.id.action_loginFragment_to_registrationStep1)
-                }
-            } catch (e: Exception) {
-                showLoading(false)
-                android.util.Log.e("LoginFragment", "Error checking registration", e)
-                // Default to registration on error to be safe, or we could just show error
-                findNavController().navigate(R.id.action_loginFragment_to_registrationStep1)
-            }
-        }
-    }
-
-    private fun navigateToHome() {
-        findNavController().navigate(R.id.action_loginFragment_to_splashAnimation)
-    }
-
-    // --- UI helpers ---
 
     private fun showLoading(show: Boolean) {
         progressBar.isVisible = show

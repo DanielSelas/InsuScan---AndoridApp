@@ -1,9 +1,18 @@
-package com.example.insuscan.analysis
+package com.example.insuscan.analysis.estimation
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import com.example.insuscan.ar.ArMeasurement
+import com.example.insuscan.analysis.detection.PlateDetector
+import com.example.insuscan.analysis.detection.ReferenceObjectDetector
+import com.example.insuscan.analysis.model.ContainerType
+import com.example.insuscan.analysis.model.DetectionResult
+import com.example.insuscan.analysis.model.InitializationResult
+import com.example.insuscan.analysis.model.PlateDetectionResult
+import com.example.insuscan.analysis.model.PlateDimensions
+import com.example.insuscan.analysis.model.PortionResult
+import com.example.insuscan.analysis.model.ScaleSource
+import com.example.insuscan.ar.model.ArMeasurement
 
 /**
  * Combines depth estimation and reference object detection
@@ -18,8 +27,6 @@ class PortionEstimator(private val context: Context) {
 
     companion object {
         private const val TAG = "PortionEstimator"
-
-        // Average food density (g/cm³) — for cooked rice/carbs
         private const val DEFAULT_FOOD_DENSITY = 0.65f
     }
 
@@ -29,7 +36,6 @@ class PortionEstimator(private val context: Context) {
 
     private var isInitialized = false
 
-    // Initialize estimators (ARCore is handled separately by ArCoreManager)
     fun initialize(): InitializationResult {
         val openCvReady = referenceDetector.initialize()
         isInitialized = openCvReady
@@ -42,7 +48,6 @@ class PortionEstimator(private val context: Context) {
         )
     }
 
-    // Configure reference object length
     fun configureSyringe(lengthCm: Float) {
         referenceDetector.setExpectedObjectDimensions(lengthCm, 1.0f, 1.0f)
     }
@@ -72,7 +77,7 @@ class PortionEstimator(private val context: Context) {
 
         refreshSettings()
 
-        // ── Step 1: Detect Plate (reuse if already detected by caller) ──
+        // Step 1: Detect Plate (reuse if already detected by caller)
         val plateResult = precomputedPlateResult ?: plateDetector.detectPlate(bitmap)
         val plateBounds = if (plateResult.isFound) plateResult.bounds else null
 
@@ -80,7 +85,7 @@ class PortionEstimator(private val context: Context) {
             Log.d(TAG, "Plate detected at: ${plateBounds.toShortString()}")
         }
 
-        // ── Step 2: Detect Reference Object ──
+        // Step 2: Detect Reference Object
         val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(referenceObjectType)
         val detectionMode = when (refType) {
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
@@ -104,7 +109,7 @@ class PortionEstimator(private val context: Context) {
             DetectionResult.NotFound("User chose no reference object", "")
         }
 
-        // ── Step 3: Determine scale (pixelToCmRatio or AR diameter) ──
+        // Step 3: Determine scale (pixelToCmRatio or AR diameter)
         val hasRefObject = detectionResult is DetectionResult.Found
         val hasArMeasurement = arMeasurement != null
 
@@ -124,23 +129,21 @@ class PortionEstimator(private val context: Context) {
             }
         }
 
-        // ── Step 4: Depth estimation ──
+        // Step 4: Depth estimation
         val containerType = depthEstimator.detectContainerType(plateResult, arMeasurement)
         val depthResult = depthEstimator.estimateDepth(arMeasurement, containerType)
 
-        // ── Step 5: Calculate plate dimensions ──
+        // Step 5: Calculate plate dimensions
         val plateDimensions = when (scaleSource) {
             is ScaleSource.ReferenceObject -> {
                 calculatePlateDimensionsFromRatio(bitmap, plateResult, scaleSource.pixelToCmRatio)
             }
             is ScaleSource.ArProjection -> {
-                // AR already gave us real diameter — use it directly
                 val diameter = scaleSource.arMeasurement.plateDiameterCm
                 Log.d(TAG, "Using AR plate diameter: ${diameter}cm")
                 PlateDimensions(diameterCm = diameter, radiusCm = diameter / 2)
             }
             is ScaleSource.None -> {
-                // No reliable scale — warn user
                 return PortionResult.Success(
                     estimatedWeightGrams = 0f,
                     volumeCm3 = 0f,
@@ -156,20 +159,16 @@ class PortionEstimator(private val context: Context) {
             }
         }
 
-        // ── Step 6: Calculate raw container volume ──
-        // Send raw volume to server — server handles fill level (GPT) + density (USDA)
+        // Step 6: Calculate raw container volume
         val volumeCm3 = calculateVolume(plateDimensions, depthResult.depthCm)
-
-        // NOTE: We do NOT calculate weight here anymore.
-        // Server uses: volume × GPT fill % × food-specific density
 
         Log.d(TAG, "Raw measurements: vol=${volumeCm3}cm³, " +
                 "plate=${plateDimensions.diameterCm}cm, depth=${depthResult.depthCm}cm, " +
                 "source=${scaleSource::class.simpleName}")
 
         return PortionResult.Success(
-            estimatedWeightGrams = 0f, // Server calculates weight with physics engine
-            volumeCm3 = volumeCm3,     // Raw container volume for server reference
+            estimatedWeightGrams = 0f,
+            volumeCm3 = volumeCm3,
             plateDiameterCm = plateDimensions.diameterCm,
             depthCm = depthResult.depthCm,
             containerType = containerType,
@@ -212,9 +211,6 @@ class PortionEstimator(private val context: Context) {
      */
     private fun calculateVolume(dimensions: PlateDimensions, depthCm: Float): Float {
         val radius = dimensions.radiusCm
-
-        // Raw cylinder volume — server will apply paraboloid correction for bowls
-        // and GPT fill percentage for actual food amount
         val volume = (Math.PI * radius * radius * depthCm).toFloat()
 
         Log.d(TAG, "Raw container volume: r=${radius}cm, d=${depthCm}cm → ${volume.toInt()}cm³")
@@ -224,7 +220,7 @@ class PortionEstimator(private val context: Context) {
 
     private fun calculateOverallConfidence(
         detection: DetectionResult,
-        depth: DepthResult,
+        depth: com.example.insuscan.analysis.model.DepthResult,
         scaleSource: ScaleSource
     ): Float {
         val scaleConfidence = when (scaleSource) {
@@ -246,43 +242,4 @@ class PortionEstimator(private val context: Context) {
         depthEstimator.release()
         Log.d(TAG, "PortionEstimator released")
     }
-}
-
-// ── Internal scale source ──
-private sealed class ScaleSource {
-    data class ReferenceObject(val pixelToCmRatio: Float) : ScaleSource()
-    data class ArProjection(val arMeasurement: ArMeasurement) : ScaleSource()
-    data object None : ScaleSource()
-}
-
-// Initialization result
-data class InitializationResult(
-    val isReady: Boolean,
-    val openCvReady: Boolean
-)
-
-// Plate dimensions
-data class PlateDimensions(
-    val diameterCm: Float,
-    val radiusCm: Float
-)
-
-// Result of portion estimation
-sealed class PortionResult {
-    data class Success(
-        val estimatedWeightGrams: Float,
-        val volumeCm3: Float,
-        val plateDiameterCm: Float,
-        val depthCm: Float,
-        val containerType: ContainerType,
-        val confidence: Float,
-        val referenceObjectDetected: Boolean,
-        val arMeasurementUsed: Boolean,
-        val arDepthIsReal: Boolean,
-        val warning: String?
-    ) : PortionResult()
-
-    data class Error(
-        val message: String
-    ) : PortionResult()
 }

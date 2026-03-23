@@ -1,8 +1,9 @@
-package com.example.insuscan.analysis
+package com.example.insuscan.analysis.estimation
 
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.util.Log
+import com.example.insuscan.analysis.model.FoodRegion
 import com.example.insuscan.meal.FoodItem
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -16,12 +17,6 @@ object FoodRegionAnalyzer {
 
     private const val TAG = "FoodRegionAnalyzer"
     private const val GRABCUT_ITERATIONS = 3
-
-    data class FoodRegion(
-        val foodName: String,
-        val areaCm2: Float,
-        val heightCm: Float  // from GPT height_category, mapped to cm
-    )
 
     /**
      * For each food item that has a bbox, run GrabCut to get precise
@@ -39,7 +34,6 @@ object FoodRegionAnalyzer {
         pixelToCmRatio: Float,
         plateBounds: Rect? = null
     ): List<FoodRegion> {
-        // only run if we have scale + at least one bbox
         val itemsWithBbox = foodItems.filter { hasBbox(it) }
         if (itemsWithBbox.isEmpty() || pixelToCmRatio <= 0f) {
             Log.d(TAG, "Skipping: ${itemsWithBbox.size} items with bbox, ratio=$pixelToCmRatio")
@@ -48,12 +42,10 @@ object FoodRegionAnalyzer {
 
         val imgW = bitmap.width
         val imgH = bitmap.height
-        val cm2PerPixel = pixelToCmRatio * pixelToCmRatio // area conversion
+        val cm2PerPixel = pixelToCmRatio * pixelToCmRatio
 
-        // convert bitmap to OpenCV Mat once
         val srcMat = Mat()
         Utils.bitmapToMat(bitmap, srcMat)
-        // GrabCut needs BGR
         val bgrMat = Mat()
         Imgproc.cvtColor(srcMat, bgrMat, Imgproc.COLOR_RGBA2BGR)
 
@@ -82,13 +74,11 @@ object FoodRegionAnalyzer {
         cm2PerPixel: Float,
         plateBounds: Rect?
     ): FoodRegion? {
-        // convert bbox from % to pixels
         val x = (item.bboxXPct!! / 100f * imgW).toInt().coerceIn(0, imgW - 1)
         val y = (item.bboxYPct!! / 100f * imgH).toInt().coerceIn(0, imgH - 1)
         val w = (item.bboxWPct!! / 100f * imgW).toInt().coerceIn(1, imgW - x)
         val h = (item.bboxHPct!! / 100f * imgH).toInt().coerceIn(1, imgH - y)
 
-        // GrabCut needs at least 1px rect
         if (w < 10 || h < 10) {
             Log.w(TAG, "${item.name}: bbox too small (${w}x${h})")
             return null
@@ -99,7 +89,6 @@ object FoodRegionAnalyzer {
         val bgModel = Mat()
         val fgModel = Mat()
 
-        // run GrabCut with rect initialization
         Imgproc.grabCut(bgrMat, mask, rect, bgModel, fgModel,
             GRABCUT_ITERATIONS, Imgproc.GC_INIT_WITH_RECT)
 
@@ -110,7 +99,7 @@ object FoodRegionAnalyzer {
         Core.inRange(mask, Scalar(3.0), Scalar(3.0), prFgMask)
         Core.bitwise_or(fgMask, prFgMask, fgMask)
 
-        // if we have plate bounds, mask out anything outside the plate
+        // Mask out anything outside the plate
         if (plateBounds != null) {
             val plateMask = Mat.zeros(bgrMat.size(), CvType.CV_8UC1)
             Imgproc.rectangle(plateMask,
@@ -121,11 +110,10 @@ object FoodRegionAnalyzer {
             plateMask.release()
         }
 
-        // count foreground pixels
         val fgPixels = Core.countNonZero(fgMask).toFloat()
         val areaCm2 = fgPixels * cm2PerPixel
 
-        // cleanup
+        // Cleanup
         mask.release()
         bgModel.release()
         fgModel.release()
@@ -137,14 +125,15 @@ object FoodRegionAnalyzer {
         return FoodRegion(
             foodName = item.name,
             areaCm2 = areaCm2,
-            heightCm = heightCategoryToCm(item) // reuse GPT height
+            heightCm = heightCategoryToCm(item)
         )
     }
 
-    // map height from GPT (same logic as server)
+    /**
+     * Map height from GPT (same logic as server).
+     * Gets refined when server processes foodRegionsJson.
+     */
     private fun heightCategoryToCm(item: FoodItem): Float {
-        // we don't have heightCategory on FoodItem — use a default
-        // this gets refined when server processes foodRegionsJson
         return 1.5f
     }
 
@@ -152,19 +141,5 @@ object FoodRegionAnalyzer {
         return item.bboxXPct != null && item.bboxYPct != null
                 && item.bboxWPct != null && item.bboxHPct != null
                 && item.bboxWPct > 0f && item.bboxHPct > 0f
-    }
-
-    /**
-     * Builds the JSON string that the server expects for foodRegionsJson.
-     * Each entry: { "areaCm2": X, "heightCm": Y }
-     */
-    fun toFoodRegionsJson(regions: List<FoodRegion>): String {
-        val sb = StringBuilder("[")
-        regions.forEachIndexed { i, r ->
-            if (i > 0) sb.append(",")
-            sb.append("""{"areaCm2":${"%.1f".format(r.areaCm2)},"heightCm":${"%.1f".format(r.heightCm)}}""")
-        }
-        sb.append("]")
-        return sb.toString()
     }
 }

@@ -1,9 +1,8 @@
-package com.example.insuscan.camera
+package com.example.insuscan.camera.validator
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import java.io.File
-import kotlin.math.abs
 import kotlin.math.sqrt
 
 /**

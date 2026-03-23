@@ -3,12 +3,13 @@ package com.example.insuscan.scan
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import com.example.insuscan.analysis.DetectionResult
-import com.example.insuscan.analysis.FoodRegionAnalyzer
-import com.example.insuscan.analysis.PlateDetector
-import com.example.insuscan.analysis.PortionEstimator
-import com.example.insuscan.analysis.PortionResult
-import com.example.insuscan.analysis.ReferenceObjectDetector
+import com.example.insuscan.analysis.model.DetectionResult
+import com.example.insuscan.analysis.model.FoodRegion
+import com.example.insuscan.analysis.estimation.FoodRegionAnalyzer
+import com.example.insuscan.analysis.detection.PlateDetector
+import com.example.insuscan.analysis.estimation.PortionEstimator
+import com.example.insuscan.analysis.model.PortionResult
+import com.example.insuscan.analysis.detection.ReferenceObjectDetector
 import com.example.insuscan.mapping.FoodItemDtoMapper
 import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.meal.Meal
@@ -193,7 +194,7 @@ class ScanPipelineManager(private val context: Context) {
                     )
 
                     if (regions.isNotEmpty()) {
-                        val regionsJson = FoodRegionAnalyzer.toFoodRegionsJson(regions)
+                        val regionsJson = FoodRegion.toJson(regions)
                         Log.d(TAG, "Sending ${regions.size} food regions to server")
 
                         val refinedResult = scanRepository.scanImage(
