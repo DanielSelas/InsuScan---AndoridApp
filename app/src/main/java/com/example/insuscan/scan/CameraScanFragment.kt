@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 import java.io.File
 // new
 import android.content.res.ColorStateList
+import android.graphics.Bitmap
 import android.view.animation.Animation
 import android.view.animation.ScaleAnimation
 import com.example.insuscan.scan.coach.CameraCoachEvaluator
@@ -86,6 +87,10 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     private var isScanningSurface = false
 
     private lateinit var arIndicatorDot: View
+    private lateinit var layoutArIndicator: View
+    private lateinit var viewPlateTargetZone: View
+    private var isSidePhotoMode = false
+    private var isDeviceSideAngle = false
     private val coachEvaluator = CameraCoachEvaluator()
 
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -195,7 +200,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         hiddenArSurfaceView = view.findViewById(R.id.hidden_ar_surface_view)
         arIndicatorDot = view.findViewById(R.id.view_ar_indicator)
         tvArExplanation = view.findViewById(R.id.tv_ar_explanation)
-        val layoutArIndicator: View = view.findViewById(R.id.layout_ar_indicator)
+        layoutArIndicator = view.findViewById(R.id.layout_ar_indicator)
+        viewPlateTargetZone = view.findViewById(R.id.view_plate_target_zone)
 
         layoutArIndicator.setOnClickListener {
             Log.d(TAG, "AR Indicator clicked! Current visibility: ${tvArExplanation.visibility}")
@@ -261,6 +267,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
 
 
     private fun initializeListeners() {
+        isSidePhotoMode = false
         captureButton.setOnClickListener {
             if (isShowingCapturedImage) {
                 switchToCameraMode()
@@ -268,18 +275,13 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             }
 
             val quality = cameraManager.lastQualityResult
-            if (quality == null) {
-                ToastHelper.showShort(requireContext(), "Camera initializing...")
+            if (quality == null || !quality.isPlateFound) {
+                ToastHelper.showShort(requireContext(), "Center the plate in the frame 🍽️")
                 return@setOnClickListener
             }
-
-            if (!quality.isPlateFound) {
-                ToastHelper.showShort(requireContext(), "Center the plate first")
-                return@setOnClickListener
-            }
-
-            if (!isDeviceLevel) {
-                ToastHelper.showShort(requireContext(), "Hold phone flat first")
+            val state = coachEvaluator.evaluate(quality, isDeviceLevel, selectedReferenceType)
+            if (!state.canCapture) {
+                ToastHelper.showShort(requireContext(), state.message)
                 return@setOnClickListener
             }
 
@@ -301,11 +303,19 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
 
     private fun initializeOrientationHelper() {
         orientationHelper = com.example.insuscan.camera.OrientationHelper(requireContext())
-        orientationHelper.onOrientationChanged = { _, _, isLevel ->
-            if (isDeviceLevel != isLevel) {
-                isDeviceLevel = isLevel
+        orientationHelper.onOrientationChanged = { _, _, isLevel, isSideAngle ->
+            val levelChanged = isDeviceLevel != isLevel
+            val sideChanged = isDeviceSideAngle != isSideAngle
+            isDeviceLevel = isLevel
+            isDeviceSideAngle = isSideAngle
+            if (levelChanged || (isSidePhotoMode && sideChanged)) {
                 activity?.runOnUiThread {
-                    cameraManager.lastQualityResult?.let { updateQualityUI(it) }
+                    val quality = cameraManager.lastQualityResult
+                    if (quality != null) {
+                        updateQualityUI(quality)
+                    } else if (isSidePhotoMode) {
+                        applyCoachState(coachEvaluator.evaluateSidePhoto(isDeviceSideAngle))
+                    }
                 }
             }
         }
@@ -372,9 +382,11 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
     private fun updateQualityUI(quality: ImageQualityResult) {
         if (!isAdded || context == null) return
 
-        val state = coachEvaluator.evaluate(
-            quality, isDeviceLevel, selectedReferenceType
-        )
+        val state = if (isSidePhotoMode) {
+            coachEvaluator.evaluateSidePhoto(isDeviceSideAngle)
+        } else {
+            coachEvaluator.evaluate(quality, isDeviceLevel, selectedReferenceType)
+        }
 
         applyCoachState(state)
         qualityStatusText.visibility = View.GONE
@@ -385,6 +397,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
 
     private fun updateArIndicator() {
         if (!::arIndicatorDot.isInitialized) return
+        if (isShowingCapturedImage) return
         val arReady = arCoreManager?.isReady == true
         val arSupported = arCoreManager?.isSupported == true
         
@@ -393,11 +406,11 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             arSupported -> R.color.primary
             else -> R.color.text_disabled
         }
-        
+
         val message = when {
-            arReady -> "Depth ready"
-            arSupported -> "Depth scanning"
-            else -> "Depth off"
+            arReady -> "High accuracy"
+            arSupported -> "Calibrating..."
+            else -> "Basic mode"
         }
         tvArExplanation.text = message
 
@@ -405,10 +418,11 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
             ColorStateList.valueOf(ContextCompat.getColor(requireContext(), color))
         arIndicatorDot.visibility = View.VISIBLE
         arIndicatorDot.contentDescription = when {
-            arReady -> "3D depth: active"
-            arSupported -> "3D depth: scanning"
-            else -> "3D depth: unavailable"
-        }    }
+            arReady -> "AR: high accuracy"
+            arSupported -> "AR: calibrating"
+            else -> "AR: basic mode"
+        }
+    }
 
 
     private fun onCaptureClicked() {
@@ -444,6 +458,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
 
         chipGroupRefObject.visibility = View.GONE
         btnRefToggle.visibility = View.GONE
+        layoutArIndicator.visibility = View.GONE
+        viewPlateTargetZone.visibility = View.GONE
     }
 
     private fun switchToCameraMode() {
@@ -460,6 +476,11 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         subtitleText.text = "Place your plate, then tap Capture"
 
         btnRefToggle.visibility = View.VISIBLE
+        isSidePhotoMode = false
+        isDeviceSideAngle = false
+        layoutArIndicator.visibility = View.VISIBLE
+        viewPlateTargetZone.visibility = View.VISIBLE
+        viewTargetZone.visibility = View.VISIBLE
     }
 
     private fun validateAndProcessImage(imageFile: File) {
@@ -567,8 +588,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
                 callback?.onScanSuccess(result.meal)
             }
             is PipelineResult.NeedSidePhoto -> {
-                showLoading(true, "Analyzing your meal...")
-                proceedWithPortionAnalysis(result.bitmap, result.imageFile, result.refType, sideImage = null)
+                showLoading(false)
+                showSidePhotoDialog(result.bitmap, result.imageFile, result.refType)
             }
             PipelineResult.NoFoodDetected -> {
                 showLoading(false)
@@ -701,6 +722,59 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan) {
         } catch (e: Exception) {
             showLoading(false)
             ToastHelper.showShort(requireContext(), "Failed to process image: ${e.message}")
+        }
+    }
+
+    private fun showSidePhotoDialog(
+        bitmap: Bitmap,
+        imageFile: File,
+        refType: String?
+    ) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Side Photo Needed")
+            .setMessage("For better accuracy, take a photo from the side to measure depth.\n\nHold the phone at table level, showing the side of the plate/bowl.")
+            .setPositiveButton("Take Side Photo") { d, _ ->
+                d.dismiss()
+                captureSidePhoto(bitmap, imageFile, refType)
+            }
+            .setNegativeButton("Skip") { d, _ ->
+                d.dismiss()
+                pipelineManager.skipSidePhoto()
+                proceedWithPortionAnalysis(bitmap, imageFile, refType, sideImage = null)
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun captureSidePhoto(
+        originalBitmap: Bitmap,
+        originalFile: File,
+        refType: String?
+    ) {
+        switchToCameraMode()
+        isSidePhotoMode = true
+        viewPlateTargetZone.visibility = View.GONE
+        viewTargetZone.visibility = View.GONE
+        applyCoachState(coachEvaluator.evaluateSidePhoto(isDeviceSideAngle))
+
+        subtitleText.text = "Hold phone at table level — capture the side of the plate"
+
+        captureButton.setOnClickListener {
+            showLoading(true, "Capturing side photo...")
+            cameraManager.captureImage(
+                outputDirectory = requireContext().cacheDir,
+                onImageCaptured = { sideFile ->
+                    val sideBitmap = android.graphics.BitmapFactory.decodeFile(sideFile.absolutePath)
+                    showLoading(true, "Analyzing your meal...")
+                    proceedWithPortionAnalysis(originalBitmap, originalFile, refType, sideImage = sideBitmap)
+                    initializeListeners()
+                },
+                onError = { errorMessage ->
+                    showLoading(false)
+                    ToastHelper.showShort(requireContext(), errorMessage)
+                    initializeListeners()
+                }
+            )
         }
     }
 }

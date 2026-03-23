@@ -17,7 +17,7 @@ class OrientationHelper(context: Context) : SensorEventListener {
     private var geomagnetic: FloatArray? = null
 
     // Callback: (pitch, roll, isLevel)
-    var onOrientationChanged: ((Float, Float, Boolean) -> Unit)? = null
+    var onOrientationChanged: ((Float, Float, Boolean, Boolean) -> Unit)? = null
 
     companion object {
         private const val TAG = "OrientationHelper"
@@ -64,7 +64,8 @@ class OrientationHelper(context: Context) : SensorEventListener {
             val pitch = Math.toDegrees(Math.atan2(gx.toDouble(), Math.sqrt((gy * gy + gz * gz).toDouble()))).toFloat()
             val roll = Math.toDegrees(Math.atan2(gy.toDouble(), Math.sqrt((gx * gx + gz * gz).toDouble()))).toFloat()
 
-            onOrientationChanged?.invoke(pitch, roll, isLevel)
+            val isSideAngle = tiltAngle > 60.0
+            onOrientationChanged?.invoke(pitch, roll, isLevel, isSideAngle)
         }
     }
 

@@ -53,6 +53,9 @@ class ArCoreManager(private val context: Context) : GLSurfaceView.Renderer {
     val isSupported: Boolean
         get() = isAvailable
 
+    val hasRealDepth: Boolean
+        get() = isDepthSupported && isDepthReady
+
     // ────────────────────────────────────────────────────────────────────
     // Lifecycle
     // ────────────────────────────────────────────────────────────────────

@@ -24,11 +24,18 @@ sealed class CameraCoachState(
     )
 
     class ForceCapture : CameraCoachState(
-        3, 3, "Quality is OK — tap to capture ⚠️", CoachSeverity.ACCEPTABLE, true
+        3, 3, "Quality is OK - tap to capture ⚠️", CoachSeverity.ACCEPTABLE, true
     )
 
     class Ready : CameraCoachState(
         3, 3, "Perfect! Tap to capture ✅", CoachSeverity.GOOD, true
+    )
+    class SidePhotoNeedTilt : CameraCoachState(
+        1, 1, "Tilt phone sideways to show the plate's depth ↔️", CoachSeverity.BLOCKING, false
+    )
+
+    class SidePhotoReady : CameraCoachState(
+        1, 1, "Hold steady - tap to capture the side view ✅", CoachSeverity.GOOD, true
     )
 
 }

@@ -142,7 +142,14 @@ class ScanPipelineManager(private val context: Context) {
             val confidence = successRes?.confidence
             val containerType = successRes?.containerType?.name
 
-            if (sideImage == null && depth == null && !sidePhotoOffered) {
+            val scanMode = ScanMode.detect(
+                arReady = arCoreManager?.isReady == true,
+                hasRealDepth = arCoreManager?.hasRealDepth == true,
+                hasRefObject = successRes?.referenceObjectDetected == true
+            )
+            Log.d(TAG, "Scan mode: $scanMode (requiresSidePhoto=${scanMode.requiresSidePhoto})")
+
+            if (sideImage == null && scanMode.requiresSidePhoto && !sidePhotoOffered) {
                 sidePhotoOffered = true
                 return@withContext PipelineResult.NeedSidePhoto(bitmap, imageFile, refType)
             }
