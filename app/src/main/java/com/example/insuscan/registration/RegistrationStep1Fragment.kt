@@ -3,13 +3,19 @@ package com.example.insuscan.registration
 import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Spinner
+import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.profile.UserProfileManager
-import java.util.*
+import java.util.Calendar
 
 class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1) {
 

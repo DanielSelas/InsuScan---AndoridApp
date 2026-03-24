@@ -2,7 +2,13 @@ package com.example.insuscan.registration
 
 import android.os.Bundle
 import android.view.View
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -71,92 +77,104 @@ class RegistrationStep3Fragment : Fragment(R.layout.fragment_registration_step3)
     }
 
     private fun saveDataAndSync() {
+        val selectedRef = referenceOptions[referenceTypeSpinner.selectedItemPosition]
+        val doseRounding = if (doseRoundingSpinner.selectedItemPosition == 0) 0.5f else 1f
+
+        saveStepData(selectedRef, doseRounding)
+        syncWithServer(selectedRef, doseRounding)
+    }
+
+    private fun saveStepData(selectedRef: String, doseRounding: Float) {
         val pm = UserProfileManager
         val ctx = requireContext()
 
-        // Gather UI fields
-        val selectedRef = referenceOptions[referenceTypeSpinner.selectedItemPosition]
         if (selectedRef.contains("Insulin Pen")) {
             pm.saveSyringeSize(ctx, "INSULIN_PEN")
         } else {
             pm.saveSyringeSize(ctx, "CUSTOM_OBJECT")
-            val len = customLengthEditText.text.toString().toFloatOrNull() ?: 15.0f // Default if empty
+            val len = customLengthEditText.text.toString().toFloatOrNull() ?: 15.0f
             pm.saveCustomSyringeLength(ctx, len)
         }
 
-        val doseRounding = if (doseRoundingSpinner.selectedItemPosition == 0) 0.5f else 1f
         pm.saveDoseRounding(ctx, doseRounding)
 
         sickAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveSickDayAdjustment(ctx, it) }
         stressAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveStressAdjustment(ctx, it) }
-        exerciseAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveLightExerciseAdjustment(ctx, it) }
-        exerciseAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveIntenseExerciseAdjustment(ctx, it * 2) } // Just approximate intense as well
+        exerciseAdjustmentEditText.text.toString().toIntOrNull()?.let {
+            pm.saveLightExerciseAdjustment(ctx, it)
+            pm.saveIntenseExerciseAdjustment(ctx, it * 2)
+        }
+    }
 
-        // Start server sync
+    private fun buildUserDto(selectedRef: String, doseRounding: Float): UserDto {
+        val pm = UserProfileManager
+        val ctx = requireContext()
+
+        val syringeEnumValue = if (selectedRef.contains("Insulin Pen")) "INSULIN_PEN" else "CUSTOM_OBJECT"
+        val customLen = if (syringeEnumValue == "CUSTOM_OBJECT") pm.getCustomSyringeLength(ctx) else null
+
+        var rawRatio = pm.getInsulinCarbRatioRaw(ctx)
+        if (rawRatio != null && !rawRatio.contains(":")) {
+            rawRatio = "1:$rawRatio"
+        }
+
+        return UserDto(
+            userId = null,
+            username = pm.getUserName(ctx),
+            role = null,
+            avatar = pm.getProfilePhotoUrl(ctx),
+            insulinCarbRatio = rawRatio,
+            correctionFactor = pm.getCorrectionFactor(ctx),
+            targetGlucose = pm.getTargetGlucose(ctx),
+            syringeType = syringeEnumValue,
+            customSyringeLength = customLen,
+            age = pm.getUserAge(ctx),
+            gender = pm.getUserGender(ctx),
+            pregnant = pm.getIsPregnant(ctx),
+            dueDate = pm.getDueDate(ctx),
+            diabetesType = pm.getDiabetesType(ctx),
+            insulinType = pm.getInsulinType(ctx),
+            activeInsulinTime = pm.getActiveInsulinTime(ctx).toInt(),
+            doseRounding = doseRounding.toString(),
+            sickDayAdjustment = pm.getSickDayAdjustment(ctx),
+            stressAdjustment = pm.getStressAdjustment(ctx),
+            lightExerciseAdjustment = pm.getLightExerciseAdjustment(ctx),
+            intenseExerciseAdjustment = pm.getIntenseExerciseAdjustment(ctx),
+            glucoseUnits = pm.getGlucoseUnits(ctx),
+            createdTimestamp = null,
+            updatedTimestamp = null
+        )
+    }
+
+    private fun syncWithServer(selectedRef: String, doseRounding: Float) {
         loadingOverlay.visibility = View.VISIBLE
         finishButton.isEnabled = false
+
+        val pm = UserProfileManager
+        val ctx = requireContext()
 
         viewLifecycleOwner.lifecycleScope.launch {
             val email = pm.getUserEmail(ctx)
             if (email == null) {
-                // If they have no email, something is weird, but let them pass
                 pm.setRegistrationComplete(ctx, true)
                 navigateToSplash()
                 return@launch
             }
 
-            // Create UserDto from local preferences using same logic as ProfileFragment
-            val syringeEnumValue = if (selectedRef.contains("Insulin Pen")) "INSULIN_PEN" else "CUSTOM_OBJECT"
-            val customLen = if (syringeEnumValue == "CUSTOM_OBJECT") pm.getCustomSyringeLength(ctx) else null
-
-            var rawRatio = pm.getInsulinCarbRatioRaw(ctx)
-            if (rawRatio != null && !rawRatio.contains(":")) {
-                rawRatio = "1:$rawRatio" // Format correctly if needed
-            }
-
-            val userDto = UserDto(
-                userId = null,
-                username = pm.getUserName(ctx),
-                role = null,
-                avatar = pm.getProfilePhotoUrl(ctx),
-                insulinCarbRatio = rawRatio,
-                correctionFactor = pm.getCorrectionFactor(ctx),
-                targetGlucose = pm.getTargetGlucose(ctx),
-                syringeType = syringeEnumValue,
-                customSyringeLength = customLen,
-                age = pm.getUserAge(ctx),
-                gender = pm.getUserGender(ctx),
-                pregnant = pm.getIsPregnant(ctx),
-                dueDate = pm.getDueDate(ctx),
-                diabetesType = pm.getDiabetesType(ctx),
-                insulinType = pm.getInsulinType(ctx),
-                activeInsulinTime = pm.getActiveInsulinTime(ctx).toInt(),
-                doseRounding = doseRounding.toString(),
-                sickDayAdjustment = pm.getSickDayAdjustment(ctx),
-                stressAdjustment = pm.getStressAdjustment(ctx),
-                lightExerciseAdjustment = pm.getLightExerciseAdjustment(ctx),
-                intenseExerciseAdjustment = pm.getIntenseExerciseAdjustment(ctx),
-                glucoseUnits = pm.getGlucoseUnits(ctx),
-                createdTimestamp = null,
-                updatedTimestamp = null
-            )
+            val userDto = buildUserDto(selectedRef, doseRounding)
 
             try {
-                // To safely handle cases where the user doesn't exist yet, we attempt to save.
-                // Depending on the backend implementation, updateUser might create if missing.
                 val result = userRepository.updateUser(email, userDto)
-                
+
                 loadingOverlay.visibility = View.GONE
                 finishButton.isEnabled = true
 
                 if (result.isSuccess) {
                     ToastHelper.showShort(ctx, "Registration complete!")
                 } else {
-                    // It's possible updateUser fails if user not registered. Attempt register then update.
                     userRepository.register(email, pm.getUserName(ctx) ?: "Daniel")
                     userRepository.updateUser(email, userDto)
                 }
-
             } catch (e: Exception) {
                 loadingOverlay.visibility = View.GONE
                 finishButton.isEnabled = true
@@ -164,7 +182,6 @@ class RegistrationStep3Fragment : Fragment(R.layout.fragment_registration_step3)
                 ToastHelper.showShort(ctx, "Saved locally. Server sync failed.")
             }
 
-            // Always let them in
             pm.setRegistrationComplete(ctx, true)
             navigateToSplash()
         }
