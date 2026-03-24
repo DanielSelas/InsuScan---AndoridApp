@@ -1,3 +1,4 @@
+// TODO: Dead code — only consumed by FoodSearchAdapter (unused) and FoodSearchRepository/Impl (also unused). Verify and delete.
 package com.example.insuscan.manualentry
 
 data class FoodSearchResult(
