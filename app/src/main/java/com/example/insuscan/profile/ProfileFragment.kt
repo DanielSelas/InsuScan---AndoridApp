@@ -1,172 +1,44 @@
 package com.example.insuscan.profile
 
-
 import android.app.DatePickerDialog
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.widget.*
-import androidx.appcompat.widget.SwitchCompat
+import android.widget.AdapterView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.auth.AuthManager
+import com.example.insuscan.profile.helpers.ProfileDataHelper
+import com.example.insuscan.profile.helpers.ProfileImageHandler
+import com.example.insuscan.profile.helpers.ProfileRepository
+import com.example.insuscan.profile.helpers.ProfileUiManager
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
-import androidx.lifecycle.lifecycleScope
-import com.example.insuscan.network.repository.UserRepository
-import com.bumptech.glide.Glide
-import com.example.insuscan.network.dto.UserDto
-import com.example.insuscan.network.repository.UserRepositoryImpl
-import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import android.Manifest
-import android.app.AlertDialog
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Environment
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import com.google.firebase.storage.FirebaseStorage
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
-
-    // Views - Profile Header
-    private lateinit var profilePhoto: ImageView
-    private lateinit var nameEditText: EditText
-    private lateinit var emailTextView: TextView
-
-    // Views - Personal Info
-    private lateinit var ageEditText: EditText
-    private lateinit var genderSpinner: Spinner
-    private lateinit var pregnancyLayout: LinearLayout
-    private lateinit var pregnantSwitch: SwitchCompat
-    private lateinit var dueDateLayout: LinearLayout
-    private lateinit var dueDateTextView: TextView
-
-    // Views - Medical Info
-    private lateinit var diabetesTypeSpinner: Spinner
-    private lateinit var insulinTypeSpinner: Spinner
-
-    // Views - Insulin Parameters
-    private lateinit var icrEditText: EditText
-    private lateinit var isfEditText: EditText
-    private lateinit var targetGlucoseEditText: EditText
-    private lateinit var activeInsulinTimeText: TextView
-    private lateinit var isfSubtitle: TextView
-    private lateinit var targetSubtitle: TextView
-
-    // Views - Reference Object Settings
-    private lateinit var referenceTypeSpinner: Spinner
-    private lateinit var customLengthLayout: LinearLayout
-    private lateinit var customLengthEditText: EditText
-    private lateinit var doseRoundingSpinner: Spinner
-
-    // Views - Adjustment Factors
-    private lateinit var sickAdjustmentEditText: EditText
-    private lateinit var stressAdjustmentEditText: EditText
-    private lateinit var lightExerciseEditText: EditText
-    private lateinit var intenseExerciseEditText: EditText
-
-    // Views - Preferences
-    private lateinit var glucoseUnitsSpinner: Spinner
-
-    // Views - Buttons
-    private lateinit var saveButton: Button
-    private lateinit var logoutButton: Button
-    private lateinit var loadingOverlay: FrameLayout
-    private lateinit var editPhotoButton: ImageView
-    private lateinit var topBar: View // Should verify if needed, but keeping consistent
-
+    private lateinit var ui: ProfileUiManager
+    private val imageHandler = ProfileImageHandler(this)
+    private lateinit var dataHelper: ProfileDataHelper
+    private val repository = ProfileRepository()
     private val ctx get() = requireContext()
-    private val userRepository = UserRepositoryImpl()
-    
-    // Photo picker vars...
-    private var photoUri: Uri? = null
-    
-    // Launchers...
-    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri?.let { uploadAndSavePhoto(it) }
-    }
-    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        if (success) photoUri?.let { uploadAndSavePhoto(it) }
-    }
-    private val cameraPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) openCamera() else ToastHelper.showShort(ctx, "Camera permission denied")
-    }
-
-    // Spinner data
-    private val genderOptions = arrayOf("Select", "Male", "Female", "Other", "Prefer not to say")
-    private val diabetesOptions = arrayOf("Select", "Type 1", "Type 2", "Gestational", "Other")
-    private val insulinOptions = arrayOf("Select", "Rapid-acting", "Short-acting", "Other")
-    private val referenceOptions = arrayOf("Insulin Pen (Standard)", "Fork / Knife")
-    private val roundingOptions = arrayOf("0.5 units", "1 unit")
-    private val glucoseUnitOptions = arrayOf("mg/dL", "mmol/L")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        ui = ProfileUiManager(view)
+        ui.setupSpinners(ctx)
+        
+        imageHandler.bind(ui) { syncPhotoToServer() }
+        dataHelper = ProfileDataHelper(ctx, ui)
 
-        findViews(view)
         setupTopBar(view)
-        setupSpinners()
         setupListeners()
 
-        loadProfile()
-        loadGoogleProfile()
+        dataHelper.loadProfile(imageHandler)
+        dataHelper.loadGoogleProfile(imageHandler)
         fetchServerProfile()
-    }
-
-    private fun findViews(view: View) {
-        // Profile Header
-        profilePhoto = view.findViewById(R.id.iv_profile_photo)
-        nameEditText = view.findViewById(R.id.et_user_name)
-        emailTextView = view.findViewById(R.id.tv_user_email)
-
-        // Personal Info
-        ageEditText = view.findViewById(R.id.et_user_age)
-        genderSpinner = view.findViewById(R.id.spinner_gender)
-        pregnancyLayout = view.findViewById(R.id.layout_pregnancy)
-        pregnantSwitch = view.findViewById(R.id.switch_pregnant)
-        dueDateLayout = view.findViewById(R.id.layout_due_date)
-        dueDateTextView = view.findViewById(R.id.tv_due_date)
-
-        // Medical Info
-        diabetesTypeSpinner = view.findViewById(R.id.spinner_diabetes_type)
-        insulinTypeSpinner = view.findViewById(R.id.spinner_insulin_type)
-
-        // Insulin Parameters
-        icrEditText = view.findViewById(R.id.et_insulin_carb_ratio)
-        isfEditText = view.findViewById(R.id.et_correction_factor)
-        targetGlucoseEditText = view.findViewById(R.id.et_target_glucose)
-        activeInsulinTimeText = view.findViewById(R.id.tv_active_insulin_time)
-        isfSubtitle = view.findViewById(R.id.tv_isf_subtitle)
-        targetSubtitle = view.findViewById(R.id.tv_target_subtitle)
-
-        // Reference Object Settings
-        referenceTypeSpinner = view.findViewById(R.id.spinner_reference_type)
-        customLengthLayout = view.findViewById(R.id.layout_custom_length)
-        customLengthEditText = view.findViewById(R.id.et_custom_length)
-        doseRoundingSpinner = view.findViewById(R.id.spinner_dose_rounding)
-
-        // Adjustment Factors
-        sickAdjustmentEditText = view.findViewById(R.id.et_sick_adjustment)
-        stressAdjustmentEditText = view.findViewById(R.id.et_stress_adjustment)
-        lightExerciseEditText = view.findViewById(R.id.et_light_exercise_adjustment)
-        intenseExerciseEditText = view.findViewById(R.id.et_intense_exercise_adjustment)
-
-        // Preferences
-        glucoseUnitsSpinner = view.findViewById(R.id.spinner_glucose_units)
-
-        // Buttons
-        saveButton = view.findViewById(R.id.btn_save_profile)
-        logoutButton = view.findViewById(R.id.btn_logout)
-        loadingOverlay = view.findViewById(R.id.loading_overlay)
-        editPhotoButton = view.findViewById(R.id.iv_edit_photo)
     }
 
     private fun setupTopBar(view: View) {
@@ -177,67 +49,51 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         )
     }
 
-    private fun setupSpinners() {
-        genderSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, genderOptions)
-        diabetesTypeSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, diabetesOptions)
-        insulinTypeSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, insulinOptions)
-        referenceTypeSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, referenceOptions)
-        doseRoundingSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, roundingOptions)
-        glucoseUnitsSpinner.adapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, glucoseUnitOptions)
-    }
-
     private fun setupListeners() {
-        saveButton.setOnClickListener { saveProfile() }
-        logoutButton.setOnClickListener { logout() }
+        ui.saveButton.setOnClickListener { saveProfile() }
+        ui.logoutButton.setOnClickListener { logout() }
 
-        // Gender logic
-        genderSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val isFemale = genderOptions[position] == "Female"
-                pregnancyLayout.visibility = if (isFemale) View.VISIBLE else View.GONE
+        ui.genderSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                ui.pregnancyLayout.visibility = if (ui.genderOptions[position] == "Female") View.VISIBLE else View.GONE
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
         }
-
-        // Pregnancy logic
-        pregnantSwitch.setOnCheckedChangeListener { _, isChecked ->
-            dueDateLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
+        ui.pregnantSwitch.setOnCheckedChangeListener { _, isChecked ->
+            ui.dueDateLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
-        dueDateTextView.setOnClickListener { showDatePicker() }
+        ui.dueDateTextView.setOnClickListener { showDatePicker() }
 
-        // Insulin type logic
-        insulinTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val dia = when (insulinOptions[position]) {
+        ui.insulinTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                val dia = when (ui.insulinOptions[position]) {
                     "Rapid-acting" -> "4h"
                     "Short-acting" -> "5h"
                     else -> "4h"
                 }
-                activeInsulinTimeText.text = dia
+                ui.activeInsulinTimeText.text = dia
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-        
-        // Reference Type change - Show/Hide custom length
-        referenceTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val isOther = referenceOptions[position].contains("Other")
-                customLengthLayout.visibility = if (isOther) View.VISIBLE else View.GONE
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
         }
 
-        glucoseUnitsSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val unit = glucoseUnitOptions[position]
-                isfSubtitle.text = "$unit drop per 1 unit"
-                targetSubtitle.text = unit
+        ui.referenceTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                ui.customLengthLayout.visibility = if (ui.referenceOptions[position].contains("Other")) View.VISIBLE else View.GONE
             }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
         }
-        
-        profilePhoto.setOnClickListener { showPhotoOptionsDialog() }
-        editPhotoButton.setOnClickListener { showPhotoOptionsDialog() }
+
+        ui.glucoseUnitsSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
+                val unit = ui.glucoseUnitOptions[position]
+                ui.isfSubtitle.text = "$unit drop per 1 unit"
+                ui.targetSubtitle.text = unit
+            }
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
+        }
+
+        ui.profilePhoto.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
+        ui.editPhotoButton.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
     }
 
     private fun showDatePicker() {
@@ -245,8 +101,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         DatePickerDialog(
             ctx,
             { _, year, month, day ->
-                val date = "%02d/%02d/%d".format(day, month + 1, year)
-                dueDateTextView.text = date
+                ui.dueDateTextView.text = "%02d/%02d/%d".format(day, month + 1, year)
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
@@ -254,417 +109,45 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         ).show()
     }
 
-    private fun loadGoogleProfile() {
-        val user = FirebaseAuth.getInstance().currentUser ?: return
-
-        // Email
-        emailTextView.text = user.email ?: "No email"
-
-        // Name - only if not already saved locally
-        if (UserProfileManager.getUserName(ctx).isNullOrBlank()) {
-            user.displayName?.let { nameEditText.setText(it) }
-        }
-
-        // Photo - use saved URL first, fallback to Google
-        val savedUrl = UserProfileManager.getProfilePhotoUrl(ctx)
-        if (!savedUrl.isNullOrBlank()) {
-            loadProfilePhoto(savedUrl)
-        } else {
-            user.photoUrl?.let { uri ->
-                Glide.with(this)
-                    .load(uri)
-                    .circleCrop()
-                    .placeholder(R.drawable.ic_person)
-                    .into(profilePhoto)
-                profilePhoto.setPadding(0, 0, 0, 0)
-            }
-        }
-    }
-
-    private fun loadProfile() {
-        val pm = UserProfileManager
-
-        // Personal Info
-        nameEditText.setText(pm.getUserName(ctx) ?: "")
-        pm.getUserAge(ctx)?.let { ageEditText.setText(it.toString()) }
-        pm.getUserGender(ctx)?.let { setSpinnerSelection(genderSpinner, genderOptions, it) }
-        pregnantSwitch.isChecked = pm.getIsPregnant(ctx)
-        pm.getDueDate(ctx)?.let { dueDateTextView.text = it }
-
-        // Medical Info
-        pm.getDiabetesType(ctx)?.let { setSpinnerSelection(diabetesTypeSpinner, diabetesOptions, it) }
-        pm.getInsulinType(ctx)?.let { setSpinnerSelection(insulinTypeSpinner, insulinOptions, it) }
-
-        // Insulin Parameters - Handle nulls safely (No defaults)
-        val rawRatio = pm.getInsulinCarbRatioRaw(ctx)
-        if (rawRatio != null) {
-            val ratioParts = rawRatio.split(":")
-            if (ratioParts.size == 2) {
-                icrEditText.setText(ratioParts[1].trim())
-            }
-        } else {
-            icrEditText.text.clear()
-        }
-
-        val isf = pm.getCorrectionFactor(ctx)
-        if (isf != null) {
-            isfEditText.setText(isf.toInt().toString())
-        } else {
-            isfEditText.text.clear()
-        }
-
-        val target = pm.getTargetGlucose(ctx)
-        if (target != null) {
-            targetGlucoseEditText.setText(target.toString())
-        } else {
-            targetGlucoseEditText.text.clear()
-        }
-
-        // Active Insulin Time (DIA)
-        val diaValue = pm.getActiveInsulinTime(ctx)
-        activeInsulinTimeText.text = "${diaValue.toInt()}h"
-
-        // --- Reference Object Logic ---
-        val savedTypeStr = pm.getSyringeSize(ctx) // Now may be "PEN", "OTHER", or legacy "0.5ml"
-        val isOther = savedTypeStr.contains("OTHER", ignoreCase = true)
-        
-        if (isOther) {
-             referenceTypeSpinner.setSelection(1) // Other
-             customLengthLayout.visibility = View.VISIBLE
-             val customLen = pm.getCustomSyringeLength(ctx)
-             customLengthEditText.setText(customLen.toString())
-        } else {
-             referenceTypeSpinner.setSelection(0) // Pen
-             customLengthLayout.visibility = View.GONE
-        }
-
-        val rounding = if (pm.getDoseRounding(ctx) == 0.5f) "0.5 units" else "1 unit"
-        setSpinnerByValue(doseRoundingSpinner, roundingOptions, rounding)
-
-        // Adjustment Factors
-        sickAdjustmentEditText.setText(pm.getSickDayAdjustment(ctx).toString())
-        stressAdjustmentEditText.setText(pm.getStressAdjustment(ctx).toString())
-        lightExerciseEditText.setText(pm.getLightExerciseAdjustment(ctx).toString())
-        intenseExerciseEditText.setText(pm.getIntenseExerciseAdjustment(ctx).toString())
-
-        // Preferences
-        setSpinnerByValue(glucoseUnitsSpinner, glucoseUnitOptions, pm.getGlucoseUnits(ctx))
-
-        // Load profile photo
-        val savedPhotoUrl = pm.getProfilePhotoUrl(ctx)
-        android.util.Log.e("ProfileFragment", "Loading Profile. Saved Photo URL: $savedPhotoUrl")
-        loadProfilePhoto(savedPhotoUrl)
-    }
-
-    private fun setSpinnerSelection(spinner: Spinner, options: Array<String>, value: String) {
-        val index = options.indexOf(value)
-        if (index >= 0) spinner.setSelection(index)
-    }
-
-    private fun setSpinnerByValue(spinner: Spinner, options: Array<String>, value: String) {
-        val index = options.indexOfFirst { it.contains(value, ignoreCase = true) || value.contains(it.substringBefore(" "), ignoreCase = true) }
-        if (index >= 0) spinner.setSelection(index)
-    }
-
     private fun saveProfile() {
-        val pm = UserProfileManager
-
-        // Validate required fields
-        val icrValue = icrEditText.text.toString().trim()
-        val isf = isfEditText.text.toString().trim()
-        val target = targetGlucoseEditText.text.toString().trim()
-
-        // Validation: Block 0 values
-        var hasError = false
-
-        // Check ICR (cannot be 0)
-        val icrNum = icrValue.toFloatOrNull()
-        if (icrNum != null && icrNum == 0f) {
-            icrEditText.error = "Value cannot be 0"
-            hasError = true
-        }
-
-        // Check ISF (cannot be 0)
-        val isfNum = isf.toFloatOrNull()
-        if (isfNum != null && isfNum == 0f) {
-            isfEditText.error = "Value cannot be 0"
-            hasError = true
-        }
-
-        // Check Target Glucose (cannot be 0)
-        val targetNum = target.toIntOrNull()
-        if (targetNum != null && targetNum == 0) {
-            targetGlucoseEditText.error = "Value cannot be 0"
-            hasError = true
-        }
-
-        if (hasError) {
-            ToastHelper.showShort(ctx, "Please fix invalid values")
-            return
-        }
-        
-        // Format to 1:X
-        val fullIcrString = "1:$icrValue"
-
-        // Save Personal Info
-        val name = nameEditText.text.toString().trim()
-        if (name.isNotBlank()) pm.saveUserName(ctx, name)
-
-        ageEditText.text.toString().toIntOrNull()?.let { pm.saveUserAge(ctx, it) }
-
-        val gender = genderOptions[genderSpinner.selectedItemPosition]
-        if (gender != "Select") pm.saveUserGender(ctx, gender)
-
-        pm.saveIsPregnant(ctx, pregnantSwitch.isChecked)
-        if (pregnantSwitch.isChecked) {
-            val dueDate = dueDateTextView.text.toString()
-            if (dueDate != "Select date") pm.saveDueDate(ctx, dueDate)
-        }
-
-        // Save Medical Info
-        val diabetesType = diabetesOptions[diabetesTypeSpinner.selectedItemPosition]
-        if (diabetesType != "Select") pm.saveDiabetesType(ctx, diabetesType)
-
-        val insulinType = insulinOptions[insulinTypeSpinner.selectedItemPosition]
-        if (insulinType != "Select") pm.saveInsulinType(ctx, insulinType)
-
-        // Save Insulin Parameters
-        pm.saveInsulinCarbRatio(ctx, fullIcrString)
-        isf.toFloatOrNull()?.let { pm.saveCorrectionFactor(ctx, it) }
-        target.toIntOrNull()?.let { pm.saveTargetGlucose(ctx, it) }
-
-        // --- Save Reference Settings ---
-        // --- Save Reference Settings ---
-        val selectedRef = referenceOptions[referenceTypeSpinner.selectedItemPosition]
-        if (selectedRef.contains("Insulin Pen")) {
-             pm.saveSyringeSize(ctx, "INSULIN_PEN")
-        } else {
-             pm.saveSyringeSize(ctx, "CUSTOM_OBJECT")
-             val len = customLengthEditText.text.toString().toFloatOrNull() ?: 15.0f // Default if empty
-             pm.saveCustomSyringeLength(ctx, len)
-        }
-
-        val doseRounding = if (doseRoundingSpinner.selectedItemPosition == 0) 0.5f else 1f
-        pm.saveDoseRounding(ctx, doseRounding)
-
-        // Save Adjustment Factors
-        sickAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveSickDayAdjustment(ctx, it) }
-        stressAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveStressAdjustment(ctx, it) }
-        lightExerciseEditText.text.toString().toIntOrNull()?.let { pm.saveLightExerciseAdjustment(ctx, it) }
-        intenseExerciseEditText.text.toString().toIntOrNull()?.let { pm.saveIntenseExerciseAdjustment(ctx, it) }
-
-        // Save Preferences
-        pm.saveGlucoseUnits(ctx, glucoseUnitOptions[glucoseUnitsSpinner.selectedItemPosition])
-
-        // Save email
-        FirebaseAuth.getInstance().currentUser?.email?.let { pm.saveUserEmail(ctx, it) }
-
+        val userDto = dataHelper.validateAndSaveLocal() ?: return
         ToastHelper.showShort(ctx, "Saving profile...")
-
-        // Launch coroutine to sync to server while blocking UI
+        
         viewLifecycleOwner.lifecycleScope.launch {
-            loadingOverlay.visibility = View.VISIBLE
-            saveButton.isEnabled = false
+            ui.loadingOverlay.visibility = View.VISIBLE
+            ui.saveButton.isEnabled = false
             
-            val result = executeServerSync()
+            val result = repository.executeServerSync(ctx, userDto)
             
-            loadingOverlay.visibility = View.GONE
-            saveButton.isEnabled = true
-
+            ui.loadingOverlay.visibility = View.GONE
+            ui.saveButton.isEnabled = true
+            
             if (result.isSuccess) {
                 ToastHelper.showShort(ctx, "Profile saved and synced!")
                 findNavController().popBackStack()
             } else {
                 ToastHelper.showShort(ctx, "Saved locally. Sync failed: ${result.exceptionOrNull()?.message}")
-                // Still pop backstack as local save was successful
                 findNavController().popBackStack()
             }
         }
     }
 
     private fun fetchServerProfile() {
-        val email = UserProfileManager.getUserEmail(ctx) ?: return
-
         viewLifecycleOwner.lifecycleScope.launch {
-            userRepository.getUser(email).onSuccess { userDto ->
-                UserProfileManager.syncFromServer(ctx, userDto)
-
-                loadProfile()
-
-                android.util.Log.d("ProfileFragment", "Profile synced from server")
-            }.onFailure { e ->
-                android.util.Log.e("ProfileFragment", "Failed to fetch profile: ${e.message}")
+            repository.fetchServerProfile(ctx).onSuccess {
+                dataHelper.loadProfile(imageHandler)
             }
         }
     }
 
-    private fun syncToServer() {
+    private fun syncPhotoToServer() {
         viewLifecycleOwner.lifecycleScope.launch {
-            val result = executeServerSync()
-             if (result.isSuccess) {
-                 android.util.Log.d("ProfileFragment", "Background sync success!")
-             } else {
-                 android.util.Log.e("ProfileFragment", "Background sync failed")
-             }
-        }
-    }
-
-    private suspend fun executeServerSync(): Result<UserDto> {
-        val email = UserProfileManager.getUserEmail(ctx) 
-            ?: return Result.failure(Exception("No email found"))
-
-        return try {
-            val doseRoundingValue = if (doseRoundingSpinner.selectedItemPosition == 0) "0.5" else "1"
-            val diaValue = activeInsulinTimeText.text.toString().replace("h", "").trim().toIntOrNull()
-            
-            // 3. FIX: Map Syringe UI selection to Server Enum Name
-            val selectedSyringeIndex = referenceTypeSpinner.selectedItemPosition // Note: Using referenceTypeSpinner now
-            // Options: 0="Insulin Pen", 1="Other Object" (From referenceOptions)
-            
-            // Map Reference Type
-            val selectedRef = referenceOptions[referenceTypeSpinner.selectedItemPosition]
-            val syringeEnumValue = if (selectedRef.contains("Insulin Pen")) "INSULIN_PEN" else "CUSTOM_OBJECT"
-            
-            // Custom Length
-            val customLen = if (syringeEnumValue == "CUSTOM_OBJECT") {
-                customLengthEditText.text.toString().toFloatOrNull()
-            } else null
-
-            // Build UserDto with ALL fields
-            val userDto = UserDto(
-                userId = null,
-                username = nameEditText.text.toString().trim().ifEmpty { null },
-                role = null,
-                avatar = UserProfileManager.getProfilePhotoUrl(ctx),
-
-                // Medical
-                insulinCarbRatio = icrEditText.text.toString().trim().let {
-                    if (it.isEmpty()) null else "1:$it"
-                },
-                correctionFactor = isfEditText.text.toString().toFloatOrNull(),
-                targetGlucose = targetGlucoseEditText.text.toString().toIntOrNull(),
-
-                // Syringe - SEND ENUM NAME, NOT UI STRING
-                syringeType = syringeEnumValue,
-                customSyringeLength = customLen,
-
-                // Personal
-                age = ageEditText.text.toString().toIntOrNull(),
-                gender = genderOptions.getOrNull(genderSpinner.selectedItemPosition).takeIf { it != "Select" },
-                pregnant = pregnantSwitch.isChecked,
-                dueDate = dueDateTextView.text.toString().takeIf { it != "Select date" },
-
-                // Medical Extended
-                diabetesType = diabetesOptions.getOrNull(diabetesTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
-                insulinType = insulinOptions.getOrNull(insulinTypeSpinner.selectedItemPosition).takeIf { it != "Select" },
-                activeInsulinTime = diaValue,
-
-                // Dose Settings
-                doseRounding = doseRoundingValue,
-
-                // Adjustments
-                sickDayAdjustment = sickAdjustmentEditText.text.toString().toIntOrNull(),
-                stressAdjustment = stressAdjustmentEditText.text.toString().toIntOrNull(),
-                lightExerciseAdjustment = lightExerciseEditText.text.toString().toIntOrNull(),
-                intenseExerciseAdjustment = intenseExerciseEditText.text.toString().toIntOrNull(),
-
-                // Preferences
-                glucoseUnits = glucoseUnitOptions.getOrNull(glucoseUnitsSpinner.selectedItemPosition),
-
-                createdTimestamp = null,
-                updatedTimestamp = null
-            )
-
-            val result = userRepository.updateUser(email, userDto)
-            result
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    private fun showPhotoOptionsDialog() {
-        val options = arrayOf("Take Photo", "Choose from Gallery", "Remove Photo")
-        AlertDialog.Builder(ctx)
-            .setTitle("Profile Photo")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> checkCameraPermissionAndOpen()
-                    1 -> pickImageLauncher.launch("image/*")
-                    2 -> removeProfilePhoto()
-                }
+            dataHelper.validateAndSaveLocal()?.let { userDto ->
+                repository.executeServerSync(ctx, userDto)
             }
-            .show()
-    }
-
-    private fun checkCameraPermissionAndOpen() {
-        when {
-            ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA)
-                    == PackageManager.PERMISSION_GRANTED -> openCamera()
-            else -> cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
-    private fun openCamera() {
-        val photoFile = createImageFile()
-        photoUri = FileProvider.getUriForFile(ctx, "${ctx.packageName}.provider", photoFile)
-        takePictureLauncher.launch(photoUri)
-    }
-
-    private fun createImageFile(): File {
-        val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(System.currentTimeMillis())
-        val storageDir = ctx.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile("PROFILE_${timestamp}_", ".jpg", storageDir)
-    }
-
-    private fun uploadAndSavePhoto(uri: Uri) {
-        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
-        val storageRef = FirebaseStorage.getInstance().reference
-            .child("profile_photos/$userId.jpg")
-
-        ToastHelper.showShort(ctx, "Uploading photo...")
-
-        storageRef.putFile(uri)
-            .addOnSuccessListener {
-                storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
-                    val url = downloadUrl.toString()
-
-                    // 1. Save locally and update UI immediately
-                    UserProfileManager.saveProfilePhotoUrl(ctx, url)
-                    loadProfilePhoto(url)
-
-                    // 2. Sync with server immediately to persist the new URL remotely
-                    syncToServer()
-
-                    ToastHelper.showShort(ctx, "Photo updated and saved!")
-                }
-            }
-            .addOnFailureListener { e ->
-                Log.e("ProfileFragment", "Upload failed: ${e.message}")
-                ToastHelper.showShort(ctx, "Upload failed")
-            }
-    }
-
-    private fun loadProfilePhoto(url: String?) {
-        if (url.isNullOrBlank()) {
-            profilePhoto.setImageResource(R.drawable.ic_person)
-            profilePhoto.setPadding(32, 32, 32, 32)
-            return
-        }
-
-        Glide.with(this)
-            .load(url)
-            .circleCrop()
-            .placeholder(R.drawable.ic_person)
-            .into(profilePhoto)
-        profilePhoto.setPadding(0, 0, 0, 0)
-    }
-
-    private fun removeProfilePhoto() {
-        UserProfileManager.saveProfilePhotoUrl(ctx, "")
-        profilePhoto.setImageResource(R.drawable.ic_person)
-        profilePhoto.setPadding(32, 32, 32, 32)
-        ToastHelper.showShort(ctx, "Photo removed")
-    }
     private fun logout() {
         UserProfileManager.clearAllData(ctx)
         AuthManager.signOut()
