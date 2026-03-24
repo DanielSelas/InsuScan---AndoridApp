@@ -10,7 +10,6 @@ object UserProfileManager {
     private const val KEY_USER_NAME = "user_name"
     private const val KEY_CORRECTION_FACTOR = "correction_factor"
     private const val KEY_TARGET_GLUCOSE = "target_glucose"
-
     private const val KEY_USER_AGE = "user_age"
     private const val KEY_USER_GENDER = "user_gender"
     private const val KEY_IS_PREGNANT = "is_pregnant"
@@ -19,9 +18,8 @@ object UserProfileManager {
     private const val KEY_INSULIN_TYPE = "insulin_type"
     private const val KEY_ACTIVE_INSULIN_TIME = "active_insulin_time"
     private const val KEY_SYRINGE_SIZE = "syringe_size"
-    private const val KEY_CUSTOM_SYRINGE_LENGTH = "custom_syringe_length" // New: Store custom length (e.g. 15.0 for fork)
+    private const val KEY_CUSTOM_SYRINGE_LENGTH = "custom_syringe_length"
     private const val KEY_DOSE_ROUNDING = "dose_rounding"
-
     private const val KEY_GLUCOSE_UNITS = "glucose_units"
     private const val KEY_SICK_DAY_ADJUSTMENT = "sick_day_adjustment"
     private const val KEY_STRESS_ADJUSTMENT = "stress_adjustment"
@@ -34,247 +32,95 @@ object UserProfileManager {
     private const val KEY_PROFILE_PHOTO_URL = "profile_photo_url"
     private const val KEY_REGISTRATION_COMPLETE = "registration_complete"
 
-    // small helper to get prefs once
-    private fun prefs(context: Context) =
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    // region insulin to carb ratio
-
-    fun saveInsulinCarbRatio(context: Context, ratioText: String) {
-        prefs(context).edit()
-            .putString(KEY_RATIO, ratioText)
-            .apply()
-    }
-
-    fun getInsulinCarbRatioRaw(context: Context): String? {
-        return prefs(context).getString(KEY_RATIO, null)
-    }
-
-    fun getUnitsPerGram(context: Context): Float? {
-        val ratioText = getInsulinCarbRatioRaw(context) ?: return null
-
-        // Case 1: Format "1:10"
-        if (ratioText.contains(":")) {
-            val parts = ratioText.split(":")
-            if (parts.size != 2) return null
-            val units = parts[0].toFloatOrNull() ?: return null
-            val grams = parts[1].toFloatOrNull() ?: return null
-            if (grams == 0f) return null
-            return units / grams
-        }
-
-        // Case 2: Just a number "10" (means 1 unit : 10 grams)
-        val grams = ratioText.toFloatOrNull()
-        if (grams != null && grams > 0) {
-            return 1.0f / grams
-        }
-
-        return null
-    }
-
-    /**
-     * Returns the "Grams per Unit" value (e.g. 10.0 for 1:10).
-     * This matches the Server's Golden Logic parameters.
-     */
-    fun getGramsPerUnit(context: Context): Float? {
-        val ratioText = getInsulinCarbRatioRaw(context) ?: return null
-        
-        // Case 1: "1:10" -> returns 10.0
-        if (ratioText.contains(":")) {
-            val parts = ratioText.split(":")
-            if (parts.size >= 2) {
-                return parts[1].toFloatOrNull()
-            }
-        }
-        
-        // Case 2: "10" -> returns 10.0
-        return ratioText.toFloatOrNull()
-    }
-
-    // endregion
-
-    // region user name
-
-    // This init block cannot directly access 'context' as UserProfileManager is an object.
-    // Assuming there's an external mechanism to call FileLogger.init(context) or
-    // that the user intends for a different structure (e.g., a class with a constructor).
-    // For now, I will add a placeholder init function.
-    fun init(context: Context) {
-        FileLogger.init(context)
-    }
-
-    // Assuming UserProfile is a data class defined elsewhere
-    // data class UserProfile(val name: String, val insulinCarbRatio: String, val correctionFactor: Float, val targetGlucose: Int, val activeInsulinTime: Float)
-
-    fun saveUserProfile(context: Context, profile: UserProfile) {
-        val editor = prefs(context).edit()
-        
-        FileLogger.log("PROFILE", "💾 Saving User Profile")
-        FileLogger.log("PROFILE", "   Name: ${profile.name}")
-        FileLogger.log("PROFILE", "   ICR: ${profile.insulinCarbRatio} g/unit")
-        FileLogger.log("PROFILE", "   ISF: ${profile.correctionFactor}")
-        FileLogger.log("PROFILE", "   Target: ${profile.targetGlucose}")
-        FileLogger.log("PROFILE", "   Active Insulin Time: ${profile.activeInsulinTime}")
-        
-        editor.putString(KEY_USER_NAME, profile.name)
-            .putString(KEY_RATIO, profile.insulinCarbRatio)
-            .putFloat(KEY_CORRECTION_FACTOR, profile.correctionFactor)
-            .putInt(KEY_TARGET_GLUCOSE, profile.targetGlucose)
-            .putFloat(KEY_ACTIVE_INSULIN_TIME, profile.activeInsulinTime)
-            .apply()
-    }
-
-    fun getUserProfile(context: Context): UserProfile? {
+    private inline fun <reified T> getPref(context: Context, key: String, default: T): T {
         val p = prefs(context)
-        val name = p.getString(KEY_USER_NAME, null)
-        val insulinCarbRatio = p.getString(KEY_RATIO, null)
-        val correctionFactor = if (p.contains(KEY_CORRECTION_FACTOR)) p.getFloat(KEY_CORRECTION_FACTOR, 0f) else null
-        val targetGlucose = if (p.contains(KEY_TARGET_GLUCOSE)) p.getInt(KEY_TARGET_GLUCOSE, 0) else null
-        val activeInsulinTime = p.getFloat(KEY_ACTIVE_INSULIN_TIME, 4f)
-
-        if (name == null || insulinCarbRatio == null || correctionFactor == null || targetGlucose == null) {
-            FileLogger.log("PROFILE", "⚠️ User Profile not fully available.")
-            return null
+        return when (T::class) {
+            String::class -> p.getString(key, default as String?) as T
+            Int::class -> p.getInt(key, default as Int) as T
+            Float::class -> p.getFloat(key, default as Float) as T
+            Boolean::class -> p.getBoolean(key, default as Boolean) as T
+            Long::class -> p.getLong(key, default as Long) as T
+            else -> default
         }
-
-        val profile = UserProfile(name, insulinCarbRatio, correctionFactor, targetGlucose, activeInsulinTime)
-        FileLogger.log("PROFILE", "📖 Loading User Profile")
-        FileLogger.log("PROFILE", "   Name: ${profile.name}")
-        FileLogger.log("PROFILE", "   ICR: ${profile.insulinCarbRatio} g/unit")
-        FileLogger.log("PROFILE", "   ISF: ${profile.correctionFactor}")
-        FileLogger.log("PROFILE", "   Target: ${profile.targetGlucose}")
-        FileLogger.log("PROFILE", "   Active Insulin Time: ${profile.activeInsulinTime}")
-        return profile
     }
+
+    private inline fun <reified T> getPrefNullable(context: Context, key: String): T? {
+        val p = prefs(context)
+        if (!p.contains(key)) return null
+        return when (T::class) {
+            String::class -> p.getString(key, null) as T?
+            Int::class -> p.getInt(key, 0) as T?
+            Float::class -> p.getFloat(key, 0f) as T?
+            Boolean::class -> p.getBoolean(key, false) as T?
+            Long::class -> p.getLong(key, 0L) as T?
+            else -> null
+        }
+    }
+
+    private fun <T> savePref(context: Context, key: String, value: T) {
+        val editor = prefs(context).edit()
+        when (value) {
+            is String -> editor.putString(key, value)
+            is Int -> editor.putInt(key, value)
+            is Float -> editor.putFloat(key, value)
+            is Boolean -> editor.putBoolean(key, value)
+            is Long -> editor.putLong(key, value)
+            null -> editor.remove(key)
+        }
+        editor.apply()
+    }
+
+    fun init(context: Context) { FileLogger.init(context) }
+
+    fun saveInsulinCarbRatio(context: Context, ratioText: String) = savePref(context, KEY_RATIO, ratioText)
+    fun getInsulinCarbRatioRaw(context: Context): String? = getPrefNullable(context, KEY_RATIO)
+    
+    fun getUnitsPerGram(context: Context): Float? = UserProfileCalculations.getUnitsPerGram(context)
+    fun getGramsPerUnit(context: Context): Float? = UserProfileCalculations.getGramsPerUnit(context)
+
+    fun saveUserProfile(context: Context, profile: UserProfile) = UserProfileDataManager.saveUserProfile(context, profile)
+    fun getUserProfile(context: Context): UserProfile? = UserProfileDataManager.getUserProfile(context)
 
     fun isRegistrationComplete(context: Context): Boolean {
         val p = prefs(context)
-        // If explicitly set
-        if (p.contains(KEY_REGISTRATION_COMPLETE)) {
-            return p.getBoolean(KEY_REGISTRATION_COMPLETE, false)
-        }
-        // Graceful fallback for existing users updating to this version:
-        // If they have a target glucose set, we assume they are fully registered
-        if (p.contains(KEY_TARGET_GLUCOSE)) {
-            return true
-        }
+        if (p.contains(KEY_REGISTRATION_COMPLETE)) return p.getBoolean(KEY_REGISTRATION_COMPLETE, false)
+        if (p.contains(KEY_TARGET_GLUCOSE)) return true
         return false
     }
 
-    fun setRegistrationComplete(context: Context, complete: Boolean) {
-        prefs(context).edit().putBoolean(KEY_REGISTRATION_COMPLETE, complete).apply()
-    }
+    fun setRegistrationComplete(context: Context, complete: Boolean) = savePref(context, KEY_REGISTRATION_COMPLETE, complete)
+    
+    fun saveUserName(context: Context, name: String) = savePref(context, KEY_USER_NAME, name)
+    fun getUserName(context: Context): String? = getPrefNullable(context, KEY_USER_NAME)
 
-    fun saveUserName(context: Context, name: String) {
-        prefs(context).edit()
-            .putString(KEY_USER_NAME, name)
-            .apply()
-    }
+    fun saveCorrectionFactor(context: Context, value: Float) = savePref(context, KEY_CORRECTION_FACTOR, value)
+    fun getCorrectionFactor(context: Context): Float? = getPrefNullable(context, KEY_CORRECTION_FACTOR)
 
-    fun getUserName(context: Context): String? {
-        return prefs(context).getString(KEY_USER_NAME, null)
-    }
+    fun saveTargetGlucose(context: Context, value: Int) = savePref(context, KEY_TARGET_GLUCOSE, value)
+    fun getTargetGlucose(context: Context): Int? = getPrefNullable(context, KEY_TARGET_GLUCOSE)
 
-    // endregion
+    fun saveUserEmail(context: Context, email: String) = savePref(context, KEY_USER_EMAIL, email)
+    fun getUserEmail(context: Context): String? = getPrefNullable(context, KEY_USER_EMAIL)
+    fun clearUserEmail(context: Context) = savePref(context, KEY_USER_EMAIL, null as String?)
 
-    // region correction factor
+    fun saveUserAge(context: Context, age: Int) = savePref(context, KEY_USER_AGE, age)
+    fun getUserAge(context: Context): Int? = getPrefNullable(context, KEY_USER_AGE)
 
-    fun saveCorrectionFactor(context: Context, value: Float) {
-        prefs(context).edit()
-            .putFloat(KEY_CORRECTION_FACTOR, value)
-            .apply()
-    }
+    fun saveUserGender(context: Context, gender: String) = savePref(context, KEY_USER_GENDER, gender)
+    fun getUserGender(context: Context): String? = getPrefNullable(context, KEY_USER_GENDER)
 
-    fun getCorrectionFactor(context: Context): Float? {
-        val p = prefs(context)
-        return if (p.contains(KEY_CORRECTION_FACTOR))
-            p.getFloat(KEY_CORRECTION_FACTOR, 0f)
-        else null
-    }
+    fun saveIsPregnant(context: Context, isPregnant: Boolean) = savePref(context, KEY_IS_PREGNANT, isPregnant)
+    fun getIsPregnant(context: Context): Boolean = getPref(context, KEY_IS_PREGNANT, false)
+    fun saveDueDate(context: Context, dueDate: String) = savePref(context, KEY_DUE_DATE, dueDate)
+    fun getDueDate(context: Context): String? = getPrefNullable(context, KEY_DUE_DATE)
 
-    // endregion
+    fun saveDiabetesType(context: Context, type: String) = savePref(context, KEY_DIABETES_TYPE, type)
+    fun getDiabetesType(context: Context): String? = getPrefNullable(context, KEY_DIABETES_TYPE)
 
-    // region target glucose
-
-    fun saveTargetGlucose(context: Context, value: Int) {
-        prefs(context).edit()
-            .putInt(KEY_TARGET_GLUCOSE, value)
-            .apply()
-    }
-
-    fun getTargetGlucose(context: Context): Int? {
-        val p = prefs(context)
-        return if (p.contains(KEY_TARGET_GLUCOSE))
-            p.getInt(KEY_TARGET_GLUCOSE, 0)
-        else null
-    }
-
-//    fun saveUserEmail(context: Context, email: String) {
-//        prefs(context).edit()
-//            .putString(KEY_USER_EMAIL, email)
-//            .apply()
-//    }
-
-    fun saveUserEmail(context: Context, email: String) {
-        prefs(context).edit().putString(KEY_USER_EMAIL, email).apply()
-    }
-    fun getUserEmail(context: Context): String? {
-        return prefs(context).getString(KEY_USER_EMAIL, null)
-    }
-
-    fun clearUserEmail(context: Context) {
-        prefs(context).edit().remove(KEY_USER_EMAIL).apply()
-    }
-
-    // ============== Age ==============
-    fun saveUserAge(context: Context, age: Int) {
-        prefs(context).edit().putInt(KEY_USER_AGE, age).apply()
-    }
-
-    fun getUserAge(context: Context): Int? {
-        val p = prefs(context)
-        return if (p.contains(KEY_USER_AGE)) p.getInt(KEY_USER_AGE, 0) else null
-    }
-
-    // ============== Gender ==============
-    fun saveUserGender(context: Context, gender: String) {
-        prefs(context).edit().putString(KEY_USER_GENDER, gender).apply()
-    }
-
-    fun getUserGender(context: Context): String? {
-        return prefs(context).getString(KEY_USER_GENDER, null)
-    }
-
-    // ============== Pregnancy ==============
-    fun saveIsPregnant(context: Context, isPregnant: Boolean) {
-        prefs(context).edit().putBoolean(KEY_IS_PREGNANT, isPregnant).apply()
-    }
-
-    fun getIsPregnant(context: Context): Boolean {
-        return prefs(context).getBoolean(KEY_IS_PREGNANT, false)
-    }
-
-    fun saveDueDate(context: Context, dueDate: String) {
-        prefs(context).edit().putString(KEY_DUE_DATE, dueDate).apply()
-    }
-
-    fun getDueDate(context: Context): String? {
-        return prefs(context).getString(KEY_DUE_DATE, null)
-    }
-
-    // ============== Diabetes Type ==============
-    fun saveDiabetesType(context: Context, type: String) {
-        prefs(context).edit().putString(KEY_DIABETES_TYPE, type).apply()
-    }
-
-    fun getDiabetesType(context: Context): String? {
-        return prefs(context).getString(KEY_DIABETES_TYPE, null)
-    }
-
-    // ============== Insulin Type & DIA ==============
     fun saveInsulinType(context: Context, type: String) {
-        prefs(context).edit().putString(KEY_INSULIN_TYPE, type).apply()
-        // auto-set DIA based on insulin type
+        savePref(context, KEY_INSULIN_TYPE, type)
         val dia = when (type) {
             "Rapid-acting" -> 4f
             "Short-acting" -> 5f
@@ -283,233 +129,64 @@ object UserProfileManager {
         saveActiveInsulinTime(context, dia)
     }
 
-    fun getInsulinType(context: Context): String? {
-        return prefs(context).getString(KEY_INSULIN_TYPE, null)
-    }
+    fun getInsulinType(context: Context): String? = getPrefNullable(context, KEY_INSULIN_TYPE)
+    fun saveActiveInsulinTime(context: Context, hours: Float) = savePref(context, KEY_ACTIVE_INSULIN_TIME, hours)
+    fun getActiveInsulinTime(context: Context): Float = getPref(context, KEY_ACTIVE_INSULIN_TIME, 4f)
 
-    fun saveActiveInsulinTime(context: Context, hours: Float) {
-        prefs(context).edit().putFloat(KEY_ACTIVE_INSULIN_TIME, hours).apply()
-    }
+    fun saveSyringeSize(context: Context, size: String) = savePref(context, KEY_SYRINGE_SIZE, size)
+    fun getSyringeSize(context: Context): String = getPref(context, KEY_SYRINGE_SIZE, "0.5ml")
 
-    fun getActiveInsulinTime(context: Context): Float {
-        return prefs(context).getFloat(KEY_ACTIVE_INSULIN_TIME, 4f)
-    }
+    fun saveCustomSyringeLength(context: Context, length: Float) = savePref(context, KEY_CUSTOM_SYRINGE_LENGTH, length)
+    fun getCustomSyringeLength(context: Context): Float = getPref(context, KEY_CUSTOM_SYRINGE_LENGTH, 12.0f)
 
-    // ============== Syringe Settings ==============
-    fun saveSyringeSize(context: Context, size: String) {
-        prefs(context).edit().putString(KEY_SYRINGE_SIZE, size).apply()
-    }
+    fun saveDoseRounding(context: Context, rounding: Float) = savePref(context, KEY_DOSE_ROUNDING, rounding)
+    fun getDoseRounding(context: Context): Float = getPref(context, KEY_DOSE_ROUNDING, 0.5f)
 
-    fun getSyringeSize(context: Context): String {
-        return prefs(context).getString(KEY_SYRINGE_SIZE, "0.5ml") ?: "0.5ml"
-    }
+    fun getReferenceObjectType(context: Context): String = UserProfileCalculations.getReferenceObjectType(context)
 
-    // New: Custom Length
-    fun saveCustomSyringeLength(context: Context, length: Float) {
-        prefs(context).edit().putFloat(KEY_CUSTOM_SYRINGE_LENGTH, length).apply()
-    }
+    fun saveGlucoseUnits(context: Context, units: String) = savePref(context, KEY_GLUCOSE_UNITS, units)
+    fun getGlucoseUnits(context: Context): String = getPref(context, KEY_GLUCOSE_UNITS, "mg/dL")
 
-    fun getCustomSyringeLength(context: Context): Float {
-        // Default to Standard Pen (12.0cm) if not set
-        return prefs(context).getFloat(KEY_CUSTOM_SYRINGE_LENGTH, 12.0f)
-    }
+    fun saveSickDayAdjustment(context: Context, percent: Int) = savePref(context, KEY_SICK_DAY_ADJUSTMENT, percent)
+    fun getSickDayAdjustment(context: Context): Int = getPref(context, KEY_SICK_DAY_ADJUSTMENT, 15)
 
-    fun saveDoseRounding(context: Context, rounding: Float) {
-        prefs(context).edit().putFloat(KEY_DOSE_ROUNDING, rounding).apply()
-    }
+    fun saveStressAdjustment(context: Context, percent: Int) = savePref(context, KEY_STRESS_ADJUSTMENT, percent)
+    fun getStressAdjustment(context: Context): Int = getPref(context, KEY_STRESS_ADJUSTMENT, 10)
 
-    fun getDoseRounding(context: Context): Float {
-        return prefs(context).getFloat(KEY_DOSE_ROUNDING, 0.5f)
-    }
+    fun saveLightExerciseAdjustment(context: Context, percent: Int) = savePref(context, KEY_LIGHT_EXERCISE_ADJUSTMENT, percent)
+    fun getLightExerciseAdjustment(context: Context): Int = getPref(context, KEY_LIGHT_EXERCISE_ADJUSTMENT, 15)
 
-    /**
-     * Determines if the user prefers a Credit Card or standard Pen/Measurement
-     * Returns: "Card", "Pen", or "Unknown"
-     */
-    fun getReferenceObjectType(context: Context): String {
-        val size = getSyringeSize(context).lowercase()
-        return when {
-            size.contains("card") || size.contains("id") || size.contains("credit") -> "Card"
-            else -> "Pen"
-        }
-    }
+    fun saveIntenseExerciseAdjustment(context: Context, percent: Int) = savePref(context, KEY_INTENSE_EXERCISE_ADJUSTMENT, percent)
+    fun getIntenseExerciseAdjustment(context: Context): Int = getPref(context, KEY_INTENSE_EXERCISE_ADJUSTMENT, 30)
 
-    // ============== Glucose Units ==============
-    fun saveGlucoseUnits(context: Context, units: String) {
-        prefs(context).edit().putString(KEY_GLUCOSE_UNITS, units).apply()
-    }
-
-    fun getGlucoseUnits(context: Context): String {
-        return prefs(context).getString(KEY_GLUCOSE_UNITS, "mg/dL") ?: "mg/dL"
-    }
-
-    // ============== Adjustment Factors ==============
-    fun saveSickDayAdjustment(context: Context, percent: Int) {
-        prefs(context).edit().putInt(KEY_SICK_DAY_ADJUSTMENT, percent).apply()
-    }
-
-    fun getSickDayAdjustment(context: Context): Int {
-        return prefs(context).getInt(KEY_SICK_DAY_ADJUSTMENT, 15)
-    }
-
-    fun saveStressAdjustment(context: Context, percent: Int) {
-        prefs(context).edit().putInt(KEY_STRESS_ADJUSTMENT, percent).apply()
-    }
-
-    fun getStressAdjustment(context: Context): Int {
-        return prefs(context).getInt(KEY_STRESS_ADJUSTMENT, 10)
-    }
-
-    fun saveLightExerciseAdjustment(context: Context, percent: Int) {
-        prefs(context).edit().putInt(KEY_LIGHT_EXERCISE_ADJUSTMENT, percent).apply()
-    }
-
-    fun getLightExerciseAdjustment(context: Context): Int {
-        return prefs(context).getInt(KEY_LIGHT_EXERCISE_ADJUSTMENT, 15)
-    }
-
-    fun saveIntenseExerciseAdjustment(context: Context, percent: Int) {
-        prefs(context).edit().putInt(KEY_INTENSE_EXERCISE_ADJUSTMENT, percent).apply()
-    }
-
-    fun getIntenseExerciseAdjustment(context: Context): Int {
-        return prefs(context).getInt(KEY_INTENSE_EXERCISE_ADJUSTMENT, 30)
-    }
-
-    // ============== Temporary Modes ==============
     fun setSickModeEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(KEY_SICK_MODE_ENABLED, enabled).apply()
+        savePref(context, KEY_SICK_MODE_ENABLED, enabled)
         if (enabled) {
-            prefs(context).edit().putLong(KEY_SICK_MODE_START_DATE, System.currentTimeMillis()).apply()
+            savePref(context, KEY_SICK_MODE_START_DATE, System.currentTimeMillis())
         }
     }
+    fun isSickModeEnabled(context: Context): Boolean = getPref(context, KEY_SICK_MODE_ENABLED, false)
 
-    fun isSickModeEnabled(context: Context): Boolean {
-        return prefs(context).getBoolean(KEY_SICK_MODE_ENABLED, false)
-    }
+    fun getSickModeStartDate(context: Context): Long = getPref(context, KEY_SICK_MODE_START_DATE, 0L)
+    fun getSickModeDays(context: Context): Int = UserProfileCalculations.getSickModeDays(context)
 
-    fun getSickModeDays(context: Context): Int {
-        val startDate = prefs(context).getLong(KEY_SICK_MODE_START_DATE, 0L)
-        if (startDate == 0L) return 0
-        val diff = System.currentTimeMillis() - startDate
-        return (diff / (1000 * 60 * 60 * 24)).toInt()
-    }
+    fun setStressModeEnabled(context: Context, enabled: Boolean) = savePref(context, KEY_STRESS_MODE_ENABLED, enabled)
+    fun isStressModeEnabled(context: Context): Boolean = getPref(context, KEY_STRESS_MODE_ENABLED, false)
 
-    fun setStressModeEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(KEY_STRESS_MODE_ENABLED, enabled).apply()
-    }
+    fun setExerciseModeEnabled(context: Context, enabled: Boolean) = savePref(context, KEY_EXERCISE_MODE_ENABLED, enabled)
+    fun isExerciseModeEnabled(context: Context): Boolean = getPref(context, KEY_EXERCISE_MODE_ENABLED, false)
 
-    fun isStressModeEnabled(context: Context): Boolean {
-        return prefs(context).getBoolean(KEY_STRESS_MODE_ENABLED, false)
-    }
+    fun saveProfilePhotoUrl(context: Context, url: String) = savePref(context, KEY_PROFILE_PHOTO_URL, url)
+    fun getProfilePhotoUrl(context: Context): String? = getPrefNullable(context, KEY_PROFILE_PHOTO_URL)
 
-    fun setExerciseModeEnabled(context: Context, enabled: Boolean) {
-        prefs(context).edit().putBoolean(KEY_EXERCISE_MODE_ENABLED, enabled).apply()
-    }
-
-    fun isExerciseModeEnabled(context: Context): Boolean {
-        return prefs(context).getBoolean(KEY_EXERCISE_MODE_ENABLED, false)
-    }
-
-    // ============== Profile Photo ==============
-    fun saveProfilePhotoUrl(context: Context, url: String) {
-        prefs(context).edit().putString(KEY_PROFILE_PHOTO_URL, url).apply()
-    }
-
-    fun getProfilePhotoUrl(context: Context): String? {
-        return prefs(context).getString(KEY_PROFILE_PHOTO_URL, null)
-    }
-
-//    fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) {
-//        // Sync personal info
-//        user.username?.let { saveUserName(context, it) }
-//
-//        // Sync medical info
-//        user.insulinCarbRatio?.let { saveInsulinCarbRatio(context, it) }
-//        user.correctionFactor?.let { saveCorrectionFactor(context, it) }
-//        user.targetGlucose?.let { saveTargetGlucose(context, it) }
-//
-//        // Sync syringe settings (assuming text match)
-//        user.syringeType?.let { saveSyringeSize(context, it) }
-//
-//        // Reset transient modes (Stress/Exercise) to false
-//        resetTransientModes(context)
-//    }
-
-    fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) {
-        // 1. Keep current email AND photo to prevent data loss during wipe
-        val currentEmail = getUserEmail(context)
-        val currentPhotoUrl = getProfilePhotoUrl(context)
-
-        // 2. Clear ALL local preferences to remove data from previous users
-        prefs(context).edit().clear().apply()
-
-        // 3. Restore the correct email
-        val emailToSave = user.userId?.email ?: currentEmail
-        if (emailToSave != null) {
-            saveUserEmail(context, emailToSave)
-        }
-
-        // 4. Save fresh data from server
-        // Personal info
-        user.username?.let { saveUserName(context, it) }
-        user.age?.let { saveUserAge(context, it) }
-        user.gender?.let { saveUserGender(context, it) }
-        user.pregnant?.let { saveIsPregnant(context, it) }
-        user.dueDate?.let { saveDueDate(context, it) }
-
-        // Logic: Use Server URL if exists, otherwise keep Local URL (e.g. from Google Sign-In)
-        val finalPhotoUrl = user.avatar ?: currentPhotoUrl
-        if (finalPhotoUrl != null) {
-            saveProfilePhotoUrl(context, finalPhotoUrl)
-        }
-
-        // Medical info
-        user.insulinCarbRatio?.let { saveInsulinCarbRatio(context, it) }
-        user.correctionFactor?.let { saveCorrectionFactor(context, it) }
-        user.targetGlucose?.let { saveTargetGlucose(context, it) }
-        user.diabetesType?.let { saveDiabetesType(context, it) }
-        user.insulinType?.let { saveInsulinType(context, it) }
-        user.activeInsulinTime?.let { saveActiveInsulinTime(context, it.toFloat()) }
-
-        // Syringe settings
-        user.syringeType?.let { saveSyringeSize(context, it) }
-        user.customSyringeLength?.let { saveCustomSyringeLength(context, it) }
-
-        // Dose settings
-        user.doseRounding?.toFloatOrNull()?.let { saveDoseRounding(context, it) }
-
-        // Adjustment factors
-        user.sickDayAdjustment?.let { saveSickDayAdjustment(context, it) }
-        user.stressAdjustment?.let { saveStressAdjustment(context, it) }
-        user.lightExerciseAdjustment?.let { saveLightExerciseAdjustment(context, it) }
-        user.intenseExerciseAdjustment?.let { saveIntenseExerciseAdjustment(context, it) }
-
-        // Preferences
-        user.glucoseUnits?.let { saveGlucoseUnits(context, it) }
-
-        // If they have synchronized profile fields, they are a registered user
-        setRegistrationComplete(context, true)
-
-        // Reset temporary modes
-        resetTransientModes(context)
-    }
+    fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) = UserProfileSyncManager.syncFromServer(context, user)
 
     fun resetTransientModes(context: Context) {
         setStressModeEnabled(context, false)
         setExerciseModeEnabled(context, false)
-        // Sick mode is intentionally left as-is (persistent)
     }
 
     fun clearAllData(context: Context) {
         prefs(context).edit().clear().apply()
     }
 }
-
-data class UserProfile(
-    val name: String,
-    val insulinCarbRatio: String,
-    val correctionFactor: Float,
-    val targetGlucose: Int,
-    val activeInsulinTime: Float
-)
