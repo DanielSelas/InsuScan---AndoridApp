@@ -111,53 +111,13 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
         }
     }
 
-    /**
-     * Renders sticky action buttons grouped by row.
-     * Each row is a centered ChipGroup. The "save_meal" chip is larger.
-     */
+    private lateinit var stickyActionsHelper: com.example.insuscan.chat.helpers.StickyActionsHelper
+
     private fun observeStickyActions() {
+        stickyActionsHelper = com.example.insuscan.chat.helpers.StickyActionsHelper(requireContext(), stickyContainer, stickyDivider, viewModel)
         viewModel.stickyActions.observe(viewLifecycleOwner) { actions ->
-            stickyContainer.removeAllViews()
-
-            if (actions.isNullOrEmpty()) {
-                stickyContainer.visibility = View.GONE
-                stickyDivider.visibility = View.GONE
-                return@observe
-            }
-
-            stickyContainer.visibility = View.VISIBLE
-            stickyDivider.visibility = View.VISIBLE
-
-            val rows = actions.groupBy { it.row }.toSortedMap()
-            val ctx = requireContext()
-
-            rows.forEach { (_, rowButtons) ->
-                val chipGroup = ChipGroup(ctx).apply {
-                    isSingleLine = false
-                    chipSpacingHorizontal = 8.dpToPx()
-                    chipSpacingVertical = 4.dpToPx()
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        gravity = android.view.Gravity.CENTER_HORIZONTAL
-                    }
-                }
-
-                rowButtons.forEach { button ->
-                    val chip = ChatChipFactory.create(ctx, button) { actionId ->
-                        viewModel.onActionButton(actionId)
-                    }
-                    chipGroup.addView(chip)
-                }
-
-                stickyContainer.addView(chipGroup)
-            }
+            stickyActionsHelper.render(actions)
         }
-    }
-
-    private fun Int.dpToPx(): Int {
-        return (this * resources.displayMetrics.density).toInt()
     }
 
     private fun observeEvents() {

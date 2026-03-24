@@ -13,14 +13,7 @@ object MealSessionManager {
         currentMeal = meal.copy(insulinDose = dose)
     }
 
-    fun updateCurrentMeal(meal: Meal) {
-        currentMeal = meal
-    }
-
     fun clearSession() {
-        currentMeal = null
-    }
-    fun clearCurrentMeal() {
         currentMeal = null
     }
 }

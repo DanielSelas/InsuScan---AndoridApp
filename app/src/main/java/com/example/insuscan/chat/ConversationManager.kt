@@ -1,82 +1,80 @@
 package com.example.insuscan.chat
 
 import android.content.Context
+import com.example.insuscan.chat.handlers.*
 import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.meal.Meal
-import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.FileLogger
 import com.example.insuscan.utils.InsulinCalculatorUtil
 import com.example.insuscan.network.dto.ChatParseResponseDto
 
-// State machine for the chat conversation flow.
-// Drives state transitions and generates bot messages + sticky buttons.
-// All interactive buttons go through sticky area — cards are display-only.
-class ConversationManager(private val context: Context) {
+class ConversationManager(val context: Context) {
 
     var currentState: ChatState = ChatState.AWAITING_IMAGE
         private set
 
-    // Track whether this is the user's first conversation (for welcome-back)
-    private var isReturningUser: Boolean = false
+    internal var isReturningUser: Boolean = false
+    internal var pendingClarificationContext: String? = null
+    internal var lastUserText: String = ""
 
-    // Clarification context — saves the original text when LLM asks for more info
-    private var pendingClarificationContext: String? = null
-    private var lastUserText: String = ""
+    internal var pendingScanMeal: Meal? = null
+    internal var scanComplete: Boolean = false
+    internal var waitingForScan: Boolean = false
+    internal var isEditingStep: Boolean = false
 
-    // Parallel scan support: scan runs in background while questions are asked
-    private var pendingScanMeal: Meal? = null
-    private var scanComplete: Boolean = false
-    private var waitingForScan: Boolean = false  // true when questions are done but scan isn't
-
-    // Step-edit loop: when editing a specific step from the result screen
-    private var isEditingStep: Boolean = false
-
-    // Collected data during conversation
     var collectedGlucose: Int? = null
-        private set
+        internal set
     var collectedActivityLevel: String = "normal"
-        private set
+        internal set
     var collectedSickMode: Boolean = false
-        private set
+        internal set
     var collectedStressMode: Boolean = false
-        private set
+        internal set
     var lastDoseResult: InsulinCalculatorUtil.DoseResult? = null
-        private set
+        internal set
 
-    // ViewModel listens to these callbacks
     interface Callback {
         fun onBotMessage(message: ChatMessage)
         fun onStateChanged(newState: ChatState)
         fun onNeedLlmParse(text: String, state: ChatState) {}
         fun onStickyAction(actions: List<ActionButton>?) {}
-        fun onRequestEditMealSheet() {} // auto-open the edit sheet
-        fun onRequestEditMedicalSheet() {} // for point 3
-        fun onFoodItemsAddedToSheet(items: List<FoodItem>) {} // inject items into open sheet
-        fun onRequestEditAdjustmentsDialog() {} // open adjustment % editor
+        fun onRequestEditMealSheet() {}
+        fun onRequestEditMedicalSheet() {}
+        fun onFoodItemsAddedToSheet(items: List<FoodItem>) {}
+        fun onRequestEditAdjustmentsDialog() {}
     }
 
     var callback: Callback? = null
     private var hasStarted = false
 
-    // -- Sticky button helpers --
+    internal val foodHandler = FoodReviewHandler(this)
+    internal val medicalHandler = MedicalReviewHandler(this)
+    internal val assessmentHandler = AssessmentHandler(this)
+    internal val resultHandler = ChatResultHandler(this)
+    internal val llmHandler = ChatLlmHandler(this)
 
-    private fun setActions(actions: List<ActionButton>) {
+    fun setCurrentState(state: ChatState) {
+        currentState = state
+    }
+
+    fun notifyStateChanged() {
+        callback?.onStateChanged(currentState)
+    }
+
+    fun setActions(actions: List<ActionButton>) {
         callback?.onStickyAction(actions)
     }
 
-    private fun clearActions() {
+    fun clearActions() {
         callback?.onStickyAction(emptyList())
     }
-
-    // -- Start --
 
     fun startConversation() {
         if (hasStarted) return
         hasStarted = true
         currentState = ChatState.AWAITING_IMAGE
 
-        // E: Welcome back message for returning users
         val userName = UserProfileManager.getUserName(context)
         val greeting = if (isReturningUser && userName != null) {
             "Welcome back, $userName! 👋 Ready to log another meal?"
@@ -86,21 +84,17 @@ class ConversationManager(private val context: Context) {
             "Hey! 👋 I'm your meal assistant.\nTake a photo or describe your meal to get started."
         }
 
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = greeting)
-        )
+        callback?.onBotMessage(ChatMessage.BotText(text = greeting))
         showAwaitingImageActions()
-        callback?.onStateChanged(currentState)
+        notifyStateChanged()
     }
 
-    private fun showAwaitingImageActions() {
+    internal fun showAwaitingImageActions() {
         setActions(listOf(
             ActionButton("take_photo", "📷 Photo", row = 0, style = ChipStyle.PRIMARY),
             ActionButton("pick_gallery", "🖼️ Gallery", row = 0, style = ChipStyle.SECONDARY)
         ))
     }
-
-    // -- Parallel flow: start questions immediately --
 
     fun beginParallelQuestions() {
         scanComplete = false
@@ -109,10 +103,8 @@ class ConversationManager(private val context: Context) {
         callback?.onBotMessage(
             ChatMessage.BotText(text = "⏳ Analyzing your meal…\nIn the meantime, I'll ask a few quick questions to calculate your dose accurately.")
         )
-        showMedicalReview()
+        medicalHandler.showMedicalReview()
     }
-
-    // -- Scan results (may arrive mid-questions or after) --
 
     fun onScanSuccess(meal: Meal) {
         val items = meal.foodItems
@@ -120,29 +112,24 @@ class ConversationManager(private val context: Context) {
         if (items.isNullOrEmpty()) {
             scanComplete = true
             pendingScanMeal = null
-            // If questions are done and we're waiting, this is an error
             if (waitingForScan) {
                 waitingForScan = false
                 currentState = ChatState.AWAITING_IMAGE
                 callback?.onBotMessage(ChatMessage.BotText(text = "I couldn't identify any food. Try again?"))
                 showAwaitingImageActions()
-                callback?.onStateChanged(currentState)
-            } else {
-                // Suppress mid-question messages — will show in proceedToFoodReview()
+                notifyStateChanged()
             }
             return
         }
 
         scanComplete = true
         pendingScanMeal = meal
-        MealSessionManager.setCurrentMeal(meal)
+        com.example.insuscan.meal.MealSessionManager.setCurrentMeal(meal)
 
-        // If we were waiting for scan to finish (questions done), show food review now
         if (waitingForScan) {
             waitingForScan = false
-            showFoodReview(meal.foodItems!!)
+            foodHandler.showFoodReview(meal.foodItems!!)
         }
-        // Otherwise, scan arrived while questions are still being answered — just store it
     }
 
     fun onScanError(errorMessage: String) {
@@ -157,601 +144,42 @@ class ConversationManager(private val context: Context) {
                 ChatMessage.BotText(text = "Something went wrong: $errorMessage\nTry again?")
             )
             showAwaitingImageActions()
-            callback?.onStateChanged(currentState)
-        } else {
-                // Suppress mid-question error — will show in proceedToFoodReview()
+            notifyStateChanged()
         }
     }
 
-    // -- Food review --
+    // Delegated calls
+    fun onFoodConfirmed() = foodHandler.onFoodConfirmed()
+    fun onMealUpdated() = foodHandler.onMealUpdated()
+    fun onLlmFoodItems(items: List<FoodItem>, merge: Boolean = false) = foodHandler.onLlmFoodItems(items, merge)
+
+    fun onMedicalConfirmed() = medicalHandler.onMedicalConfirmed()
+    fun onRequestMedicalEdit() = medicalHandler.onRequestMedicalEdit()
+    fun onMedicalParamsUpdated(icr: Double?, isf: Double?, target: Int?) = medicalHandler.onMedicalParamsUpdated(icr, isf, target)
+    fun onCancelMedicalEdit() = medicalHandler.onCancelMedicalEdit()
+
+    fun onGlucoseProvided(glucose: Int?) = assessmentHandler.onGlucoseProvided(glucose)
+    fun onActivitySelected(activity: String) = assessmentHandler.onActivitySelected(activity)
+    fun onAdjustmentSelected(sick: Boolean, stress: Boolean) = assessmentHandler.onAdjustmentSelected(sick, stress)
+    fun onAdjustmentPercentagesUpdated() = assessmentHandler.onAdjustmentPercentagesUpdated()
+    fun toggleSickMode() = assessmentHandler.toggleSickMode()
+    fun toggleStressMode() = assessmentHandler.toggleStressMode()
+    fun onEditAdjustments() = assessmentHandler.onEditAdjustments()
+
+    fun onChooseEditStep() = resultHandler.onChooseEditStep()
+    fun onEditStepFood() = resultHandler.onEditStepFood()
+    fun onEditStepMedical() = resultHandler.onEditStepMedical()
+    fun onEditStepGlucose() = resultHandler.onEditStepGlucose()
+    fun onEditStepActivity() = resultHandler.onEditStepActivity()
+    fun onEditStepAdjustments() = resultHandler.onEditStepAdjustments()
+    fun onAdjustActivity() = resultHandler.onAdjustActivity()
+    fun onActivityAdjusted(activity: String) = resultHandler.onActivityAdjusted(activity)
+    fun onBackToResult() = resultHandler.onBackToResult()
+    fun onMealSaved() = resultHandler.onMealSaved()
+
+    fun handleFreeText(text: String) = llmHandler.handleFreeText(text)
+    fun handleLlmResponse(resp: ChatParseResponseDto) = llmHandler.handleLlmResponse(resp)
 
-    private fun showFoodReview(items: List<FoodItem>) {
-        val totalCarbs = items.sumOf { (it.carbsGrams ?: 0f).toDouble() }.toFloat()
-        currentState = ChatState.REVIEWING_FOOD
-
-        // F: Section divider before food review
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "── 🍽️ Meal Review ──")
-        )
-        // 3: Alert before food data appears
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "✅ Meal analysis complete! Here's what I found:")
-        )
-        callback?.onBotMessage(
-            ChatMessage.BotFoodCard(foodItems = items, totalCarbs = totalCarbs)
-        )
-
-        // Warn about missing carb data
-        val missing = items.filter { (it.carbsGrams ?: 0f) == 0f }
-        if (missing.isNotEmpty()) {
-            val names = missing.joinToString(", ") { it.name }
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = "⚠️ No carb data for: $names. You can edit or continue.")
-            )
-        }
-
-        // Auto-open the edit bottom sheet so user can edit immediately
-        callback?.onRequestEditMealSheet()
-
-        showFoodActions()
-        callback?.onStateChanged(currentState)
-    }
-
-    private fun showFoodActions() {
-        setActions(listOf(
-            ActionButton("confirm_food", "✅ Confirm", row = 0, style = ChipStyle.PRIMARY),
-            ActionButton("edit_food", "✏️ Edit Items", row = 0, style = ChipStyle.SECONDARY)
-        ))
-    }
-
-    fun onFoodConfirmed() {
-        if (currentState != ChatState.REVIEWING_FOOD) return
-        clearActions()
-        // Whether from normal flow or step-edit, confirming food → calculate
-        isEditingStep = false
-        performCalculation()
-    }
-
-    // Called after user edits items in the bottom sheet
-    fun onMealUpdated() {
-        val meal = MealSessionManager.currentMeal ?: return
-        val items = meal.foodItems ?: emptyList()
-        val totalCarbs = meal.carbs
-
-        callback?.onBotMessage(ChatMessage.BotText(text = "Updated meal:"))
-        callback?.onBotMessage(
-            ChatMessage.BotFoodCard(foodItems = items, totalCarbs = totalCarbs)
-        )
-        showFoodActions()
-    }
-
-    // -- LLM food items (from text input) --
-
-    fun onLlmFoodItems(items: List<FoodItem>, merge: Boolean = false) {
-        if (items.isEmpty()) {
-            callback?.onBotMessage(ChatMessage.BotText(text = "I couldn't identify any food. Try a photo instead?"))
-            restoreCurrentStateActions()
-            return
-        }
-
-        if (merge && currentState == ChatState.REVIEWING_FOOD && MealSessionManager.currentMeal != null) {
-            // Add to existing meal
-            val current = MealSessionManager.currentMeal!!
-            val updated = current.foodItems?.toMutableList() ?: mutableListOf()
-            updated.addAll(items)
-            val totalCarbs = updated.sumOf { (it.carbsGrams ?: 0f).toDouble() }.toFloat()
-            MealSessionManager.setCurrentMeal(current.copy(foodItems = updated, carbs = totalCarbs))
-
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = "Added: ${items.joinToString(", ") { it.name }}")
-            )
-            // Inject into the open edit sheet
-            callback?.onFoodItemsAddedToSheet(items)
-            onMealUpdated()
-            return
-        }
-
-        val totalCarbs = items.sumOf { (it.carbsGrams ?: 0f).toDouble() }.toFloat()
-        val meal = Meal(title = "Manual Entry", foodItems = items, carbs = totalCarbs)
-        MealSessionManager.setCurrentMeal(meal)
-
-        currentState = ChatState.REVIEWING_FOOD
-        callback?.onBotMessage(ChatMessage.BotText(text = "Review and edit your meal items below:"))
-
-        callback?.onRequestEditMealSheet()
-
-        setActions(listOf(
-            ActionButton("confirm_food", "✅ Looks Good"),
-            ActionButton("edit_food", "✏️ Edit Again")
-        ))
-        callback?.onStateChanged(currentState)
-    }
-
-    // -- Medical review --
-
-    private fun showMedicalReview() {
-        val pm = UserProfileManager
-        val icr = pm.getGramsPerUnit(context)
-        val isf = pm.getCorrectionFactor(context)
-        val targetGlucose = pm.getTargetGlucose(context)
-        val glucoseUnits = pm.getGlucoseUnits(context)
-
-        if (icr == null || isf == null || targetGlucose == null) {
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = "⚠️ Medical profile incomplete. Set ICR, ISF, and target in your Profile first.")
-            )
-            setActions(listOf(
-                ActionButton("open_profile", "Open Profile", style = ChipStyle.PRIMARY)
-            ))
-            return
-        }
-
-        currentState = ChatState.REVIEWING_MEDICAL
-        // A: Step progress indicator
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "📋 Step 1/4 — Medical Settings")
-        )
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "Let's verify your medical settings are up to date.")
-        )
-        callback?.onBotMessage(
-            ChatMessage.BotMedicalCard(icr = icr, isf = isf, targetGlucose = targetGlucose, glucoseUnits = glucoseUnits)
-        )
-        showMedicalActions()
-        callback?.onStateChanged(currentState)
-    }
-
-    private fun showMedicalActions() {
-        setActions(listOf(
-            ActionButton("confirm_medical", "✅ Confirm", row = 0, style = ChipStyle.PRIMARY),
-            ActionButton("edit_medical", "✏️ Edit", row = 0, style = ChipStyle.SECONDARY)
-        ))
-    }
-
-    fun onMedicalConfirmed() {
-        if (currentState != ChatState.REVIEWING_MEDICAL) return
-        clearActions()
-        if (isEditingStep) {
-            isEditingStep = false
-            performCalculation()
-        } else {
-            askGlucose()
-        }
-    }
-
-    fun onRequestMedicalEdit() {
-        if (currentState != ChatState.REVIEWING_MEDICAL) return
-        currentState = ChatState.EDITING_MEDICAL
-        clearActions()
-        // open the medical edit bottom sheet
-        callback?.onRequestEditMedicalSheet()
-
-        setActions(listOf(
-            ActionButton("cancel_edit_medical", "Cancel", style = ChipStyle.TERTIARY)
-        ))
-        callback?.onStateChanged(currentState)
-    }
-
-
-    // Called when LLM or local parser updates medical params
-    fun onMedicalParamsUpdated(icr: Double?, isf: Double?, target: Int?) {
-        val pm = UserProfileManager
-        if (icr != null) pm.saveInsulinCarbRatio(context, icr.toString())
-        if (isf != null) pm.saveCorrectionFactor(context, isf.toFloat())
-        if (target != null) pm.saveTargetGlucose(context, target)
-
-        callback?.onBotMessage(ChatMessage.BotText(text = "✅ Profile updated."))
-
-        // Show the refreshed card and stay in REVIEWING_MEDICAL
-        currentState = ChatState.REVIEWING_MEDICAL
-        val newIcr = pm.getGramsPerUnit(context)
-        val newIsf = pm.getCorrectionFactor(context)
-        val newTarget = pm.getTargetGlucose(context)
-        val units = pm.getGlucoseUnits(context)
-
-        if (newIcr != null && newIsf != null && newTarget != null) {
-            callback?.onBotMessage(
-                ChatMessage.BotMedicalCard(icr = newIcr, isf = newIsf, targetGlucose = newTarget, glucoseUnits = units)
-            )
-        }
-        showMedicalActions()
-        callback?.onStateChanged(currentState)
-    }
-
-    fun onCancelMedicalEdit() {
-        currentState = ChatState.REVIEWING_MEDICAL
-        showMedicalActions()
-        callback?.onStateChanged(currentState)
-    }
-
-    // -- Glucose --
-
-    private fun askGlucose() {
-        currentState = ChatState.ASKING_GLUCOSE
-        // A: Step progress indicator + B: Friendlier phrasing
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "📋 Step 2/4 — Glucose Level")
-        )
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "🩸 What's your current blood glucose level?\nType a number or tap Skip if you haven't measured.")
-        )
-        setActions(listOf(
-            ActionButton("skip_glucose", "Skip", style = ChipStyle.TERTIARY)
-        ))
-        callback?.onStateChanged(currentState)
-    }
-
-    fun onGlucoseProvided(glucose: Int?) {
-        clearActions()
-        collectedGlucose = glucose
-        if (glucose != null) {
-            callback?.onBotMessage(ChatMessage.BotText(text = "Got it — glucose: $glucose"))
-        }
-        if (isEditingStep) {
-            isEditingStep = false
-            performCalculation()
-        } else {
-            askActivity()
-        }
-    }
-
-    // -- Activity (with percentage labels) --
-
-    private fun askActivity() {
-        currentState = ChatState.ASKING_ACTIVITY
-        // A: Step progress indicator + B: Friendlier phrasing
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "📋 Step 3/4 — Activity Level")
-        )
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "🏃 Have you done any exercise recently?\nThis helps adjust your insulin dose.")
-        )
-        showActivityOptions()
-        callback?.onStateChanged(currentState)
-    }
-
-    private fun showActivityOptions() {
-        val pm = UserProfileManager
-        val lightPct = pm.getLightExerciseAdjustment(context)
-        val intensePct = pm.getIntenseExerciseAdjustment(context)
-
-        setActions(listOf(
-            ActionButton("activity_none", "None", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("activity_light", "🏃 Light (-${lightPct}%)", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("edit_activity_pct", "✏️ Edit %", row = 1, style = ChipStyle.TERTIARY)
-        ))
-    }
-
-    fun onActivitySelected(activity: String) {
-        clearActions()
-        collectedActivityLevel = activity
-        val pm = UserProfileManager
-        val label = when (activity) {
-            "light" -> "Light exercise (-${pm.getLightExerciseAdjustment(context)}%)"
-            "intense" -> "Intense exercise (-${pm.getIntenseExerciseAdjustment(context)}%)"
-            else -> "No exercise"
-        }
-        callback?.onBotMessage(ChatMessage.BotText(text = "Activity: $label"))
-
-        if (isEditingStep) {
-            // Editing activity from step-edit loop → recalculate
-            isEditingStep = false
-            performCalculation()
-        } else {
-            // Normal flow → ask adjustments (Sick/Stress)
-            askAdjustments()
-        }
-    }
-
-    // -- Adjustments (Sick/Stress) --
-
-    private fun askAdjustments() {
-        currentState = ChatState.ASKING_ADJUSTMENTS
-        // A: Step progress indicator + B: Friendlier phrasing
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "📋 Step 4/4 — Health Adjustments")
-        )
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "🤒 Are you feeling sick or stressed today?\nThese factors can affect your insulin needs.")
-        )
-        showAdjustmentOptions()
-        callback?.onStateChanged(currentState)
-    }
-
-    private fun showAdjustmentOptions() {
-        val pm = UserProfileManager
-        val sickPct = pm.getSickDayAdjustment(context)
-        val stressPct = pm.getStressAdjustment(context)
-
-        setActions(listOf(
-            ActionButton("adj_none", "No", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("adj_sick", "🤒 Sick (+${sickPct}%)", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("adj_stress", "😫 Stress (+${stressPct}%)", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("adj_both", "Both (+${sickPct + stressPct}%)", row = 1, style = ChipStyle.SECONDARY),
-            ActionButton("edit_sick_stress_pct", "✏️ Edit %", row = 1, style = ChipStyle.TERTIARY)
-        ))
-    }
-
-    fun onAdjustmentSelected(sick: Boolean, stress: Boolean) {
-        clearActions()
-        collectedSickMode = sick
-        collectedStressMode = stress
-
-        val status = when {
-            sick && stress -> "Sick & Stress"
-            sick -> "Sick"
-            stress -> "Stress"
-            else -> "Neither"
-        }
-        callback?.onBotMessage(ChatMessage.BotText(text = "Adjustments: $status"))
-
-        if (isEditingStep) {
-            isEditingStep = false
-            performCalculation()
-        } else {
-            proceedToFoodReview()
-        }
-    }
-
-    // Called after user edits adjustment percentages in the dialog
-    fun onAdjustmentPercentagesUpdated() {
-        callback?.onBotMessage(ChatMessage.BotText(text = "✅ Adjustment percentages updated."))
-        
-        // If we were asking about adjustments, re-show options with new values
-        if (currentState == ChatState.ASKING_ADJUSTMENTS) {
-            showAdjustmentOptions()
-        }
-        else if (currentState == ChatState.ASKING_ACTIVITY) {
-            showActivityOptions()
-        }
-        // If we were showing results, recalculate with new values
-        else if (currentState == ChatState.SHOWING_RESULT) {
-            performCalculation()
-        }
-    }
-
-    /** After all questions answered, show food review (or wait for scan) */
-    private fun proceedToFoodReview() {
-        if (scanComplete) {
-            val meal = pendingScanMeal
-            if (meal != null && !meal.foodItems.isNullOrEmpty()) {
-                showFoodReview(meal.foodItems!!)
-            } else {
-                // Scan succeeded but no items, or scan errored — let user add manually
-                MealSessionManager.setCurrentMeal(
-                    Meal(title = "Manual Entry", carbs = 0f, foodItems = emptyList())
-                )
-                currentState = ChatState.REVIEWING_FOOD
-                callback?.onBotMessage(ChatMessage.BotText(text = "No food items detected. Add items manually:"))
-                callback?.onRequestEditMealSheet()
-                showFoodActions()
-                callback?.onStateChanged(currentState)
-            }
-        } else {
-            // Still waiting for scan — show loading AND edit option
-            waitingForScan = true
-            val msg = if (waitingForScan)
-                "⏳ Still analyzing..."
-            else
-                "⏳ Analyzing your meal… Feel free to review your inputs while we wait."
-
-            callback?.onBotMessage(ChatMessage.BotText(text = msg))
-
-            // Show "Edit a Step" option while waiting
-            setActions(listOf(
-                ActionButton("edit_step_wait", "✏️ Review/Edit Steps", row = 0)
-            ))
-        }
-    }
-
-    // -- Calculation + Result --
-
-    private fun performCalculation() {
-        currentState = ChatState.CALCULATING
-        callback?.onStateChanged(currentState)
-
-        // C: Confirmation summary before calculation
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "📊 All set! Calculating your dose based on your inputs…")
-        )
-
-        val meal = MealSessionManager.currentMeal
-        val totalCarbs = meal?.foodItems?.sumOf { (it.carbsGrams ?: 0f).toDouble() }?.toFloat() ?: meal?.carbs ?: 0f
-        val gramsPerUnit = UserProfileManager.getGramsPerUnit(context) ?: 10f
-
-        val result = InsulinCalculatorUtil.calculate(
-            context = context,
-            carbs = totalCarbs,
-            glucose = collectedGlucose,
-            activeInsulin = null,
-            activityLevel = collectedActivityLevel,
-            gramsPerUnit = gramsPerUnit,
-            isSick = collectedSickMode,
-            isStress = collectedStressMode
-        )
-
-        lastDoseResult = result
-        currentState = ChatState.SHOWING_RESULT
-
-        // F: Section divider before results
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "── 📊 Results ──")
-        )
-        // Show the dose breakdown card
-        callback?.onBotMessage(ChatMessage.BotText(text = "Here's your recommended dose:"))
-        callback?.onBotMessage(ChatMessage.BotDoseResult(doseResult = result))
-
-        // Show detailed summary card
-        showSummaryCard(result, totalCarbs)
-
-        showResultActions()
-        callback?.onStateChanged(currentState)
-    }
-
-    private fun showSummaryCard(result: InsulinCalculatorUtil.DoseResult, totalCarbs: Float) {
-        val pm = UserProfileManager
-        val meal = MealSessionManager.currentMeal
-        val items = meal?.foodItems ?: emptyList()
-
-        callback?.onBotMessage(
-            ChatMessage.BotSummaryCard(
-                foodItems = items,
-                totalCarbs = totalCarbs,
-                glucoseLevel = collectedGlucose,
-                activityLevel = collectedActivityLevel,
-                isSick = collectedSickMode,
-                isStress = collectedStressMode,
-                icr = pm.getGramsPerUnit(context) ?: 0f,
-                isf = pm.getCorrectionFactor(context) ?: 0f,
-                targetGlucose = pm.getTargetGlucose(context) ?: 0,
-                glucoseUnits = pm.getGlucoseUnits(context),
-                sickPct = if (collectedSickMode) pm.getSickDayAdjustment(context) else 0,
-                stressPct = if (collectedStressMode) pm.getStressAdjustment(context) else 0,
-                exercisePct = when (collectedActivityLevel) {
-                    "light" -> pm.getLightExerciseAdjustment(context)
-                    "intense" -> pm.getIntenseExerciseAdjustment(context)
-                    else -> 0
-                },
-                doseResult = result
-            )
-        )
-    }
-
-    private fun showResultActions() {
-        setActions(listOf(
-            ActionButton("save_meal", "💾 Save Meal", row = 0, style = ChipStyle.PRIMARY),
-            ActionButton("edit_step", "✏️ Edit a Step", row = 1, style = ChipStyle.TERTIARY)
-        ))
-    }
-
-    // -- Step-edit loop --
-
-    fun onChooseEditStep() {
-        currentState = ChatState.CHOOSING_EDIT_STEP
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "Which step would you like to edit?")
-        )
-        setActions(listOf(
-            ActionButton("edit_step_food", "🍽️ Food Items", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("edit_step_medical", "⚕️ Medical", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("edit_step_glucose", "🩸 Glucose", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("edit_step_activity", "🏃 Activity", row = 1, style = ChipStyle.SECONDARY),
-            ActionButton("edit_step_adjustments", "🔧 Adjustments", row = 1, style = ChipStyle.SECONDARY),
-            ActionButton("back_to_result", "← Back", row = 2, style = ChipStyle.TERTIARY)
-        ))
-        callback?.onStateChanged(currentState)
-    }
-
-    fun onEditStepFood() {
-        isEditingStep = true
-        clearActions()
-        val meal = MealSessionManager.currentMeal
-        val items = meal?.foodItems ?: emptyList()
-        showFoodReview(items)
-    }
-
-    fun onEditStepMedical() {
-        isEditingStep = true
-        clearActions()
-        showMedicalReview()
-    }
-
-    fun onEditStepGlucose() {
-        isEditingStep = true
-        clearActions()
-        askGlucose()
-    }
-
-    fun onEditStepActivity() {
-        isEditingStep = true
-        clearActions()
-        askActivity()
-    }
-
-    fun onEditStepAdjustments() {
-        isEditingStep = true
-        clearActions()
-        askAdjustments()
-    }
-
-    // Activity adjustment sub-menu from result screen
-    fun onAdjustActivity() {
-        currentState = ChatState.ADJUSTING_ACTIVITY
-        val pm = UserProfileManager
-        val lightPct = pm.getLightExerciseAdjustment(context)
-        val intensePct = pm.getIntenseExerciseAdjustment(context)
-
-        setActions(listOf(
-            ActionButton("activity_none", "No Exercise", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("activity_light", "🏃 Light (-${lightPct}%)", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("activity_intense", "🏋️ Intense (-${intensePct}%)", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("back_to_result", "← Back", row = 1, style = ChipStyle.TERTIARY)
-        ))
-        callback?.onStateChanged(currentState)
-    }
-
-    fun onActivityAdjusted(activity: String) {
-        collectedActivityLevel = activity
-        val pm = UserProfileManager
-        val label = when (activity) {
-            "light" -> "Light exercise (-${pm.getLightExerciseAdjustment(context)}%)"
-            "intense" -> "Intense exercise (-${pm.getIntenseExerciseAdjustment(context)}%)"
-            else -> "No exercise"
-        }
-        callback?.onBotMessage(ChatMessage.BotText(text = "Updated: $label"))
-        performCalculation() // recalc and return to SHOWING_RESULT
-    }
-
-    fun onBackToResult() {
-        currentState = ChatState.SHOWING_RESULT
-        showResultActions()
-        callback?.onStateChanged(currentState)
-    }
-
-    fun toggleSickMode() {
-        collectedSickMode = !collectedSickMode
-        val pm = UserProfileManager
-        val pct = pm.getSickDayAdjustment(context)
-        val status = if (collectedSickMode) "Sick mode ON (+${pct}%)" else "Sick mode OFF"
-        callback?.onBotMessage(ChatMessage.BotText(text = status))
-        performCalculation()
-    }
-
-    fun toggleStressMode() {
-        collectedStressMode = !collectedStressMode
-        val pm = UserProfileManager
-        val pct = pm.getStressAdjustment(context)
-        val status = if (collectedStressMode) "Stress mode ON (+${pct}%)" else "Stress mode OFF"
-        callback?.onBotMessage(ChatMessage.BotText(text = status))
-        performCalculation()
-    }
-
-    // Open the adjustment % editor dialog
-    fun onEditAdjustments() {
-        callback?.onRequestEditAdjustmentsDialog()
-    }
-
-    // -- Save --
-
-    fun onMealSaved() {
-        currentState = ChatState.DONE
-        callback?.onBotMessage(ChatMessage.BotSaved(text = "Meal saved! ✅"))
-        setActions(listOf(
-            ActionButton("new_scan", "📷 New Scan", row = 0, style = ChipStyle.PRIMARY),
-            ActionButton("history", "📋 History", row = 0, style = ChipStyle.SECONDARY),
-            ActionButton("go_home", "🏠 Home", row = 1, style = ChipStyle.TERTIARY)
-        ))
-        callback?.onStateChanged(currentState)
-
-        // Reset collected data for next round
-        collectedGlucose = null
-        collectedActivityLevel = "normal"
-        collectedSickMode = false
-        collectedStressMode = false
-    }
-
-    // Reset for new scan after DONE
     fun resetForNewScan() {
         hasStarted = false
         currentState = ChatState.AWAITING_IMAGE
@@ -762,216 +190,7 @@ class ConversationManager(private val context: Context) {
         collectedSickMode = false
         collectedStressMode = false
         lastDoseResult = null
-        isReturningUser = true  // E: Mark as returning user for welcome back
+        isReturningUser = true
         startConversation()
-    }
-
-    // -- Free text handling --
-
-    fun handleFreeText(text: String) {
-        // If we're in clarification mode, combine context with new input
-        val textToProcess = if (pendingClarificationContext != null) {
-            val combined = "${pendingClarificationContext}, $text"
-            pendingClarificationContext = null
-            combined
-        } else {
-            text
-        }
-        lastUserText = text
-
-        val parsed = FreeTextParser.parse(textToProcess, currentState)
-
-        when (currentState) {
-            ChatState.REVIEWING_FOOD -> {
-                when (parsed) {
-                    is FreeTextParser.ParseResult.Confirm -> onFoodConfirmed()
-                    else -> {
-                        // Open the edit sheet and send to LLM in parallel
-                        callback?.onRequestEditMealSheet()
-                        clearActions()
-                        callback?.onNeedLlmParse(textToProcess, currentState)
-                    }
-                }
-            }
-            ChatState.REVIEWING_MEDICAL -> {
-                when (parsed) {
-                    is FreeTextParser.ParseResult.Confirm -> onMedicalConfirmed()
-                    else -> {
-                        // Open the medical edit sheet and send to LLM in parallel
-                        callback?.onRequestEditMedicalSheet()
-                        clearActions()
-                        callback?.onNeedLlmParse(textToProcess, currentState)
-                    }
-                }
-            }
-            ChatState.EDITING_MEDICAL -> {
-                // Forward to LLM to parse medical values like "ICR 12" or "target 110"
-                clearActions()
-                callback?.onNeedLlmParse(textToProcess, currentState)
-            }
-            ChatState.ASKING_GLUCOSE -> {
-                handleGlucoseText(text)
-            }
-            ChatState.ASKING_ACTIVITY -> {
-                handleActivityText(text)
-            }
-            ChatState.SHOWING_RESULT -> {
-                // In result screen, only buttons matter — but handle confirm/save text too
-                val lower = text.lowercase().trim()
-                if (lower == "save" || lower == "yes" || lower == "confirm") {
-                    // Trigger save — ViewModel handles actual saving
-                    callback?.onBotMessage(ChatMessage.BotText(text = "Use the 💾 Save Meal button to save."))
-                    showResultActions()
-                } else {
-                    callback?.onBotMessage(
-                        ChatMessage.BotText(text = "Adjust settings with the buttons below, or tap 💾 Save Meal.")
-                    )
-                    showResultActions()
-                }
-            }
-            ChatState.CLARIFYING -> {
-                // User is responding to a clarification question — send combined to LLM
-                clearActions()
-                callback?.onNeedLlmParse(textToProcess, currentState)
-            }
-            ChatState.AWAITING_IMAGE -> {
-                // Try parsing as food description via LLM
-                clearActions()
-                callback?.onNeedLlmParse(textToProcess, currentState)
-            }
-            ChatState.DONE -> {
-                callback?.onBotMessage(
-                    ChatMessage.BotText(text = "Start a new scan or check your history!")
-                )
-                setActions(listOf(
-                    ActionButton("new_scan", "📷 New Scan", row = 0),
-                    ActionButton("history", "📋 History", row = 0),
-                    ActionButton("go_home", "🏠 Home", row = 1)
-                ))
-            }
-            else -> {
-                callback?.onNeedLlmParse(textToProcess, currentState)
-            }
-        }
-    }
-
-    private fun handleGlucoseText(text: String) {
-        val lower = text.lowercase().trim()
-        if (lower == "skip" || lower == "no" || lower == "none") {
-            onGlucoseProvided(null)
-            return
-        }
-        // Try to extract number — support "120", "120 mg/dl", etc.
-        val number = Regex("(\\d+)").find(lower)?.groupValues?.get(1)?.toIntOrNull()
-        if (number != null) {
-            onGlucoseProvided(number)
-        } else {
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = "Please type a number (e.g. 120) or 'skip'.")
-            )
-        }
-    }
-
-    private fun handleActivityText(text: String) {
-        val lower = text.lowercase().trim()
-        when {
-            lower.contains("none") || lower.contains("no") || lower == "skip" -> onActivitySelected("normal")
-            lower.contains("light") -> onActivitySelected("light")
-            lower.contains("intense") || lower.contains("heavy") || lower.contains("hard") -> onActivitySelected("intense")
-            else -> {
-                callback?.onBotMessage(
-                    ChatMessage.BotText(text = "Choose: None, Light, or Intense.")
-                )
-            }
-        }
-    }
-
-    // -- LLM response handling --
-
-    fun handleLlmResponse(resp: ChatParseResponseDto) {
-        // Clarify — LLM needs more info from user
-        if (resp.action == "clarify") {
-            pendingClarificationContext = lastUserText
-            currentState = ChatState.CLARIFYING
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = resp.message ?: "Could you be more specific? (e.g. amount in grams)")
-            )
-            callback?.onStateChanged(currentState)
-            return
-        }
-
-        // Unknown — couldn't parse at all
-        if (resp.action == "unknown") {
-            callback?.onBotMessage(
-                ChatMessage.BotText(text = resp.message ?: "I didn't catch that. Try rephrasing?")
-            )
-            restoreCurrentStateActions()
-            return
-        }
-
-        // Successful parse — clear clarification context
-        pendingClarificationContext = null
-
-        when (resp.action) {
-            "add_food" -> {
-                val items = resp.items?.map {
-                    FoodItem(
-                        name = it.name,
-                        carbsGrams = it.estimatedCarbsGrams,
-                        quantity = it.quantity?.toFloat() ?: 1f,
-                        quantityUnit = null
-                    )
-                } ?: emptyList()
-
-                val shouldMerge = (currentState == ChatState.REVIEWING_FOOD ||
-                        currentState == ChatState.CLARIFYING) &&
-                        MealSessionManager.currentMeal != null
-
-                onLlmFoodItems(items, merge = shouldMerge)
-            }
-            "set_medical_params" -> {
-                onMedicalParamsUpdated(resp.icr, resp.isf, resp.targetGlucose)
-            }
-            "set_glucose" -> {
-                resp.glucose?.let { onGlucoseProvided(it) }
-                    ?: callback?.onBotMessage(ChatMessage.BotText(text = resp.message ?: "Couldn't parse glucose."))
-            }
-            "set_activity" -> {
-                resp.activity?.let { onActivitySelected(it) }
-                    ?: callback?.onBotMessage(ChatMessage.BotText(text = resp.message ?: "Couldn't parse activity."))
-            }
-            "confirm" -> {
-                when (currentState) {
-                    ChatState.REVIEWING_FOOD -> onFoodConfirmed()
-                    ChatState.REVIEWING_MEDICAL -> onMedicalConfirmed()
-                    else -> restoreCurrentStateActions()
-                }
-            }
-            else -> {
-                if (!resp.message.isNullOrBlank()) {
-                    callback?.onBotMessage(ChatMessage.BotText(text = resp.message))
-                }
-                restoreCurrentStateActions()
-            }
-        }
-    }
-
-    // Restore buttons for whatever state we're in now
-    private fun restoreCurrentStateActions() {
-        when (currentState) {
-            ChatState.AWAITING_IMAGE -> showAwaitingImageActions()
-            ChatState.REVIEWING_FOOD -> showFoodActions()
-            ChatState.REVIEWING_MEDICAL -> showMedicalActions()
-            ChatState.EDITING_MEDICAL -> setActions(listOf(ActionButton("cancel_edit_medical", "Cancel", style = ChipStyle.TERTIARY)))
-            ChatState.ASKING_GLUCOSE -> setActions(listOf(ActionButton("skip_glucose", "Skip", style = ChipStyle.TERTIARY)))
-            ChatState.ASKING_ACTIVITY -> showActivityOptions()
-            ChatState.SHOWING_RESULT -> showResultActions()
-            ChatState.ADJUSTING_ACTIVITY -> onAdjustActivity()
-            ChatState.DONE -> setActions(listOf(
-                ActionButton("new_scan", "📷 New Scan", style = ChipStyle.PRIMARY),
-                ActionButton("history", "📋 History", style = ChipStyle.SECONDARY)
-            ))
-            else -> clearActions()
-        }
     }
 }

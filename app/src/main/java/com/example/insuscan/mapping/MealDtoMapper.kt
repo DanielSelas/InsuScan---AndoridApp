@@ -1,7 +1,10 @@
 package com.example.insuscan.mapping
 
+import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.meal.Meal
-import com.example.insuscan.network.dto.*
+import com.example.insuscan.network.dto.InsulinCalculationDto
+import com.example.insuscan.network.dto.MealDto
+import com.example.insuscan.network.dto.MealIdDto
 import com.example.insuscan.utils.DateTimeHelper
 
 object MealDtoMapper : Mapper<MealDto, Meal> {
@@ -12,14 +15,13 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             title = from.foodItems?.firstOrNull()?.name ?: "Meal Analysis",
             carbs = from.totalCarbs ?: 0f,
 
-            // fixed: separate recommended vs actual dose
             recommendedDose = from.recommendedDose,
             insulinDose = from.actualDose ?: from.recommendedDose,
 
             timestamp = DateTimeHelper.parseTimestamp(from.scannedTimestamp),
             serverId = from.mealId?.id,
 
-            // portion analysis (save but don't display)
+            // portion analysis
             portionWeightGrams = from.estimatedWeight,
             portionVolumeCm3 = from.plateVolumeCm3,
             plateDiameterCm = from.plateDiameterCm,
@@ -28,20 +30,8 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             referenceObjectDetected = from.referenceDetected,
             referenceObjectType = from.referenceObjectType,
 
-            // food items (sanitize "Item with X" names if breakdown exists)
-            foodItems = from.foodItems?.map { FoodItemDtoMapper.map(it) }?.let { items ->
-                if (items.size > 1) {
-                    items.map { item ->
-                        if (item.name.contains(" with ", ignoreCase = true)) {
-                            item.copy(name = item.name.replace(Regex(" with .*", RegexOption.IGNORE_CASE), ""))
-                        } else {
-                            item
-                        }
-                    }
-                } else {
-                    items
-                }
-            },
+            foodItems = from.foodItems?.map { FoodItemDtoMapper.map(it) }
+                ?.let(::sanitizeFoodNames),
 
             // technical (save for documentation)
             profileComplete = from.profileComplete ?: false,
@@ -139,5 +129,17 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             confirmedTimestamp = null,
             completedTimestamp = null
         )
+    }
+
+    // Remove " with X" suffixes when breakdown exists (e.g. "Rice with chicken" → "Rice")
+    private fun sanitizeFoodNames(items: List<FoodItem>): List<FoodItem> {
+        if (items.size <= 1) return items
+        return items.map { item ->
+            if (item.name.contains(" with ", ignoreCase = true)) {
+                item.copy(name = item.name.replace(Regex(" with .*", RegexOption.IGNORE_CASE), ""))
+            } else {
+                item
+            }
+        }
     }
 }

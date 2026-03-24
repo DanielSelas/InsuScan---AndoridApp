@@ -1,3 +1,4 @@
+// TODO: Dead code — this class is not imported or used anywhere in the codebase. Verify and delete.
 package com.example.insuscan.manualentry
 
 import android.content.Context

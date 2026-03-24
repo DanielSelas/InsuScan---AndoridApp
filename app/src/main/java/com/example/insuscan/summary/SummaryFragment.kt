@@ -589,7 +589,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             carbs = newTotalCarbs
         )
         
-        MealSessionManager.updateCurrentMeal(updatedMeal)
+        MealSessionManager.setCurrentMeal(updatedMeal)
         
         // Refresh UI
         updateFoodDisplay()
@@ -1049,7 +1049,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private fun performSave(meal: Meal) {
         val updatedMeal = buildUpdatedMeal(meal)
-        MealSessionManager.updateCurrentMeal(updatedMeal)
+        MealSessionManager.setCurrentMeal(updatedMeal)
 
         val mealId = updatedMeal.serverId
         if (mealId != null) {
