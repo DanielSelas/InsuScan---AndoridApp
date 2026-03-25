@@ -64,34 +64,6 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         }
         ui.dueDateTextView.setOnClickListener { showDatePicker() }
 
-        ui.insulinTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-                val dia = when (ui.insulinOptions[position]) {
-                    "Rapid-acting" -> "4h"
-                    "Short-acting" -> "5h"
-                    else -> "4h"
-                }
-                ui.activeInsulinTimeText.text = dia
-            }
-            override fun onNothingSelected(p0: AdapterView<*>?) {}
-        }
-
-        ui.referenceTypeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-                ui.customLengthLayout.visibility = if (ui.referenceOptions[position].contains("Other")) View.VISIBLE else View.GONE
-            }
-            override fun onNothingSelected(p0: AdapterView<*>?) {}
-        }
-
-        ui.glucoseUnitsSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-                val unit = ui.glucoseUnitOptions[position]
-                ui.isfSubtitle.text = "$unit drop per 1 unit"
-                ui.targetSubtitle.text = unit
-            }
-            override fun onNothingSelected(p0: AdapterView<*>?) {}
-        }
-
         ui.profilePhoto.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
         ui.editPhotoButton.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
     }

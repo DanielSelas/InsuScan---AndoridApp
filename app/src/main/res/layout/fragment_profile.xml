@@ -246,81 +246,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ============== MEDICAL INFO ============== -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/profile_medical_info"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:layout_marginStart="@dimen/spacing_xs" />
 
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <!-- Diabetes Type -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_diabetes_type"
-                            android:textSize="@dimen/text_body1" />
-
-                        <Spinner
-                            android:id="@+id/spinner_diabetes_type"
-                            android:layout_width="@dimen/spinner_width_medium"
-                            android:layout_height="@dimen/input_height_single"
-                            android:background="@drawable/spinner_background" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                    <!-- Insulin Type -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_insulin_type"
-                            android:textSize="@dimen/text_body1" />
-
-                        <Spinner
-                            android:id="@+id/spinner_insulin_type"
-                            android:layout_width="@dimen/spinner_width_medium"
-                            android:layout_height="@dimen/input_height_single"
-                            android:background="@drawable/spinner_background" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
 
             <!-- ============== INSULIN PARAMETERS ============== -->
             <TextView
@@ -490,152 +416,6 @@
                             android:textAlignment="center"
                             android:background="@drawable/edit_text_background" />
                     </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider"
-                        android:layout_marginVertical="@dimen/spacing_medium" />
-
-                    <!-- Active Insulin Time -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/profile_active_insulin_time"
-                                android:textSize="@dimen/text_body1" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/profile_active_insulin_auto"
-                                android:textSize="@dimen/text_caption"
-                                android:textColor="@color/text_hint" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tv_active_insulin_time"
-                            android:layout_width="@dimen/input_width_medium"
-                            android:layout_height="wrap_content"
-                            tools:text="4h"
-                            android:textAlignment="center"
-                            android:textSize="@dimen/text_body1"
-                            android:textColor="@color/text_secondary" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ============== REFERENCE OBJECT SETTINGS ============== -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/profile_reference_object"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:layout_marginStart="@dimen/spacing_xs" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <!-- Reference Type -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_object_type"
-                            android:textSize="@dimen/text_body1" />
-
-                        <Spinner
-                            android:id="@+id/spinner_reference_type"
-                            android:layout_width="@dimen/spinner_width_large"
-                            android:layout_height="@dimen/input_height_single"
-                            android:background="@drawable/spinner_background" />
-                    </LinearLayout>
-
-                    <!-- Custom Length (Visible only for 'Other') -->
-                    <LinearLayout
-                        android:id="@+id/layout_custom_length"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/divider_height"
-                            android:background="@color/divider_profile"
-                            android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/profile_length_cm"
-                                android:textSize="@dimen/text_body1" />
-
-                            <EditText
-                                android:id="@+id/et_custom_length"
-                                android:layout_width="@dimen/input_width_medium"
-                                android:layout_height="wrap_content"
-                                android:hint="15.0"
-                                android:inputType="numberDecimal"
-                                android:textAlignment="center"
-                                android:background="@drawable/edit_text_background" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/unit_cm"
-                                android:textSize="@dimen/text_body1"
-                                android:layout_marginStart="@dimen/spacing_small" />
-                        </LinearLayout>
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/profile_reference_hint"
-                            android:textSize="@dimen/text_caption"
-                            android:textColor="@color/text_hint"
-                            android:layout_marginTop="@dimen/spacing_xs" />
-                    </LinearLayout>
-
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/divider_height"
@@ -662,10 +442,9 @@
                             android:layout_height="@dimen/input_height_single"
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
-
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
 
+            </androidx.cardview.widget.CardView>
             <!-- ============== ADJUSTMENT FACTORS ============== -->
             <TextView
                 android:layout_width="wrap_content"
@@ -831,55 +610,6 @@
                             android:text="@string/unit_percent"
                             android:textSize="@dimen/text_body1"
                             android:layout_marginStart="@dimen/spacing_xs" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ============== UNITS ============== -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/profile_units_section"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:layout_marginStart="@dimen/spacing_xs" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_large"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <!-- Glucose Units -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_units_glucose"
-                            android:textSize="@dimen/text_body1" />
-
-                        <Spinner
-                            android:id="@+id/spinner_glucose_units"
-                            android:layout_width="@dimen/spinner_width_small"
-                            android:layout_height="@dimen/input_height_single"
-                            android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
                 </LinearLayout>

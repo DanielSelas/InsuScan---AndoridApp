@@ -42,6 +42,9 @@ data class UserDto(
     // Preferences
     val glucoseUnits: String?,
 
+    // Insulin Plans
+    val insulinPlans: List<InsulinPlanDto>? = null,
+
     // Timestamps
     val createdTimestamp: String?,
     val updatedTimestamp: String?
@@ -62,4 +65,13 @@ data class NewUserDto(
     val correctionFactor: Float? = null,
     val targetGlucose: Int? = null,
     val syringeType: String? = null
+)
+
+data class InsulinPlanDto(
+    val id: String? = null,
+    val name: String? = null,
+    val isDefault: Boolean = false,
+    val icr: Float? = null,
+    val isf: Float? = null,
+    val targetGlucose: Int? = null
 )
