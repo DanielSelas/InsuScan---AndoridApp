@@ -19,8 +19,6 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
         ui.pregnantSwitch.isChecked = pm.getIsPregnant(ctx)
         pm.getDueDate(ctx)?.let { ui.dueDateTextView.text = it }
 
-        pm.getDiabetesType(ctx)?.let { ui.setSpinnerSelection(ui.diabetesTypeSpinner, ui.diabetesOptions, it) }
-        pm.getInsulinType(ctx)?.let { ui.setSpinnerSelection(ui.insulinTypeSpinner, ui.insulinOptions, it) }
 
         val rawRatio = pm.getInsulinCarbRatioRaw(ctx)
         if (rawRatio != null) {
@@ -36,19 +34,6 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
         if (target != null) ui.targetGlucoseEditText.setText(target.toString())
         else ui.targetGlucoseEditText.text.clear()
 
-        ui.activeInsulinTimeText.text = "${pm.getActiveInsulinTime(ctx).toInt()}h"
-
-        val savedTypeStr = pm.getSyringeSize(ctx)
-        val isOther = savedTypeStr.contains("OTHER", ignoreCase = true)
-        if (isOther) {
-            ui.referenceTypeSpinner.setSelection(1)
-            ui.customLengthLayout.visibility = View.VISIBLE
-            ui.customLengthEditText.setText(pm.getCustomSyringeLength(ctx).toString())
-        } else {
-            ui.referenceTypeSpinner.setSelection(0)
-            ui.customLengthLayout.visibility = View.GONE
-        }
-
         val rounding = if (pm.getDoseRounding(ctx) == 0.5f) "0.5 units" else "1 unit"
         ui.setSpinnerByValue(ui.doseRoundingSpinner, ui.roundingOptions, rounding)
 
@@ -56,8 +41,6 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
         ui.stressAdjustmentEditText.setText(pm.getStressAdjustment(ctx).toString())
         ui.lightExerciseEditText.setText(pm.getLightExerciseAdjustment(ctx).toString())
         ui.intenseExerciseEditText.setText(pm.getIntenseExerciseAdjustment(ctx).toString())
-
-        ui.setSpinnerByValue(ui.glucoseUnitsSpinner, ui.glucoseUnitOptions, pm.getGlucoseUnits(ctx))
 
         val savedPhotoUrl = pm.getProfilePhotoUrl(ctx)
         imageHandler.loadProfilePhoto(savedPhotoUrl)
@@ -110,25 +93,9 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
             if (dueDate != "Select date") pm.saveDueDate(ctx, dueDate)
         }
 
-        val diabetesType = ui.diabetesOptions.getOrNull(ui.diabetesTypeSpinner.selectedItemPosition)
-        if (diabetesType != null && diabetesType != "Select") pm.saveDiabetesType(ctx, diabetesType)
-
-        val insulinType = ui.insulinOptions.getOrNull(ui.insulinTypeSpinner.selectedItemPosition)
-        if (insulinType != null && insulinType != "Select") pm.saveInsulinType(ctx, insulinType)
-
         pm.saveInsulinCarbRatio(ctx, fullIcrString)
         isf.toFloatOrNull()?.let { pm.saveCorrectionFactor(ctx, it) }
         target.toIntOrNull()?.let { pm.saveTargetGlucose(ctx, it) }
-
-        val selectedRef = ui.referenceOptions[ui.referenceTypeSpinner.selectedItemPosition]
-        val syringeEnumValue = if (selectedRef.contains("Insulin Pen")) "INSULIN_PEN" else "CUSTOM_OBJECT"
-        pm.saveSyringeSize(ctx, syringeEnumValue)
-        
-        val customLen = if (syringeEnumValue == "CUSTOM_OBJECT") {
-            val len = ui.customLengthEditText.text.toString().toFloatOrNull() ?: 15.0f
-            pm.saveCustomSyringeLength(ctx, len)
-            len
-        } else null
 
         val doseRounding = if (ui.doseRoundingSpinner.selectedItemPosition == 0) 0.5f else 1f
         val doseRoundingValue = if (doseRounding == 0.5f) "0.5" else "1"
@@ -139,12 +106,7 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
         ui.lightExerciseEditText.text.toString().toIntOrNull()?.let { pm.saveLightExerciseAdjustment(ctx, it) }
         ui.intenseExerciseEditText.text.toString().toIntOrNull()?.let { pm.saveIntenseExerciseAdjustment(ctx, it) }
 
-        val glucoseUnit = ui.glucoseUnitOptions[ui.glucoseUnitsSpinner.selectedItemPosition]
-        pm.saveGlucoseUnits(ctx, glucoseUnit)
-
         FirebaseAuth.getInstance().currentUser?.email?.let { pm.saveUserEmail(ctx, it) }
-
-        val diaValue = ui.activeInsulinTimeText.text.toString().replace("h", "").trim().toIntOrNull()
 
         return UserDto(
             userId = null,
@@ -154,21 +116,22 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
             insulinCarbRatio = if (icrValue.isEmpty()) null else "1:$icrValue",
             correctionFactor = isf.toFloatOrNull(),
             targetGlucose = target.toIntOrNull(),
-            syringeType = syringeEnumValue,
-            customSyringeLength = customLen,
+            syringeType = null,
+            customSyringeLength = null,
             age = ui.ageEditText.text.toString().toIntOrNull(),
             gender = gender.takeIf { it != "Select" },
             pregnant = ui.pregnantSwitch.isChecked,
             dueDate = ui.dueDateTextView.text.toString().takeIf { it != "Select date" },
-            diabetesType = diabetesType.takeIf { it != "Select" },
-            insulinType = insulinType.takeIf { it != "Select" },
-            activeInsulinTime = diaValue,
+            diabetesType = null,
+            insulinType = null,
+            activeInsulinTime = null,
             doseRounding = doseRoundingValue,
             sickDayAdjustment = ui.sickAdjustmentEditText.text.toString().toIntOrNull(),
             stressAdjustment = ui.stressAdjustmentEditText.text.toString().toIntOrNull(),
             lightExerciseAdjustment = ui.lightExerciseEditText.text.toString().toIntOrNull(),
             intenseExerciseAdjustment = ui.intenseExerciseEditText.text.toString().toIntOrNull(),
-            glucoseUnits = ui.glucoseUnitOptions.getOrNull(ui.glucoseUnitsSpinner.selectedItemPosition),
+            insulinPlans = null,
+            glucoseUnits = null,
             createdTimestamp = null,
             updatedTimestamp = null
         )
