@@ -17,6 +17,8 @@ import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import com.example.insuscan.profile.InsulinPlan
+
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
     private lateinit var ui: ProfileUiManager
@@ -66,6 +68,27 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ui.profilePhoto.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
         ui.editPhotoButton.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
+
+        ui.addPlanButton.setOnClickListener { showAddPlanDialog() }
+
+    }
+
+    private fun showAddPlanDialog() {
+        val input = android.widget.EditText(ctx)
+        input.hint = "Plan name"
+        input.setPadding(48, 32, 48, 32)
+
+        android.app.AlertDialog.Builder(ctx)
+            .setTitle("New Insulin Plan")
+            .setView(input)
+            .setPositiveButton("Add") { _, _ ->
+                val name = input.text.toString().trim()
+                if (name.isNotBlank()) {
+                    dataHelper.planViewManager.addNewPlan(name)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun showDatePicker() {
@@ -106,8 +129,19 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private fun fetchServerProfile() {
         viewLifecycleOwner.lifecycleScope.launch {
-            repository.fetchServerProfile(ctx).onSuccess {
+            repository.fetchServerProfile(ctx).onSuccess { userDto ->
                 dataHelper.loadProfile(imageHandler)
+                val plans = userDto.insulinPlans?.map { dto ->
+                    InsulinPlan(
+                        id = dto.id ?: "",
+                        name = dto.name ?: "",
+                        isDefault = dto.isDefault,
+                        icr = dto.icr,
+                        isf = dto.isf,
+                        targetGlucose = dto.targetGlucose
+                    )
+                }
+                dataHelper.planViewManager.loadPlans(plans)
             }
         }
     }
