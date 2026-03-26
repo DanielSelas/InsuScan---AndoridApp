@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/spacing_small"
+    app:cardCornerRadius="@dimen/corner_radius_card"
+    app:cardElevation="@dimen/elevation_card"
+    app:cardBackgroundColor="@color/surface">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_card">
+
+        <!-- Header row: name + expand arrow + delete -->
+        <LinearLayout
+            android:id="@+id/plan_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_plan_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="@dimen/text_body1"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/iv_expand_arrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/arrow_down_float"
+                android:layout_marginEnd="@dimen/spacing_small" />
+
+            <ImageView
+                android:id="@+id/iv_delete_plan"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_delete"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- Expandable details -->
+        <LinearLayout
+            android:id="@+id/plan_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginTop="@dimen/spacing_small">
+
+            <!-- ICR -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_small">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="ICR (1:X)"
+                    android:textSize="@dimen/text_body2" />
+
+                <EditText
+                    android:id="@+id/et_plan_icr"
+                    android:layout_width="@dimen/input_width_medium"
+                    android:layout_height="wrap_content"
+                    android:hint="10"
+                    android:inputType="number"
+                    android:textAlignment="center"
+                    android:background="@drawable/edit_text_background" />
+            </LinearLayout>
+
+            <!-- ISF -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_small">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="ISF"
+                    android:textSize="@dimen/text_body2" />
+
+                <EditText
+                    android:id="@+id/et_plan_isf"
+                    android:layout_width="@dimen/input_width_medium"
+                    android:layout_height="wrap_content"
+                    android:hint="50"
+                    android:inputType="number"
+                    android:textAlignment="center"
+                    android:background="@drawable/edit_text_background" />
+            </LinearLayout>
+
+            <!-- Target Glucose -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Target Glucose"
+                    android:textSize="@dimen/text_body2" />
+
+                <EditText
+                    android:id="@+id/et_plan_target"
+                    android:layout_width="@dimen/input_width_medium"
+                    android:layout_height="wrap_content"
+                    android:hint="100"
+                    android:inputType="number"
+                    android:textAlignment="center"
+                    android:background="@drawable/edit_text_background" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

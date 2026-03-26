@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.widget.SwitchCompat
 import com.example.insuscan.R
+import android.widget.ImageButton
 
 class ProfileUiManager(val view: View) {
     val profilePhoto: ImageView = view.findViewById(R.id.iv_profile_photo)
@@ -22,10 +23,8 @@ class ProfileUiManager(val view: View) {
     val isfSubtitle: TextView = view.findViewById(R.id.tv_isf_subtitle)
     val targetSubtitle: TextView = view.findViewById(R.id.tv_target_subtitle)
     val doseRoundingSpinner: Spinner = view.findViewById(R.id.spinner_dose_rounding)
-    val sickAdjustmentEditText: EditText = view.findViewById(R.id.et_sick_adjustment)
-    val stressAdjustmentEditText: EditText = view.findViewById(R.id.et_stress_adjustment)
-    val lightExerciseEditText: EditText = view.findViewById(R.id.et_light_exercise_adjustment)
-    val intenseExerciseEditText: EditText = view.findViewById(R.id.et_intense_exercise_adjustment)
+    val plansContainer: LinearLayout = view.findViewById(R.id.plans_container)
+    val addPlanButton: ImageButton = view.findViewById(R.id.btn_add_plan)
     val saveButton: Button = view.findViewById(R.id.btn_save_profile)
     val logoutButton: Button = view.findViewById(R.id.btn_logout)
     val loadingOverlay: FrameLayout = view.findViewById(R.id.loading_overlay)

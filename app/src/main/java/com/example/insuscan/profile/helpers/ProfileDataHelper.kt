@@ -3,11 +3,17 @@ package com.example.insuscan.profile.helpers
 import android.content.Context
 import android.view.View
 import com.example.insuscan.network.dto.UserDto
+import com.example.insuscan.profile.InsulinPlanViewManager
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.ToastHelper
 import com.google.firebase.auth.FirebaseAuth
+import com.example.insuscan.network.dto.InsulinPlanDto
+
 
 class ProfileDataHelper(private val context: Context, private val ui: ProfileUiManager) {
+
+    val planViewManager = InsulinPlanViewManager(context, ui.plansContainer)
+
 
     fun loadProfile(imageHandler: ProfileImageHandler) {
         val pm = UserProfileManager
@@ -36,11 +42,6 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
 
         val rounding = if (pm.getDoseRounding(ctx) == 0.5f) "0.5 units" else "1 unit"
         ui.setSpinnerByValue(ui.doseRoundingSpinner, ui.roundingOptions, rounding)
-
-        ui.sickAdjustmentEditText.setText(pm.getSickDayAdjustment(ctx).toString())
-        ui.stressAdjustmentEditText.setText(pm.getStressAdjustment(ctx).toString())
-        ui.lightExerciseEditText.setText(pm.getLightExerciseAdjustment(ctx).toString())
-        ui.intenseExerciseEditText.setText(pm.getIntenseExerciseAdjustment(ctx).toString())
 
         val savedPhotoUrl = pm.getProfilePhotoUrl(ctx)
         imageHandler.loadProfilePhoto(savedPhotoUrl)
@@ -101,11 +102,6 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
         val doseRoundingValue = if (doseRounding == 0.5f) "0.5" else "1"
         pm.saveDoseRounding(ctx, doseRounding)
 
-        ui.sickAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveSickDayAdjustment(ctx, it) }
-        ui.stressAdjustmentEditText.text.toString().toIntOrNull()?.let { pm.saveStressAdjustment(ctx, it) }
-        ui.lightExerciseEditText.text.toString().toIntOrNull()?.let { pm.saveLightExerciseAdjustment(ctx, it) }
-        ui.intenseExerciseEditText.text.toString().toIntOrNull()?.let { pm.saveIntenseExerciseAdjustment(ctx, it) }
-
         FirebaseAuth.getInstance().currentUser?.email?.let { pm.saveUserEmail(ctx, it) }
 
         return UserDto(
@@ -126,11 +122,21 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
             insulinType = null,
             activeInsulinTime = null,
             doseRounding = doseRoundingValue,
-            sickDayAdjustment = ui.sickAdjustmentEditText.text.toString().toIntOrNull(),
-            stressAdjustment = ui.stressAdjustmentEditText.text.toString().toIntOrNull(),
-            lightExerciseAdjustment = ui.lightExerciseEditText.text.toString().toIntOrNull(),
-            intenseExerciseAdjustment = ui.intenseExerciseEditText.text.toString().toIntOrNull(),
-            insulinPlans = null,
+
+            insulinPlans = planViewManager.getPlans().map { plan ->
+                InsulinPlanDto(
+                    id = plan.id,
+                    name = plan.name,
+                    isDefault = plan.isDefault,
+                    icr = plan.icr,
+                    isf = plan.isf,
+                    targetGlucose = plan.targetGlucose
+                )
+            },
+            sickDayAdjustment = null,
+            stressAdjustment = null,
+            lightExerciseAdjustment = null,
+            intenseExerciseAdjustment = null,
             glucoseUnits = null,
             createdTimestamp = null,
             updatedTimestamp = null

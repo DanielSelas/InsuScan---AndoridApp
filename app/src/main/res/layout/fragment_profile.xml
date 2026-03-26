@@ -445,175 +445,39 @@
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
-            <!-- ============== ADJUSTMENT FACTORS ============== -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/profile_adj_factors"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:layout_marginStart="@dimen/spacing_xs" />
-
-            <androidx.cardview.widget.CardView
+            <!-- ============== INSULIN PLANS ============== -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/spacing_small"
+                android:layout_marginStart="@dimen/spacing_xs">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <TextView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
+                    android:layout_weight="1"
+                    android:text="Insulin Plans"
+                    android:textSize="@dimen/text_body2"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_secondary" />
 
-                    <!-- Sick Day -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                <ImageButton
+                    android:id="@+id/btn_add_plan"
+                    android:layout_width="@dimen/icon_standard"
+                    android:layout_height="@dimen/icon_standard"
+                    android:src="@android:drawable/ic_input_add"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Add plan" />
+            </LinearLayout>
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_adj_sick"
-                            android:textSize="@dimen/text_body1" />
-
-                        <EditText
-                            android:id="@+id/et_sick_adjustment"
-                            android:layout_width="@dimen/input_width_small"
-                            android:layout_height="wrap_content"
-                            android:hint="15"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/unit_percent"
-                            android:textSize="@dimen/text_body1"
-                            android:layout_marginStart="@dimen/spacing_xs" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                    <!-- Stress -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_adj_stress"
-                            android:textSize="@dimen/text_body1" />
-
-                        <EditText
-                            android:id="@+id/et_stress_adjustment"
-                            android:layout_width="@dimen/input_width_small"
-                            android:layout_height="wrap_content"
-                            android:hint="10"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/unit_percent"
-                            android:textSize="@dimen/text_body1"
-                            android:layout_marginStart="@dimen/spacing_xs" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                    <!-- Light Exercise -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_adj_exercise_decrease"
-                            android:textSize="@dimen/text_body1" />
-
-                        <EditText
-                            android:id="@+id/et_light_exercise_adjustment"
-                            android:layout_width="@dimen/input_width_small"
-                            android:layout_height="wrap_content"
-                            android:hint="15"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/unit_percent"
-                            android:textSize="@dimen/text_body1"
-                            android:layout_marginStart="@dimen/spacing_xs" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                    <!-- Intense Exercise -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_adj_intense_exercise"
-                            android:textSize="@dimen/text_body1" />
-
-                        <EditText
-                            android:id="@+id/et_intense_exercise_adjustment"
-                            android:layout_width="@dimen/input_width_small"
-                            android:layout_height="wrap_content"
-                            android:hint="30"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/unit_percent"
-                            android:textSize="@dimen/text_body1"
-                            android:layout_marginStart="@dimen/spacing_xs" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            <LinearLayout
+                android:id="@+id/plans_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="@dimen/spacing_medium" />
 
         </LinearLayout>
     </ScrollView>

@@ -11,16 +11,21 @@ import androidx.navigation.fragment.findNavController
 import com.example.insuscan.MainActivity
 import com.example.insuscan.R
 import com.example.insuscan.home.helpers.ProfileImageHelper
-import com.example.insuscan.home.helpers.TemporaryModesHelper
+import com.example.insuscan.home.helpers.InsulinPlanSelector
+import com.example.insuscan.network.dto.InsulinPlanDto
 import com.example.insuscan.network.repository.UserRepositoryImpl
 import com.example.insuscan.profile.UserProfileManager
 import kotlinx.coroutines.launch
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import androidx.recyclerview.widget.RecyclerView
+
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var greetingText: TextView
     private lateinit var profileImageHelper: ProfileImageHelper
-    private lateinit var temporaryModesHelper: TemporaryModesHelper
+    private lateinit var planSelector: InsulinPlanSelector
 
     private val userRepository = UserRepositoryImpl()
     private val ctx get() = requireContext()
@@ -31,15 +36,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         findViews(view)
         renderGreeting()
         profileImageHelper.loadImage()
-        temporaryModesHelper.loadModes()
-        temporaryModesHelper.setupListeners()
+        planSelector.loadPlans(null)
         setupNavigationListeners(view)
         fetchUserProfile()
     }
 
     override fun onResume() {
         super.onResume()
-        temporaryModesHelper.loadModes()
         renderGreeting()
         profileImageHelper.loadImage()
     }
@@ -52,15 +55,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             profileImage = view.findViewById(R.id.iv_home_avatar)
         )
 
-        temporaryModesHelper = TemporaryModesHelper(
-            context = requireContext(),
-            sickModeSwitch = view.findViewById(R.id.switch_sick_mode),
-            stressModeSwitch = view.findViewById(R.id.switch_stress_mode),
-            exerciseModeSwitch = view.findViewById(R.id.switch_exercise_mode),
-            sickWarningCard = view.findViewById(R.id.card_sick_warning),
-            sickWarningText = view.findViewById(R.id.tv_sick_warning),
-            activeModesText = view.findViewById(R.id.tv_active_modes)
+        planSelector = InsulinPlanSelector(
+            defaultRow = view.findViewById(R.id.row_default_plan),
+            defaultRadio = view.findViewById(R.id.rb_default_plan),
+            recyclerView = view.findViewById(R.id.rv_plans)
         )
+
+
     }
 
     private fun setupNavigationListeners(view: View) {
@@ -83,7 +84,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     result.getOrNull()?.let { userDto ->
                         UserProfileManager.syncFromServer(ctx, userDto)
                         renderGreeting()
-                        profileImageHelper.loadImage()
+                        planSelector.loadPlans(userDto.insulinPlans)
                     }
                 } else {
                     Log.e(TAG, "Server profile fetch failed")
