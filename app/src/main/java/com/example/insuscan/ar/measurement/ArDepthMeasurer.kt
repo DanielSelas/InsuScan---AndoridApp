@@ -17,8 +17,8 @@ class ArDepthMeasurer {
         private const val TAG = "ArDepthMeasurer"
 
         // Magic numbers for ContainerType classification
-        private const val FLAT_PLATE_MAX_DEPTH_CM = 1.5f
-        private const val REGULAR_BOWL_MAX_DEPTH_CM = 5.0f
+        private const val FLAT_PLATE_MAX_DEPTH_CM = 2.0f
+        private const val REGULAR_BOWL_MAX_DEPTH_CM = 4.5f
 
         // Magic numbers for depth estimation & bounds
         private const val MIN_DEPTH_CM = 0.3f

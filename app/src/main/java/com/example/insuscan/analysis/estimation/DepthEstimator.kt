@@ -42,13 +42,12 @@ class DepthEstimator(private val context: Context) {
             )
         }
 
-        // Fallback: Estimate from container type classification
-        Log.w(TAG, "No AR depth available. Fallback estimate: ${containerType.fallbackDepthCm}cm " +
-                "for $containerType (confidence=${containerType.fallbackConfidence})")
+        // No AR depth — report unknown and let server AI estimate visually
+        Log.w(TAG, "No AR depth available for $containerType — deferring to server AI estimation")
 
         return DepthResult(
-            depthCm = containerType.fallbackDepthCm,
-            confidence = containerType.fallbackConfidence,
+            depthCm = 0f,       // Unknown — server AI will estimate from image
+            confidence = 0f,
             isFromArCore = false,
             containerType = containerType
         )
