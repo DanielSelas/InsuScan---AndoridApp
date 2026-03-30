@@ -38,14 +38,15 @@ object InsulinCalculatorUtil {
         FileLogger.log("CALC", "INPUTS: Carbs=$carbs, Glucose=$glucose, IOB=$activeInsulin, Activity=$activityLevel, ICR=$gramsPerUnit")
 
         // 1. Carb Dose = Carbs / Ratio
-        val carbDose = if (gramsPerUnit > 0) carbs / gramsPerUnit else 0f
-        FileLogger.log("CALC", "STEP 1: Carb Dose = $carbs / $gramsPerUnit = $carbDose u")
+        val effectiveGramsPerUnit = com.example.insuscan.meal.MealSessionManager.activePlanIcr ?: gramsPerUnit
+        val carbDose = if (effectiveGramsPerUnit > 0) carbs / effectiveGramsPerUnit else 0f
+        FileLogger.log("CALC", "STEP 1: Carb Dose = $carbs / $effectiveGramsPerUnit = $carbDose u")
 
         // 2. Correction Dose
         var correctionDose = 0f
         if (glucose != null) {
-            val target = pm.getTargetGlucose(context) ?: 100
-            val isf = pm.getCorrectionFactor(context) ?: 50f
+            val target = com.example.insuscan.meal.MealSessionManager.activePlanTargetGlucose ?: pm.getTargetGlucose(context) ?: 100
+            val isf = com.example.insuscan.meal.MealSessionManager.activePlanIsf ?: pm.getCorrectionFactor(context) ?: 50f
             val unit = pm.getGlucoseUnits(context)
             val glucoseInMgDl = if (unit == "mmol/L") (glucose * 18) else glucose
 

@@ -4,6 +4,25 @@ object MealSessionManager {
     var currentMeal: Meal? = null
         private set
 
+    var activePlanIcr: Float? = null
+        private set
+    var activePlanIsf: Float? = null
+        private set
+    var activePlanTargetGlucose: Int? = null
+        private set
+
+    fun setActivePlan(icr: Float?, isf: Float?, targetGlucose: Int?) {
+        activePlanIcr = icr
+        activePlanIsf = isf
+        activePlanTargetGlucose = targetGlucose
+    }
+
+    fun clearActivePlan() {
+        activePlanIcr = null
+        activePlanIsf = null
+        activePlanTargetGlucose = null
+    }
+
     fun setCurrentMeal(meal: Meal) {
         currentMeal = meal
     }
@@ -15,5 +34,6 @@ object MealSessionManager {
 
     fun clearSession() {
         currentMeal = null
+        clearActivePlan()
     }
 }
