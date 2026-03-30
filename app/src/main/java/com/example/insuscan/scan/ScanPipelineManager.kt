@@ -131,12 +131,10 @@ class ScanPipelineManager(private val context: Context) {
                 successRes.plateDiameterCm
             } else null
 
-            // Use the depth estimated by PortionEstimator, whether it's from ARCore or the heuristic fallback.
-            // When AR is unavailable, DepthEstimator uses aspect ratio on the reference object to estimate container type and a low-confidence depth.
-            // We want to pass this to the server so we can test the fallback flow, instead of nulling it out and relying completely on the server's Gemini estimation.
-            val depth = if (successRes?.referenceObjectDetected == true && successRes.depthCm > 0) {
-                successRes.depthCm
-            } else if (successRes?.arMeasurementUsed == true) {
+            // Only send depth when from REAL AR Depth API — never send heuristic guesses.
+            // When AR depth is unavailable, the server's AI will estimate depth visually from the image,
+            // which is more accurate than any hardcoded fallback.
+            val depth = if (successRes?.arDepthIsReal == true && successRes.depthCm > 0) {
                 successRes.depthCm
             } else null
 
