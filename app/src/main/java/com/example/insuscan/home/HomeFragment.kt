@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import androidx.recyclerview.widget.RecyclerView
+import com.example.insuscan.meal.MealSessionManager
+
 
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
@@ -66,13 +68,23 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun setupNavigationListeners(view: View) {
         view.findViewById<Button>(R.id.btn_start_scan).setOnClickListener {
+            applySelectedPlan()
             (activity as? MainActivity)?.selectScanTab()
         }
         view.findViewById<Button>(R.id.btn_open_chat).setOnClickListener {
+            applySelectedPlan()
             findNavController().navigate(R.id.action_home_to_chat)
         }
     }
 
+    private fun applySelectedPlan() {
+        val plan = planSelector.getSelectedPlan()
+        if (plan != null) {
+            MealSessionManager.setActivePlan(plan.icr, plan.isf, plan.targetGlucose)
+        } else {
+            MealSessionManager.clearActivePlan()
+        }
+    }
     private fun fetchUserProfile() {
         val email = UserProfileManager.getUserEmail(ctx) ?: return
 
