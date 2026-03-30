@@ -155,11 +155,14 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
 
     private fun initializeListeners() {
         flowController.isSidePhotoMode = false
+        setupGlucoseAndReference()
         uiState.captureButton.setOnClickListener {
             if (flowController.isShowingCapturedImage) {
                 if (flowController.isSidePhotoMode) dialogHelper.showRetakeOptionsDialog() else flowController.switchToCameraMode()
                 return@setOnClickListener
             }
+
+            if (!validateGlucose()) return@setOnClickListener
 
             val quality = hardwareController.cameraManager.lastQualityResult
             if (quality == null || !quality.isPlateFound) {
@@ -179,6 +182,49 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
             hardwareController.resetForGallery()
             galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
+    }
+
+    private fun setupGlucoseAndReference() {
+        val refOptions = arrayOf("No ref. object", "💉 Insulin Pen", "🍴 Fork / Knife", "💳 Card")
+        val refTypes = arrayOf(
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE,
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE,
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE,
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD
+        )
+
+        uiState.referenceButton.setOnClickListener { anchor ->
+            val popup = android.widget.PopupMenu(requireContext(), anchor)
+            refOptions.forEachIndexed { index, label ->
+                popup.menu.add(0, index, index, label)
+            }
+            popup.setOnMenuItemClickListener { item ->
+                val index = item.itemId
+                uiState.referenceButton.text = refOptions[index]
+                hardwareController.refChipsController.setType(refTypes[index])
+                true
+            }
+            popup.show()
+        }
+
+        hardwareController.refChipsController.setType(
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE
+        )
+        uiState.referenceButton.text = refOptions[0]
+    }
+
+    private fun validateGlucose(): Boolean {
+        val text = uiState.glucoseInput.text.toString().trim()
+        if (text.isEmpty()) {
+            ToastHelper.showShort(requireContext(), "Please enter a valid blood glucose level before scanning.")
+            return false
+        }
+        val value = text.toIntOrNull()
+        if (value == null || value < 30 || value > 600) {
+            ToastHelper.showShort(requireContext(), "Blood glucose must be between 30 and 600 mg/dL.")
+            return false
+        }
+        return true
     }
 
     // --- UI/Dialog Listeners ---

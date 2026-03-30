@@ -29,12 +29,14 @@ class ScanUiStateManager(
     val cameraPreview: PreviewView = view.findViewById(R.id.camera_preview)
     val capturedImageView: ImageView = view.findViewById(R.id.iv_captured_image)
     val captureButton: Button = view.findViewById(R.id.btn_capture)
-    val galleryButton: Button = view.findViewById(R.id.btn_gallery)
+    val galleryButton: View = view.findViewById(R.id.btn_gallery)
+    val glucoseInput: android.widget.EditText = view.findViewById(R.id.et_glucose_level)
+    val referenceButton: Button = view.findViewById(R.id.btn_reference_object)
     val btnRefToggle: TextView = view.findViewById(R.id.btn_ref_toggle)
     val viewTargetZone: View = view.findViewById(R.id.view_target_zone)
     val hiddenArSurfaceView: android.opengl.GLSurfaceView = view.findViewById(R.id.hidden_ar_surface_view)
     val chipGroupRefObject: LinearLayout = view.findViewById(R.id.chip_group_ref_object)
-    
+
     // Internal views for state management
     private val qualityStatusText: TextView = view.findViewById(R.id.tv_quality_status)
     private val loadingOverlay: FrameLayout = view.findViewById(R.id.loading_overlay)
@@ -51,8 +53,11 @@ class ScanUiStateManager(
     private val cardSidePhotoPrompt: androidx.cardview.widget.CardView = view.findViewById(R.id.card_side_photo_prompt)
     private val btnSidePhotoReady: Button = view.findViewById(R.id.btn_side_photo_ready)
     private val tvSideCardSkip: TextView = view.findViewById(R.id.tv_side_card_skip)
-    
+
     init {
+        chipGroupRefObject.visibility = View.GONE
+        btnRefToggle.visibility = View.GONE
+
         layoutArIndicator.setOnClickListener {
             tvArExplanation.visibility = if (tvArExplanation.visibility == View.VISIBLE) View.GONE else View.VISIBLE
             listener.onArIndicatorClicked()
@@ -96,7 +101,8 @@ class ScanUiStateManager(
         qualityStatusText.visibility = View.GONE
         subtitleText.text = "Place your plate, then tap Capture"
 
-        btnRefToggle.visibility = View.VISIBLE
+        btnRefToggle.visibility = View.GONE
+        chipGroupRefObject.visibility = View.GONE
         cardSidePhotoPrompt.visibility = View.GONE
         layoutStepIndicator.visibility = View.GONE
         layoutArIndicator.visibility = View.VISIBLE
@@ -109,7 +115,7 @@ class ScanUiStateManager(
         updateStepIndicator(2, true)
         viewPlateTargetZone.visibility = View.GONE
         viewTargetZone.visibility = View.GONE
-        subtitleText.text = "Hold phone at table level — capture the side of the plate"
+        subtitleText.text = "Hold phone at table level, capture the side of the plate"
     }
 
     fun showSidePhotoCard() {
