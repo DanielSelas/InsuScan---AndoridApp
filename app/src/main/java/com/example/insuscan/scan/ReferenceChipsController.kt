@@ -37,9 +37,9 @@ class ReferenceChipsController(
         val defaultType = resolveDefaultType()
         applySelection(defaultType)
         setSelectedChip(chipForType(defaultType))
-        
-        // Initial state: Bar visible, Toggle hidden
-        chipGroup.visibility = View.VISIBLE
+
+        // Keep chips hidden, selection is done via the new bottom button
+        chipGroup.visibility = View.GONE
         toggleButton?.visibility = View.GONE
 
         chipSyringe.setOnClickListener { onChipSelected(ReferenceObjectType.INSULIN_SYRINGE) }

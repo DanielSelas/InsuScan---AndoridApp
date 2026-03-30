@@ -159,6 +159,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:visibility="gone"
         android:layout_marginBottom="@dimen/spacing_xs"
         android:padding="4dp"
         android:background="@drawable/chips_container"
@@ -244,34 +245,73 @@
         android:id="@+id/buttons_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:layout_marginStart="@dimen/spacing_medium"
         android:layout_marginEnd="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_medium"
+        android:layout_marginBottom="@dimen/spacing_small"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <Button
-            android:id="@+id/btn_gallery"
-            android:layout_width="0dp"
+        <!-- Row 1: Capture + Gallery -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/action_gallery"
-            android:textSize="@dimen/text_button"
-            android:textColor="@color/primary"
-            android:layout_marginEnd="@dimen/spacing_small"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/spacing_small">
 
-        <Button
-            android:id="@+id/btn_capture"
-            android:layout_width="0dp"
+            <Button
+                android:id="@+id/btn_capture"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="85"
+                android:text="Capture"
+                android:textSize="@dimen/text_button"
+                android:textColor="@color/text_on_primary"
+                android:background="@drawable/button_primary"
+                android:layout_marginEnd="2dp" />
+
+            <ImageButton
+                android:id="@+id/btn_gallery"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="15"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:scaleType="centerInside"
+                android:background="@drawable/button_primary"
+                android:contentDescription="Gallery" />
+        </LinearLayout>
+
+        <!-- Row 2: Glucose input + Reference Object -->
+        <LinearLayout
+            android:id="@+id/row_glucose_ref"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/scan_take_photo"
-            android:textSize="@dimen/text_button"
-            android:textColor="@color/text_on_primary"
-            android:background="@drawable/button_primary" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/et_glucose_level"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:hint="Blood glucose (mg/dL)"
+                android:inputType="number"
+                android:textSize="@dimen/text_body2"
+                android:textAlignment="center"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginEnd="@dimen/spacing_small" />
+
+            <Button
+                android:id="@+id/btn_reference_object"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:text="No ref. object"
+                android:textSize="@dimen/text_caption"
+                android:textAllCaps="false"
+                android:minWidth="130dp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+        </LinearLayout>
 
     </LinearLayout>
 
