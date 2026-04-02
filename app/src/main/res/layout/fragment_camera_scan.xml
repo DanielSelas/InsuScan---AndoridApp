@@ -278,7 +278,7 @@
                 android:layout_weight="15"
                 android:src="@android:drawable/ic_menu_gallery"
                 android:scaleType="centerInside"
-                android:background="@drawable/button_primary"
+                android:background="@drawable/button_secondary"
                 android:contentDescription="Gallery" />
         </LinearLayout>
 

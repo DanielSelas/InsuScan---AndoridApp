@@ -14,8 +14,6 @@ import com.example.insuscan.scan.ScanResultCallback
 class ChatScanDialogFragment : DialogFragment(), ScanResultCallback {
 
     var onResult: ((Meal) -> Unit)? = null
-    var onImageCaptured: ((CapturedScanData) -> Unit)? = null
-
     companion object {
         fun newInstance(openGalleryDirectly: Boolean): ChatScanDialogFragment {
             val args = Bundle().apply {
@@ -49,7 +47,6 @@ class ChatScanDialogFragment : DialogFragment(), ScanResultCallback {
             val cameraFragment = CameraScanFragment().apply {
                 arguments = Bundle().apply {
                     putBoolean("open_gallery_directly", openGallery)
-                    putBoolean("capture_only_mode", true)
                 }
             }
 
@@ -57,11 +54,6 @@ class ChatScanDialogFragment : DialogFragment(), ScanResultCallback {
                 .replace(view.id, cameraFragment)
                 .commit()
         }
-    }
-
-    override fun onImageCapturedForBackground(data: CapturedScanData) {
-        onImageCaptured?.invoke(data)
-        dismiss()
     }
 
     override fun onScanSuccess(meal: Meal) {
