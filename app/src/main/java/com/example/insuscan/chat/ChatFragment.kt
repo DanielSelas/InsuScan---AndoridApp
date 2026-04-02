@@ -95,8 +95,8 @@ class ChatFragment : Fragment(R.layout.fragment_chat) {
 
     private fun openScanDialog(openGalleryDirectly: Boolean) {
         val dialog = ChatScanDialogFragment.newInstance(openGalleryDirectly)
-        dialog.onImageCaptured = { data ->
-            viewModel.onImageCapturedFromCamera(data)
+        dialog.onResult = { meal ->
+            viewModel.onScanCompleted(meal)
         }
         dialog.show(parentFragmentManager, "ChatScan")
     }

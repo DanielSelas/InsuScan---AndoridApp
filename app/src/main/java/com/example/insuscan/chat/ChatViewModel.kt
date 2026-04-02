@@ -55,7 +55,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private var isProcessingQueue = false
     private val TYPING_DELAY_MS = 400L
 
-    internal val scanDelegate = ChatScanDelegate(this, application)
+    internal val scanDelegate = ChatScanDelegate(this)
     internal val syncDelegate = ChatSyncDelegate(this, application)
     internal val actionDelegate = ChatActionDelegate(this)
 
@@ -79,9 +79,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateMedicalSettings(icr: Double?, isf: Double?, target: Int?) = syncDelegate.updateMedicalSettings(icr, isf, target)
-    fun onImageReceived(imagePath: String, referenceObjectType: String? = null) = scanDelegate.onImageReceived(imagePath, referenceObjectType)
-    fun onScanResultFromScanFragment(meal: com.example.insuscan.meal.Meal, imagePath: String?) = scanDelegate.onScanResultFromScanFragment(meal, imagePath)
-    fun onImageCapturedFromCamera(data: com.example.insuscan.scan.CapturedScanData) = scanDelegate.onImageCapturedFromCamera(data)
+    fun onScanCompleted(meal: com.example.insuscan.meal.Meal) = scanDelegate.onScanCompleted(meal)
     fun onActionButton(actionId: String) = actionDelegate.onActionButton(actionId)
 
     fun onFoodConfirmed() { onActionButton("confirm_food") }

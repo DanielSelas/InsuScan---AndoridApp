@@ -96,15 +96,6 @@ class ConversationManager(val context: Context) {
         ))
     }
 
-    fun beginParallelQuestions() {
-        scanComplete = false
-        pendingScanMeal = null
-        waitingForScan = false
-        callback?.onBotMessage(
-            ChatMessage.BotText(text = "⏳ Analyzing your meal…\nIn the meantime, I'll ask a few quick questions to calculate your dose accurately.")
-        )
-        medicalHandler.showMedicalReview()
-    }
 
     fun onScanSuccess(meal: Meal) {
         val items = meal.foodItems
