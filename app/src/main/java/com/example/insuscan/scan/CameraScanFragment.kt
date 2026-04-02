@@ -179,6 +179,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
         }
 
         uiState.galleryButton.setOnClickListener {
+            if (!validateGlucose()) return@setOnClickListener
             hardwareController.resetForGallery()
             galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }

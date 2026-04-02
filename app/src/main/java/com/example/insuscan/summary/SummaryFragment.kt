@@ -31,7 +31,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         ui = SummaryUiManager(view, ctx)
         imageHandler = SummaryImageHandler(ctx, ui)
-        
+
         mealDisplayHandler = SummaryMealDisplayHandler(
             context = ctx,
             ui = ui,
@@ -50,7 +50,8 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         doseDisplayHandler = SummaryDoseDisplayHandler(
             context = ctx,
             ui = ui,
-            onProfileIncompleteRequested = { navigateToProfile() }
+            onProfileIncompleteRequested = { navigateToProfile() },
+            onPlanChanged = { recalculateDose() }
         )
 
         initializeTopBar(view)
@@ -89,42 +90,13 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             }
         })
 
-        ui.activeInsulinEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val iob = s?.toString()?.toFloatOrNull()
-                when {
-                    iob != null && iob > SummaryCalculationHelper.IOB_HARD_LIMIT -> {
-                        ui.activeInsulinEditText.error = "Maximum IOB is ${SummaryCalculationHelper.IOB_HARD_LIMIT.toInt()} units"
-                        return
-                    }
-                    iob != null && iob > SummaryCalculationHelper.IOB_SOFT_LIMIT -> {
-                        ui.activeInsulinEditText.error = "Unusually high — please verify"
-                    }
-                    iob != null && iob < 0 -> {
-                        ui.activeInsulinEditText.error = "IOB cannot be negative"
-                        return
-                    }
-                }
-                recalculateDose()
-            }
-        })
-
-        if (UserProfileManager.isExerciseModeEnabled(ctx)) {
-            ui.rbLight.isChecked = true
-        }
-
-        ui.activityRadioGroup.setOnCheckedChangeListener { _, _ ->
-            recalculateDose()
-        }
+        doseDisplayHandler.setupPlanChangeListener()
 
         ui.scanNowButton.setOnClickListener {
             proceedToScan()
         }
 
         ui.setupScrollListener()
-        ui.updateActivityLabels()
     }
 
     private fun recalculateDose() {
@@ -162,7 +134,6 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         mealDisplayHandler.updateFoodDisplay()
         ui.updateAnalysisResults()
         imageHandler.displayMealImage()
-        ui.updateActivityLabels()
         recalculateDose()
     }
 

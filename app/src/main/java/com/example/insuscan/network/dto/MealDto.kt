@@ -81,6 +81,7 @@ data class InsulinCalculationDto(
     val targetGlucose: Int?,
     @SerializedName(value = "correctionFactor", alternate = ["correctionFactorUsed"])
     val correctionFactor: Float?,
+    val activePlanName: String?,
 
     // added: adjustment values from server
     val sickAdjustment: Float?,

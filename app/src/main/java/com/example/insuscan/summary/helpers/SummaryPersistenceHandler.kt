@@ -9,7 +9,6 @@ import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.network.repository.MealRepositoryImpl
 import com.example.insuscan.summary.helpers.SummaryCalculationHelper.DOSE_BLOCKING_THRESHOLD
 import com.example.insuscan.summary.helpers.SummaryCalculationHelper.DOSE_HARD_CAP
-import com.example.insuscan.summary.helpers.SummaryCalculationHelper.IOB_HARD_LIMIT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -96,29 +95,23 @@ class SummaryPersistenceHandler(
     private fun buildUpdatedMeal(meal: Meal, result: DoseResult?): Meal {
         val glucoseValue = ui.glucoseEditText.text.toString().toIntOrNull()
         val glucoseUnits = UserProfileManager.getGlucoseUnits(context)
-        val activityLevel = ui.getSelectedActivityLevel()
-        val activeInsulin = (ui.activeInsulinEditText.text.toString().toFloatOrNull() ?: 0f).coerceIn(0f, IOB_HARD_LIMIT)
 
         val finalResult = result ?: SummaryCalculationHelper.performCalculation(
-            context, meal.carbs, glucoseValue, activeInsulin, activityLevel, UserProfileManager.getGramsPerUnit(context) ?: 0f
+            context, meal.carbs, glucoseValue,
+            MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context) ?: 0f
         )
-
-        val exerciseAdjValue = if (finalResult.exerciseAdj > 0) -finalResult.exerciseAdj else 0f
 
         return meal.copy(
             insulinDose = finalResult.roundedDose,
             recommendedDose = finalResult.roundedDose,
+            savedPlanName = MealSessionManager.activePlanName ?: "Default",
+            savedIcr = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context),
+            savedIsf = MealSessionManager.activePlanIsf ?: UserProfileManager.getCorrectionFactor(context),
+            savedTargetGlucose = MealSessionManager.activePlanTargetGlucose ?: UserProfileManager.getTargetGlucose(context),
             glucoseLevel = glucoseValue,
             glucoseUnits = glucoseUnits,
-            activityLevel = activityLevel,
             carbDose = finalResult.carbDose,
-            correctionDose = finalResult.correctionDose,
-            exerciseAdjustment = exerciseAdjValue,
-            sickAdjustment = finalResult.sickAdj,
-            stressAdjustment = finalResult.stressAdj,
-            wasSickMode = UserProfileManager.isSickModeEnabled(context),
-            wasStressMode = UserProfileManager.isStressModeEnabled(context),
-            activeInsulin = activeInsulin
+            correctionDose = finalResult.correctionDose
         )
     }
 

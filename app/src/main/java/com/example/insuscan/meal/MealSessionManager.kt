@@ -1,7 +1,12 @@
 package com.example.insuscan.meal
 
+import com.example.insuscan.profile.InsulinPlan
+
 object MealSessionManager {
     var currentMeal: Meal? = null
+        private set
+
+    var activePlanName: String? = null
         private set
 
     var activePlanIcr: Float? = null
@@ -11,13 +16,17 @@ object MealSessionManager {
     var activePlanTargetGlucose: Int? = null
         private set
 
-    fun setActivePlan(icr: Float?, isf: Float?, targetGlucose: Int?) {
+    var availablePlans: List<InsulinPlan> = emptyList()
+
+    fun setActivePlan(name: String?, icr: Float?, isf: Float?, targetGlucose: Int?) {
+        activePlanName = name
         activePlanIcr = icr
         activePlanIsf = isf
         activePlanTargetGlucose = targetGlucose
     }
 
     fun clearActivePlan() {
+        activePlanName = null
         activePlanIcr = null
         activePlanIsf = null
         activePlanTargetGlucose = null

@@ -74,17 +74,40 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun showAddPlanDialog() {
-        val input = android.widget.EditText(ctx)
-        input.hint = "Plan name"
-        input.setPadding(48, 32, 48, 32)
+        val layout = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(48, 32, 48, 32)
+        }
+
+        val nameInput = android.widget.EditText(ctx).apply { hint = "Plan Name" }
+        val icrInput = android.widget.EditText(ctx).apply { 
+            hint = "ICR (1:X)" 
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        }
+        val isfInput = android.widget.EditText(ctx).apply { 
+            hint = "ISF" 
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        }
+        val targetInput = android.widget.EditText(ctx).apply { 
+            hint = "Target Glucose" 
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        }
+
+        layout.addView(nameInput)
+        layout.addView(icrInput)
+        layout.addView(isfInput)
+        layout.addView(targetInput)
 
         android.app.AlertDialog.Builder(ctx)
             .setTitle("New Insulin Plan")
-            .setView(input)
+            .setView(layout)
             .setPositiveButton("Add") { _, _ ->
-                val name = input.text.toString().trim()
+                val name = nameInput.text.toString().trim()
                 if (name.isNotBlank()) {
-                    dataHelper.planViewManager.addNewPlan(name)
+                    val icr = icrInput.text.toString().toFloatOrNull()
+                    val isf = isfInput.text.toString().toFloatOrNull()
+                    val target = targetInput.text.toString().toIntOrNull()
+                    dataHelper.planViewManager.addNewPlan(name, icr, isf, target)
                 }
             }
             .setNegativeButton("Cancel", null)

@@ -31,6 +31,7 @@ object UserProfileManager {
     private const val KEY_EXERCISE_MODE_ENABLED = "exercise_mode_enabled"
     private const val KEY_PROFILE_PHOTO_URL = "profile_photo_url"
     private const val KEY_REGISTRATION_COMPLETE = "registration_complete"
+    private const val KEY_INSULIN_PLANS = "insulin_plans"
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
@@ -158,6 +159,21 @@ object UserProfileManager {
 
     fun saveIntenseExerciseAdjustment(context: Context, percent: Int) = savePref(context, KEY_INTENSE_EXERCISE_ADJUSTMENT, percent)
     fun getIntenseExerciseAdjustment(context: Context): Int = getPref(context, KEY_INTENSE_EXERCISE_ADJUSTMENT, 30)
+
+    fun saveInsulinPlans(context: Context, plans: List<com.example.insuscan.network.dto.InsulinPlanDto>) {
+        val json = com.google.gson.Gson().toJson(plans)
+        savePref(context, KEY_INSULIN_PLANS, json)
+    }
+
+    fun getInsulinPlans(context: Context): List<com.example.insuscan.network.dto.InsulinPlanDto>? {
+        val json = getPrefNullable<String>(context, KEY_INSULIN_PLANS) ?: return null
+        val type = object : com.google.gson.reflect.TypeToken<List<com.example.insuscan.network.dto.InsulinPlanDto>>() {}.type
+        return try {
+            com.google.gson.Gson().fromJson(json, type)
+        } catch (e: Exception) {
+            null
+        }
+    }
 
     fun setSickModeEnabled(context: Context, enabled: Boolean) {
         savePref(context, KEY_SICK_MODE_ENABLED, enabled)

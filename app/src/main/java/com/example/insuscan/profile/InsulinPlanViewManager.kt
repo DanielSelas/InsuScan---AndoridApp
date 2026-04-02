@@ -62,11 +62,14 @@ class InsulinPlanViewManager(
         }
     }
 
-    fun addNewPlan(name: String) {
+    fun addNewPlan(name: String, icr: Float?, isf: Float?, target: Int?) {
         val plan = InsulinPlan(
             id = UUID.randomUUID().toString(),
             name = name,
-            isDefault = false
+            isDefault = false,
+            icr = icr,
+            isf = isf,
+            targetGlucose = target
         )
         plans.add(plan)
         addPlanCard(plan)

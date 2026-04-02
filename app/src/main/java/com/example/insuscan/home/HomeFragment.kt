@@ -20,6 +20,7 @@ import android.widget.LinearLayout
 import android.widget.RadioButton
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.meal.MealSessionManager
+import com.example.insuscan.profile.InsulinPlan
 
 
 
@@ -80,9 +81,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun applySelectedPlan() {
         val plan = planSelector.getSelectedPlan()
         if (plan != null) {
-            MealSessionManager.setActivePlan(plan.icr, plan.isf, plan.targetGlucose)
+            MealSessionManager.setActivePlan(plan.name ?: "Custom Plan", plan.icr, plan.isf, plan.targetGlucose)
         } else {
-            MealSessionManager.clearActivePlan()
+            MealSessionManager.setActivePlan("Default", null, null, null)
         }
     }
     private fun fetchUserProfile() {
@@ -97,6 +98,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         UserProfileManager.syncFromServer(ctx, userDto)
                         renderGreeting()
                         planSelector.loadPlans(userDto.insulinPlans)
+                        MealSessionManager.availablePlans = userDto.insulinPlans?.map { dto ->
+                            InsulinPlan(
+                                id = dto.id ?: "",
+                                name = dto.name ?: "Custom",
+                                isDefault = dto.isDefault,
+                                icr = dto.icr,
+                                isf = dto.isf,
+                                targetGlucose = dto.targetGlucose
+                            )
+                        } ?: emptyList()
                     }
                 } else {
                     Log.e(TAG, "Server profile fetch failed")

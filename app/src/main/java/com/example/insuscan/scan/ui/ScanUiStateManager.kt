@@ -99,7 +99,7 @@ class ScanUiStateManager(
         captureButton.text = "Capture"
         captureButton.setBackgroundResource(R.drawable.button_primary)
         qualityStatusText.visibility = View.GONE
-        subtitleText.text = "Place your plate, then tap Capture"
+        subtitleText.text = "1. Enter your blood glucose below\n2. Center your plate and tap Capture"
 
         btnRefToggle.visibility = View.GONE
         chipGroupRefObject.visibility = View.GONE
@@ -158,7 +158,7 @@ class ScanUiStateManager(
             subtitleText.text = "\uD83D\uDCF8 2-photo scan: top view + side view"
             updateStepIndicator(1, true)
         } else if (!isShowingCapturedImage && !isSidePhotoMode) {
-            subtitleText.text = "Place your plate, then tap Capture"
+            subtitleText.text = "1. Enter your blood glucose below\n2. Center your plate and tap Capture"
             updateStepIndicator(1, false)
         }
     }

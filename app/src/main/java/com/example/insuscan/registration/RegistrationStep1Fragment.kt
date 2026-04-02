@@ -26,11 +26,9 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
     private lateinit var pregnantSwitch: SwitchCompat
     private lateinit var dueDateLayout: LinearLayout
     private lateinit var dueDateTextView: TextView
-    private lateinit var diabetesTypeSpinner: Spinner
     private lateinit var nextButton: Button
 
     private val genderOptions = arrayOf("Select", "Male", "Female", "Other", "Prefer not to say")
-    private val diabetesOptions = arrayOf("Select", "Type 1", "Type 2", "Gestational", "Other")
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,13 +47,11 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
         pregnantSwitch = view.findViewById(R.id.switch_reg_pregnant)
         dueDateLayout = view.findViewById(R.id.layout_reg_due_date)
         dueDateTextView = view.findViewById(R.id.tv_reg_due_date)
-        diabetesTypeSpinner = view.findViewById(R.id.spinner_reg_diabetes_type)
         nextButton = view.findViewById(R.id.btn_next_step)
     }
 
     private fun setupSpinners() {
         genderSpinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, genderOptions)
-        diabetesTypeSpinner.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, diabetesOptions)
     }
 
     private fun setupListeners() {
@@ -117,8 +113,5 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
             val dueDate = dueDateTextView.text.toString()
             if (dueDate != "Select Date") pm.saveDueDate(ctx, dueDate)
         }
-
-        val diabetesType = diabetesOptions[diabetesTypeSpinner.selectedItemPosition]
-        if (diabetesType != "Select") pm.saveDiabetesType(ctx, diabetesType)
     }
 }

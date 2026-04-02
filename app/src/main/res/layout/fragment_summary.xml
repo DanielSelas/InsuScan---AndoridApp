@@ -242,132 +242,6 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ============== ACTIVITY LEVEL CARD ============== -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/padding_input_horizontal"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/activity_level_title"
-                        android:textSize="@dimen/text_body1"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/activity_level_desc"
-                        android:textSize="@dimen/text_caption"
-                        android:textColor="@color/text_hint"
-                        android:layout_marginTop="@dimen/spacing_xxs" />
-
-                    <RadioGroup
-                        android:id="@+id/rg_activity_level"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginTop="@dimen/padding_input_horizontal">
-
-                        <RadioButton
-                            android:id="@+id/rb_activity_normal"
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/radio_button_height"
-                            android:text="@string/activity_normal_desc"
-                            android:textSize="@dimen/text_body1"
-                            android:checked="true" />
-
-                        <RadioButton
-                            android:id="@+id/rb_activity_light"
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/radio_button_height"
-                            android:text="@string/activity_light_desc"
-                            android:textSize="@dimen/text_body1" />
-
-                        <RadioButton
-                            android:id="@+id/rb_activity_intense"
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/radio_button_height"
-                            android:text="@string/activity_intense_desc"
-                            android:textSize="@dimen/text_body1" />
-
-                    </RadioGroup>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ============== ACTIVE INSULIN CARD ============== -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/padding_input_horizontal"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/summary_active_insulin_title"
-                        android:textSize="@dimen/text_body1"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/summary_active_insulin_desc"
-                        android:textSize="@dimen/text_caption"
-                        android:textColor="@color/text_hint"
-                        android:layout_marginTop="@dimen/spacing_xxs" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="@dimen/padding_input_horizontal">
-
-                        <EditText
-                            android:id="@+id/et_active_insulin"
-                            android:layout_width="@dimen/glucose_input_width"
-                            android:layout_height="@dimen/input_height_single"
-                            android:hint="0.0"
-                            android:inputType="numberDecimal"
-                            android:textAlignment="center"
-                            android:textSize="@dimen/text_h3"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/unit_units"
-                            android:textSize="@dimen/text_body1"
-                            android:textColor="@color/text_secondary"
-                            android:layout_marginStart="@dimen/padding_input_horizontal" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
             <!-- ============== DOSE CALCULATION CARD ============== -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -422,6 +296,42 @@
 
                         </LinearLayout>
 
+                        <!-- Active Plan Name (clickable to change) -->
+                        <LinearLayout
+                            android:id="@+id/layout_active_plan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:paddingVertical="@dimen/spacing_small"
+                            android:background="?attr/selectableItemBackground">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Active Plan"
+                                android:textSize="@dimen/text_body1"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:id="@+id/tv_active_plan"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Default"
+                                android:textSize="@dimen/text_body1"
+                                android:textColor="@color/primary" />
+
+                            <TextView
+                                android:id="@+id/tv_change_plan"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Change"
+                                android:textSize="@dimen/text_caption"
+                                android:textColor="@color/primary"
+                                android:layout_marginStart="@dimen/spacing_small"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
                         <!-- Correction dose row -->
                         <LinearLayout
                             android:id="@+id/layout_correction_dose"
@@ -446,90 +356,6 @@
                                 android:text="+0.0 u"
                                 android:textSize="@dimen/text_body1"
                                 android:textColor="@color/status_warning" />
-
-                        </LinearLayout>
-
-                        <!-- Sick adjustment row -->
-                        <LinearLayout
-                            android:id="@+id/layout_sick_adjustment"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingVertical="@dimen/spacing_small"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:id="@+id/tv_sick_label"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/insulin_sick_mode"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary" />
-
-                            <TextView
-                                android:id="@+id/tv_sick_adjustment"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="+0.0 u"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/status_warning" />
-
-                        </LinearLayout>
-
-                        <!-- Stress adjustment row -->
-                        <LinearLayout
-                            android:id="@+id/layout_stress_adjustment"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingVertical="@dimen/spacing_small"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:id="@+id/tv_stress_label"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/insulin_stress_mode"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary" />
-
-                            <TextView
-                                android:id="@+id/tv_stress_adjustment"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="+0.0 u"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/status_warning" />
-
-                        </LinearLayout>
-
-                        <!-- Exercise adjustment row -->
-                        <LinearLayout
-                            android:id="@+id/layout_exercise_adjustment"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingVertical="@dimen/spacing_small"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:id="@+id/tv_exercise_label"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/insulin_exercise_mode"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary" />
-
-                            <TextView
-                                android:id="@+id/tv_exercise_adjustment"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="-0.0 u"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/status_normal" />
 
                         </LinearLayout>
 
