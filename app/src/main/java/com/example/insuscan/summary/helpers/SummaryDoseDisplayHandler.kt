@@ -1,5 +1,6 @@
 package com.example.insuscan.summary.helpers
 
+import android.app.AlertDialog
 import android.content.Context
 import android.view.View
 import android.widget.TextView
@@ -11,11 +12,12 @@ import com.example.insuscan.profile.UserProfileManager
 class SummaryDoseDisplayHandler(
     private val context: Context,
     private val ui: SummaryUiManager,
-    private val onProfileIncompleteRequested: () -> Unit
+    private val onProfileIncompleteRequested: () -> Unit,
+    private val onPlanChanged: () -> Unit = {}
 ) {
     fun calculateAndDisplayDose(): DoseResult? {
         val meal = MealSessionManager.currentMeal ?: return null
-        val gramsPerUnit = UserProfileManager.getGramsPerUnit(context)
+        val gramsPerUnit = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context)
 
         if (!meal.profileComplete || gramsPerUnit == null) {
             showProfileIncompleteState()
@@ -26,8 +28,6 @@ class SummaryDoseDisplayHandler(
             context = context,
             carbs = meal.carbs,
             glucose = ui.glucoseEditText.text.toString().toIntOrNull(),
-            activeInsulin = ui.activeInsulinEditText.text.toString().toFloatOrNull(),
-            activityLevel = ui.getSelectedActivityLevel(),
             gramsPerUnit = gramsPerUnit
         )
 
@@ -37,6 +37,8 @@ class SummaryDoseDisplayHandler(
 
     private fun displayDoseResults(result: DoseResult) {
         ui.carbDoseText.text = String.format("%.1f u", result.carbDose)
+        val planName = MealSessionManager.activePlanName ?: "Default"
+        ui.activePlanText?.text = planName
 
         if (result.correctionDose != 0f) {
             ui.correctionLayout.visibility = View.VISIBLE
@@ -46,21 +48,6 @@ class SummaryDoseDisplayHandler(
         } else {
             ui.correctionLayout.visibility = View.GONE
         }
-
-        if (result.sickAdj > 0) {
-            ui.sickLayout.visibility = View.VISIBLE
-            ui.sickAdjustmentText.text = String.format("+%.1f u", result.sickAdj)
-        } else ui.sickLayout.visibility = View.GONE
-
-        if (result.stressAdj > 0) {
-            ui.stressLayout.visibility = View.VISIBLE
-            ui.stressAdjustmentText.text = String.format("+%.1f u", result.stressAdj)
-        } else ui.stressLayout.visibility = View.GONE
-
-        if (result.exerciseAdj > 0) {
-            ui.exerciseLayout.visibility = View.VISIBLE
-            ui.exerciseAdjustmentText.text = String.format("-%.1f u", result.exerciseAdj)
-        } else ui.exerciseLayout.visibility = View.GONE
 
         ui.finalDoseText.text = String.format("%.1f u", result.roundedDose)
 
@@ -74,6 +61,40 @@ class SummaryDoseDisplayHandler(
         }
 
         updateHighDoseWarning(result.roundedDose)
+    }
+
+    fun setupPlanChangeListener() {
+        ui.activePlanLayout?.setOnClickListener {
+            showPlanSelectionDialog()
+        }
+    }
+
+    private fun showPlanSelectionDialog() {
+        val plans = MealSessionManager.availablePlans
+        if (plans.isEmpty()) return
+
+        val planNames = plans.map { plan ->
+            val details = buildList {
+                if (plan.icr != null) add("ICR 1:${plan.icr.toInt()}")
+                if (plan.isf != null) add("ISF ${plan.isf.toInt()}")
+                if (plan.targetGlucose != null) add("TG ${plan.targetGlucose}")
+            }.joinToString(" · ")
+            if (details.isNotEmpty()) "${plan.name} ($details)" else plan.name
+        }.toTypedArray()
+
+        val currentPlanName = MealSessionManager.activePlanName ?: "Default"
+        val checkedIndex = plans.indexOfFirst { it.name == currentPlanName }.coerceAtLeast(0)
+
+        AlertDialog.Builder(context)
+            .setTitle("Select Insulin Plan")
+            .setSingleChoiceItems(planNames, checkedIndex) { dialog, which ->
+                val selected = plans[which]
+                MealSessionManager.setActivePlan(selected.name, selected.icr, selected.isf, selected.targetGlucose)
+                onPlanChanged()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun updateHighDoseWarning(dose: Float) {

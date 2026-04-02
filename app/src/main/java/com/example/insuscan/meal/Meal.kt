@@ -49,6 +49,7 @@ data class Meal(
     val savedIcr: Float? = null,
     val savedIsf: Float? = null,
     val savedTargetGlucose: Int? = null,
+    val savedPlanName: String? = null,
 
     // adjustment percentages at calculation time (for history display)
     val savedSickPct: Int = 0,

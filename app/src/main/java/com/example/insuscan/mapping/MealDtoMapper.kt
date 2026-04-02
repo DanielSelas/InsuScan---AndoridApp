@@ -60,7 +60,8 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             // medical settings used at calculation time
             savedIcr = from.insulinCalculation?.insulinCarbRatio?.toFloatOrNull(),
             savedIsf = from.insulinCalculation?.correctionFactor,
-            savedTargetGlucose = from.insulinCalculation?.targetGlucose
+            savedTargetGlucose = from.insulinCalculation?.targetGlucose,
+            savedPlanName = from.insulinCalculation?.activePlanName
         )
     }
 
@@ -93,6 +94,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
                 currentGlucose = meal.glucoseLevel,
                 targetGlucose = meal.savedTargetGlucose,
                 correctionFactor = meal.savedIsf,
+                activePlanName = meal.savedPlanName,
                 sickAdjustment = meal.sickAdjustment,
                 stressAdjustment = meal.stressAdjustment,
                 exerciseAdjustment = meal.exerciseAdjustment,

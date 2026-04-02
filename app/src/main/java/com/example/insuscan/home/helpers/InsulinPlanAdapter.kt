@@ -46,7 +46,7 @@ class InsulinPlanAdapter(
         fun bind(plan: InsulinPlanDto) {
             name.text = plan.name ?: "Unnamed"
             details.text = formatDetails(plan)
-            radio.isChecked = plan.id == selectedId
+            radio.isChecked = selectedId != null && plan.id == selectedId
 
             itemView.setOnClickListener {
                 onPlanSelected(plan.id ?: return@setOnClickListener)

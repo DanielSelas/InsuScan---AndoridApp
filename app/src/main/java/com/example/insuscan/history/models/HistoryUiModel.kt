@@ -171,6 +171,12 @@ sealed class HistoryUiModel {
         // Subtitle showing context at a glance
         val displaySubtitle: String
             get() = buildList {
+                // Show the insulin plan used
+                val planName = meal.savedPlanName
+                if (!planName.isNullOrBlank()) {
+                    add(planName)
+                }
+
                 // Glucose status
                 if (meal.glucoseLevel != null) {
                     val level = meal.glucoseLevel!!
@@ -181,22 +187,6 @@ sealed class HistoryUiModel {
                     }
                     add(status)
                 }
-
-                // Activity level (only if not normal)
-                if (meal.activityLevel != null && meal.activityLevel != "normal") {
-                    val activity = when (meal.activityLevel?.lowercase()) {
-                        "sedentary" -> "Resting"
-                        "light" -> "Light activity"
-                        "moderate" -> "Active"
-                        "vigorous" -> "High intensity"
-                        else -> meal.activityLevel
-                    }
-                    add(activity)
-                }
-
-                // Special modes
-                if (meal.wasSickMode) add("Sick day")
-                if (meal.wasStressMode) add("Stressed")
 
                 // If nothing to show, add formatted date/time as fallback
                 if (isEmpty()) {

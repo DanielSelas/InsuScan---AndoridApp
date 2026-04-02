@@ -54,248 +54,124 @@
                 android:layout_marginBottom="16dp"
                 android:layout_marginStart="4dp" />
 
-            <!-- ============== REFERENCE OBJECT & ROUNDING ============== -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <!-- Reference Type -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-                        
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Reference Object"
-                            android:textSize="16sp" />
-
-                        <Spinner
-                            android:id="@+id/spinner_reg_reference_type"
-                            android:layout_width="160dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/spinner_background" />
-                    </LinearLayout>
-
-                    <!-- Custom Length (Visible only for 'Other') -->
-                    <LinearLayout
-                        android:id="@+id/layout_reg_custom_length"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="@color/divider_profile"
-                            android:layout_marginVertical="12dp" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Object Length"
-                                android:textSize="16sp" />
-
-                            <EditText
-                                android:id="@+id/et_reg_custom_length"
-                                android:layout_width="80dp"
-                                android:layout_height="wrap_content"
-                                android:hint="15.0"
-                                android:inputType="numberDecimal"
-                                android:textAlignment="center"
-                                android:background="@drawable/edit_text_background" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="cm"
-                                android:textSize="16sp"
-                                android:layout_marginStart="8dp" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="12dp" />
-
-                    <!-- Dose Rounding -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Dose Rounding"
-                            android:textSize="16sp" />
-
-                        <Spinner
-                            android:id="@+id/spinner_reg_dose_rounding"
-                            android:layout_width="120dp"
-                            android:layout_height="48dp"
-                            android:background="@drawable/spinner_background" />
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ============== ADJUSTMENT FACTORS ============== -->
+            <!-- ============== PERSONALIZED PLANS ============== -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Adjustments"
+                android:text="Personalized Plans"
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="8dp"
                 android:layout_marginStart="4dp" />
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap on the fields below to customize and override your base values for different situations."
+                android:textSize="12sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="12dp"
+                android:layout_marginStart="4dp" />
+
+            <!-- SICKNESS PLAN -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <!-- Sick Day -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Sick Day Increase"
-                            android:textSize="16sp" />
-
-                        <EditText
-                            android:id="@+id/et_reg_sick_adj"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content"
-                            android:text="15"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="%"
-                            android:textSize="16sp"
-                            android:layout_marginStart="8dp" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sickness Plan ✎" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="8dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3" android:baselineAligned="false">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ICR (1:X)" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_sickness_icr" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISF" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_sickness_isf" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Target" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_sickness_target" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="number" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
                     </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="12dp" />
-
-                    <!-- Stress -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Stress Increase"
-                            android:textSize="16sp" />
-
-                        <EditText
-                            android:id="@+id/et_reg_stress_adj"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content"
-                            android:text="10"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="%"
-                            android:textSize="16sp"
-                            android:layout_marginStart="8dp" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="12dp" />
-
-                    <!-- Exercise -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Exercise Decrease"
-                            android:textSize="16sp" />
-
-                        <EditText
-                            android:id="@+id/et_reg_exercise_adj"
-                            android:layout_width="60dp"
-                            android:layout_height="wrap_content"
-                            android:text="15"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="%"
-                            android:textSize="16sp"
-                            android:layout_marginStart="8dp" />
-                    </LinearLayout>
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+            <!-- STRESS PLAN -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/surface">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Stress Plan ✎" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="8dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3" android:baselineAligned="false">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ICR (1:X)" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_stress_icr" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISF" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_stress_isf" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Target" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_stress_target" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="number" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- TRAINING PLAN -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/surface">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Training Plan ✎" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="8dp"/>
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="3" android:baselineAligned="false">
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ICR (1:X)" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_training_icr" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ISF" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_training_isf" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="numberDecimal" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Target" android:textSize="12sp"/>
+                            <EditText android:id="@+id/et_plan_training_target" android:layout_width="60dp" android:layout_height="wrap_content" android:inputType="number" android:textAlignment="center" android:background="@drawable/edit_text_background" android:layout_marginTop="4dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- DYNAMIC PLANS CONTAINER -->
+            <LinearLayout
+                android:id="@+id/layout_dynamic_plans_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+                
+            <Button
+                android:id="@+id/btn_add_custom_plan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Custom Plan"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="24dp"
+                style="?android:attr/borderlessButtonStyle"
+                android:textColor="@color/primary" />
+
         </LinearLayout>
     </ScrollView>
 

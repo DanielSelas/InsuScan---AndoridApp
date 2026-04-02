@@ -18,20 +18,11 @@ class SummaryUiManager(val view: View, val context: Context) {
     val glucoseEditText: EditText = view.findViewById(R.id.et_current_glucose)
     val glucoseUnitText: TextView = view.findViewById(R.id.tv_glucose_unit)
     val glucoseStatusText: TextView = view.findViewById(R.id.tv_glucose_status)
-    val activityRadioGroup: RadioGroup = view.findViewById(R.id.rg_activity_level)
-    val rbNormal: RadioButton = view.findViewById(R.id.rb_activity_normal)
-    val rbLight: RadioButton = view.findViewById(R.id.rb_activity_light)
-    val rbIntense: RadioButton = view.findViewById(R.id.rb_activity_intense)
-    val activeInsulinEditText: EditText = view.findViewById(R.id.et_active_insulin)
     val carbDoseText: TextView = view.findViewById(R.id.tv_carb_dose)
+    val activePlanText: TextView? = view.findViewById(R.id.tv_active_plan)
+    val activePlanLayout: View? = view.findViewById(R.id.layout_active_plan)
     val correctionLayout: LinearLayout = view.findViewById(R.id.layout_correction_dose)
     val correctionDoseText: TextView = view.findViewById(R.id.tv_correction_dose)
-    val sickLayout: LinearLayout = view.findViewById(R.id.layout_sick_adjustment)
-    val sickAdjustmentText: TextView = view.findViewById(R.id.tv_sick_adjustment)
-    val stressLayout: LinearLayout = view.findViewById(R.id.layout_stress_adjustment)
-    val stressAdjustmentText: TextView = view.findViewById(R.id.tv_stress_adjustment)
-    val exerciseLayout: LinearLayout = view.findViewById(R.id.layout_exercise_adjustment)
-    val exerciseAdjustmentText: TextView = view.findViewById(R.id.tv_exercise_adjustment)
     val finalDoseText: TextView = view.findViewById(R.id.tv_final_dose)
     val analysisCard: CardView = view.findViewById(R.id.card_analysis_results)
     val portionWeightText: TextView = view.findViewById(R.id.tv_portion_weight)
@@ -72,15 +63,6 @@ class SummaryUiManager(val view: View, val context: Context) {
 
     fun setupGlucoseUnit() {
         glucoseUnitText.text = UserProfileManager.getGlucoseUnits(context)
-    }
-
-    fun updateActivityLabels() {
-        val lightAdj = UserProfileManager.getLightExerciseAdjustment(context)
-        val intenseAdj = UserProfileManager.getIntenseExerciseAdjustment(context)
-
-        rbNormal.text = "Normal (no adjustment)"
-        rbLight.text = "After light exercise (-$lightAdj%)"
-        rbIntense.text = "After intense exercise (-$intenseAdj%)"
     }
 
     fun updateGlucoseStatus() {
@@ -160,14 +142,6 @@ class SummaryUiManager(val view: View, val context: Context) {
 
     private fun hasAnalysisData(meal: Meal): Boolean {
         return meal.portionWeightGrams != null || meal.plateDiameterCm != null || meal.analysisConfidence != null
-    }
-
-    fun getSelectedActivityLevel(): String {
-        return when (activityRadioGroup.checkedRadioButtonId) {
-            R.id.rb_activity_light -> "light"
-            R.id.rb_activity_intense -> "intense"
-            else -> "normal"
-        }
     }
 
     fun setupScrollListener() {

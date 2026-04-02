@@ -137,13 +137,15 @@ class MealViewHolder(
             }
 
             // Medical Settings
+            val planName = meal.savedPlanName
             val icr = meal.savedIcr
             val isf = meal.savedIsf
             val target = meal.savedTargetGlucose
-            val hasMedical = icr != null || isf != null || target != null
+            val hasMedical = planName != null || icr != null || isf != null || target != null
             medicalSettingsLayout.isVisible = hasMedical
             if (hasMedical) {
                 val parts = mutableListOf<String>()
+                if (planName != null) parts.add("Active Plan: $planName")
                 if (icr != null) parts.add("ICR: 1u per ${String.format("%.1f", icr)}g")
                 if (isf != null) parts.add("ISF: ${String.format("%.0f", isf)} mg/dL per 1u")
                 if (target != null) parts.add("Target: $target mg/dL")
