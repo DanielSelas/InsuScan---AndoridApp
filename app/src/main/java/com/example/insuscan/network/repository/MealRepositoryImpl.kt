@@ -6,6 +6,7 @@ import com.example.insuscan.network.RetrofitClient
 import com.example.insuscan.network.dto.CreateMealRequest
 import com.example.insuscan.network.dto.FoodItemDto
 import com.example.insuscan.network.dto.MealDto
+import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.network.repository.base.BaseRepository
 import com.example.insuscan.utils.FileLogger
 
@@ -87,6 +88,6 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
         Log.d("HistoryFilter", "API Response - code: ${res.code()}, body size: ${res.body()?.size ?: "null"}")
 
         return if (res.isSuccessful) Result.success(res.body().orEmpty())
-        else Result.failure(Exception("HTTP ${res.code()}"))
+        else Result.failure(ApiException.ClientError(res.code(), res.message()))
     }
 }

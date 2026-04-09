@@ -32,7 +32,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         ui = ProfileUiManager(view)
         ui.setupSpinners(ctx)
         
-        imageHandler.bind(ui) { syncPhotoToServer() }
+        imageHandler.bind(ui, updateCallback = { syncPhotoToServer() })
         dataHelper = ProfileDataHelper(ctx, ui)
 
         setupTopBar(view)
