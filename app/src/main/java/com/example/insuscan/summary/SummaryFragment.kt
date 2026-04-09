@@ -134,6 +134,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         mealDisplayHandler.updateFoodDisplay()
         ui.updateAnalysisResults()
         imageHandler.displayMealImage()
+
+        val scannedGlucose = MealSessionManager.currentMeal?.glucoseLevel
+        if (scannedGlucose != null && ui.glucoseEditText.text.isNullOrEmpty()) {
+            ui.glucoseEditText.setText(scannedGlucose.toString())
+        }
+
         recalculateDose()
     }
 
