@@ -4,6 +4,7 @@ import com.example.insuscan.manualentry.EditableFoodItem
 import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
+import com.example.insuscan.meal.exception.MealException
 
 class MealPersistenceHelper {
 
@@ -35,6 +36,8 @@ class MealPersistenceHelper {
     }
 
     fun buildUpdatedMeal(editableItems: List<EditableFoodItem>, totalCarbs: Float): Meal {
+        if (editableItems.isEmpty()) throw MealException.EmptyFoodList
+
         val foodItems = editableItems.map { editable ->
             FoodItem(
                 name = editable.name,
