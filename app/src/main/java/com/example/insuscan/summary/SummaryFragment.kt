@@ -59,6 +59,10 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         ui.updateEmptyStateVisibility()
         if (MealSessionManager.currentMeal != null) {
+            val scannedGlucose = MealSessionManager.currentMeal?.glucoseLevel
+            if (scannedGlucose != null && ui.glucoseEditText.text.isNullOrEmpty()) {
+                ui.glucoseEditText.setText(scannedGlucose.toString())
+            }
             recalculateDose()
         }
     }
