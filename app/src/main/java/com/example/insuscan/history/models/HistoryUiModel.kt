@@ -167,6 +167,12 @@ sealed class HistoryUiModel {
         val insulinMessageText: String
             get() = meal.insulinMessage ?: ""
 
+        val planDisplayText: String
+            get() = meal.savedPlanName?.takeIf { it.isNotBlank() } ?: "Default"
+
+        val isPlanVisible: Boolean
+            get() = meal.carbDose != null || meal.savedPlanName != null
+
 
         // Subtitle showing context at a glance
         val displaySubtitle: String
@@ -193,6 +199,8 @@ sealed class HistoryUiModel {
                     val sdf = java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault())
                     add(sdf.format(java.util.Date(meal.timestamp)))
                 }
+
+
 
             }.joinToString(" • ")
 

@@ -16,7 +16,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Compact Header -->
         <LinearLayout
             android:id="@+id/layout_header"
             android:layout_width="match_parent"
@@ -25,7 +24,6 @@
             android:padding="@dimen/spacing_medium"
             android:background="?attr/selectableItemBackground">
 
-            <!-- Top Row: Title + Dose Badge -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -38,7 +36,6 @@
                     android:layout_weight="1"
                     android:orientation="vertical">
 
-                    <!-- Meal Title -->
                     <TextView
                         android:id="@+id/tv_meal_title"
                         android:layout_width="wrap_content"
@@ -51,7 +48,6 @@
                         android:maxLines="1"
                         android:ellipsize="end" />
 
-                    <!-- NEW: Subtitle with context -->
                     <TextView
                         android:id="@+id/tv_meal_subtitle"
                         android:layout_width="wrap_content"
@@ -65,7 +61,6 @@
                         android:maxLines="1"
                         android:ellipsize="end" />
 
-                    <!-- Carbs + Time -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -95,7 +90,6 @@
                             android:textSize="@dimen/text_body2"
                             android:textColor="@color/text_secondary" />
 
-                        <!-- Context Indicators -->
                         <TextView
                             android:id="@+id/tv_indicator_sick"
                             android:layout_width="wrap_content"
@@ -111,11 +105,11 @@
                             android:layout_height="wrap_content"
                             android:text="@string/history_high_stress"
                             android:visibility="gone" />
+
                     </LinearLayout>
 
                 </LinearLayout>
 
-                <!-- Dose Badge -->
                 <TextView
                     android:id="@+id/tv_header_dose"
                     android:layout_width="wrap_content"
@@ -132,7 +126,6 @@
 
         </LinearLayout>
 
-        <!-- Expanded Details Section -->
         <LinearLayout
             android:id="@+id/layout_expanded"
             android:layout_width="match_parent"
@@ -143,14 +136,12 @@
             android:paddingHorizontal="@dimen/spacing_large"
             android:paddingBottom="@dimen/spacing_large">
 
-            <!-- Warm divider -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/divider_height"
                 android:background="@color/divider"
                 android:layout_marginBottom="@dimen/spacing_medium" />
 
-            <!-- Context Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -183,6 +174,7 @@
                         android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/text_primary" />
+
                 </LinearLayout>
 
                 <LinearLayout
@@ -211,6 +203,7 @@
                         android:textSize="@dimen/text_body2"
                         android:fontFamily="sans-serif-medium"
                         android:textColor="@color/text_primary" />
+
                 </LinearLayout>
 
                 <LinearLayout
@@ -256,12 +249,13 @@
                             android:fontFamily="sans-serif-medium"
                             android:layout_marginStart="@dimen/spacing_small"
                             android:visibility="gone" />
+
                     </LinearLayout>
+
                 </LinearLayout>
 
             </LinearLayout>
 
-            <!-- Reference Object Row -->
             <LinearLayout
                 android:id="@+id/layout_reference_object"
                 android:layout_width="match_parent"
@@ -288,6 +282,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/text_primary"
                     tools:text="Insulin Syringe" />
+
             </LinearLayout>
 
             <TextView
@@ -300,7 +295,6 @@
                 android:textSize="@dimen/text_caption"
                 android:visibility="gone" />
 
-            <!-- Profile Warning Box -->
             <LinearLayout
                 android:id="@+id/layout_profile_warning"
                 android:layout_width="match_parent"
@@ -339,10 +333,11 @@
                         android:textSize="@dimen/text_caption"
                         android:textColor="@color/text_secondary"
                         android:layout_marginTop="@dimen/spacing_xs"/>
+
                 </LinearLayout>
+
             </LinearLayout>
 
-            <!-- Medical Settings Section -->
             <LinearLayout
                 android:id="@+id/layout_medical_settings"
                 android:layout_width="match_parent"
@@ -368,9 +363,9 @@
                     android:textSize="@dimen/text_body2"
                     android:textColor="@color/text_primary"
                     android:lineSpacingExtra="@dimen/spacing_xs" />
+
             </LinearLayout>
 
-            <!-- Glucose Section -->
             <LinearLayout
                 android:id="@+id/layout_glucose_section"
                 android:layout_width="match_parent"
@@ -396,9 +391,9 @@
                     android:textSize="@dimen/text_body2"
                     android:fontFamily="sans-serif-medium"
                     android:textColor="@color/text_primary" />
+
             </LinearLayout>
 
-            <!-- Adjustments Section -->
             <LinearLayout
                 android:id="@+id/layout_adjustments_section"
                 android:layout_width="match_parent"
@@ -424,9 +419,9 @@
                     android:textSize="@dimen/text_body2"
                     android:textColor="@color/text_primary"
                     android:lineSpacingExtra="@dimen/spacing_xs" />
+
             </LinearLayout>
 
-            <!-- Food List -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -447,7 +442,6 @@
                 android:textColor="@color/text_primary"
                 android:layout_marginBottom="@dimen/spacing_large"/>
 
-            <!-- Dose Calculation Receipt -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -464,6 +458,29 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_receipt_warm"
                 android:padding="@dimen/padding_card">
+
+                <!-- Plan Row — first inside receipt -->
+                <RelativeLayout
+                    android:id="@+id/row_receipt_plan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/spacing_xs">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Insulin Plan"
+                        android:textSize="@dimen/text_body2"
+                        android:textColor="@color/text_secondary" />
+                    <TextView
+                        android:id="@+id/tv_receipt_plan_value"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:textSize="@dimen/text_body2"
+                        android:fontFamily="sans-serif-medium"
+                        android:textColor="@color/text_primary"
+                        tools:text="Morning Plan" />
+                </RelativeLayout>
 
                 <!-- Carb Dose -->
                 <RelativeLayout
@@ -584,7 +601,6 @@
                         android:textColor="@color/secondary"/>
                 </RelativeLayout>
 
-                <!-- Divider -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/divider_height"

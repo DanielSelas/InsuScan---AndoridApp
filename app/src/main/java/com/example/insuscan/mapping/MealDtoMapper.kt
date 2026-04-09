@@ -11,6 +11,8 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
 
     // converts server MealDto -> local Meal (for loading history)
     override fun map(from: MealDto): Meal {
+        android.util.Log.d("PLAN_DEBUG", "from.savedPlanName = ${from.savedPlanName}")
+        android.util.Log.d("PLAN_DEBUG", "from.insulinCalculation?.activePlanName = ${from.insulinCalculation?.activePlanName}")
         return Meal(
             title = from.foodItems?.firstOrNull()?.name ?: "Meal Analysis",
             carbs = from.totalCarbs ?: 0f,
@@ -40,7 +42,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
 
             // fixed: read glucose from both top level and insulinCalculation
             glucoseLevel = from.currentGlucose ?: from.insulinCalculation?.currentGlucose,
-            glucoseUnits = from.glucoseUnits,  // added
+            glucoseUnits = from.glucoseUnits,
 
             // fixed: read activity from both top level and insulinCalculation
             activityLevel = from.activityLevel ?: from.insulinCalculation?.activityLevel,
@@ -61,7 +63,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             savedIcr = from.insulinCalculation?.insulinCarbRatio?.toFloatOrNull(),
             savedIsf = from.insulinCalculation?.correctionFactor,
             savedTargetGlucose = from.insulinCalculation?.targetGlucose,
-            savedPlanName = from.insulinCalculation?.activePlanName
+            savedPlanName = from.savedPlanName ?: from.insulinCalculation?.activePlanName
         )
     }
 
@@ -103,7 +105,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
 
             // fixed: top-level fields that server expects
             currentGlucose = meal.glucoseLevel,
-            glucoseUnits = meal.glucoseUnits,  // added
+            glucoseUnits = meal.glucoseUnits,
             activityLevel = meal.activityLevel,
 
             // Calculation breakdown at top level
@@ -129,7 +131,8 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             status = "CONFIRMED",
             scannedTimestamp = DateTimeHelper.formatForApi(meal.timestamp),
             confirmedTimestamp = null,
-            completedTimestamp = null
+            completedTimestamp = null,
+            savedPlanName = meal.savedPlanName
         )
     }
 

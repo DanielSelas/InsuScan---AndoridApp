@@ -210,6 +210,10 @@ class MealViewHolder(
             }
 
             receiptTotalValue.text = item.totalDoseValue
+            val rowPlan = itemView.findViewById<View>(R.id.row_receipt_plan)
+            val tvPlanValue = itemView.findViewById<TextView>(R.id.tv_receipt_plan_value)
+            rowPlan.isVisible = item.isPlanVisible
+            tvPlanValue.text = item.planDisplayText
             receiptTotalValue.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
         }
 
