@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.example.insuscan.R
 import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.profile.exception.StorageException
 import com.example.insuscan.utils.ToastHelper
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.storage.FirebaseStorage
@@ -37,9 +38,12 @@ class ProfileImageHandler(private val fragment: Fragment) {
         if (granted) openCamera() else ToastHelper.showShort(fragment.requireContext(), "Camera permission denied")
     }
 
-    fun bind(ui: ProfileUiManager, updateCallback: () -> Unit) {
+    private var onUploadError: ((StorageException) -> Unit)? = null
+
+    fun bind(ui: ProfileUiManager, updateCallback: () -> Unit, onError: ((StorageException) -> Unit)? = null) {
         this.uiManager = ui
         this.onPhotoUpdated = updateCallback
+        this.onUploadError = onError
     }
 
     fun showPhotoOptionsDialog() {
@@ -90,10 +94,15 @@ class ProfileImageHandler(private val fragment: Fragment) {
                 loadProfilePhoto(url)
                 onPhotoUpdated?.invoke()
                 ToastHelper.showShort(ctx, "Photo updated and saved!")
+            }.addOnFailureListener { e ->
+                Log.e("ProfileImageHandler", "Failed to get download URL: ${e.message}")
+                val error = StorageException.DownloadUrlFailed
+                onUploadError?.invoke(error) ?: ToastHelper.showShort(ctx, error.message ?: "Upload failed")
             }
         }.addOnFailureListener { e ->
             Log.e("ProfileImageHandler", "Upload failed: ${e.message}")
-            ToastHelper.showShort(ctx, "Upload failed")
+            val error = StorageException.UploadFailed(e)
+            onUploadError?.invoke(error) ?: ToastHelper.showShort(ctx, error.message ?: "Upload failed")
         }
     }
 

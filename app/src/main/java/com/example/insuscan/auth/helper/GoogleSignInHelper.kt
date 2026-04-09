@@ -3,6 +3,7 @@ package com.example.insuscan.auth.helper
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.example.insuscan.auth.AuthManager
+import com.example.insuscan.auth.exception.AuthException
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 
@@ -15,7 +16,7 @@ class GoogleSignInHelper(
     private val webClientId: String,
     private val onLoading: (Boolean) -> Unit,
     private val onSuccess: (email: String, name: String, photo: String?) -> Unit,
-    private val onError: (String) -> Unit
+    private val onError: (AuthException) -> Unit
 ) {
 
     private val launcher = fragment.registerForActivityResult(
@@ -26,25 +27,25 @@ class GoogleSignInHelper(
             val account = task.getResult(ApiException::class.java)
             account.idToken?.let { token ->
                 onLoading(true)
-                AuthManager.signInWithGoogle(token) { success, error ->
+                AuthManager.signInWithGoogle(token) { success, exception ->
                     onLoading(false)
                     if (success) {
                         val email = AuthManager.getUserEmail()
                         if (email.isNullOrBlank()) {
-                            onError("Google sign-in succeeded but email is missing")
+                            onError(AuthException.GoogleSignInFailed(Exception("Email missing after sign-in")))
                             return@signInWithGoogle
                         }
                         val displayName = AuthManager.currentUser()?.displayName ?: email.substringBefore("@")
                         val photoUrl = AuthManager.currentUser()?.photoUrl?.toString()
                         onSuccess(email, displayName, photoUrl)
                     } else {
-                        onError("Google sign-in failed: $error")
+                        onError(exception ?: AuthException.GoogleSignInFailed())
                     }
                 }
             }
         } catch (e: ApiException) {
             android.util.Log.e("GoogleSignIn", "Failed code=${e.statusCode}", e)
-            onError("Google sign-in failed. Error code: ${e.statusCode}")
+            onError(AuthException.GoogleSignInFailed(e))
         }
     }
 

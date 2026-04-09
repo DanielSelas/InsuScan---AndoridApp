@@ -2,6 +2,7 @@ package com.example.insuscan.utils
 
 import android.content.Context
 import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.utils.exception.InsulinException
 
 // Extracted from SummaryFragment.performCalculation()
 // Shared between SummaryFragment and Chat flow
@@ -32,6 +33,8 @@ object InsulinCalculatorUtil {
         isSick: Boolean = false,
         isStress: Boolean = false
     ): DoseResult {
+        if (carbs < 0) throw InsulinException.NegativeCarbInput
+
         val pm = UserProfileManager
 
         FileLogger.log("CALC", "--- New Calculation Started ---")
@@ -39,7 +42,8 @@ object InsulinCalculatorUtil {
 
         // 1. Carb Dose = Carbs / Ratio
         val effectiveGramsPerUnit = com.example.insuscan.meal.MealSessionManager.activePlanIcr ?: gramsPerUnit
-        val carbDose = if (effectiveGramsPerUnit > 0) carbs / effectiveGramsPerUnit else 0f
+        if (effectiveGramsPerUnit <= 0) throw InsulinException.ZeroICR
+        val carbDose = carbs / effectiveGramsPerUnit
         FileLogger.log("CALC", "STEP 1: Carb Dose = $carbs / $effectiveGramsPerUnit = $carbDose u")
 
         // 2. Correction Dose
