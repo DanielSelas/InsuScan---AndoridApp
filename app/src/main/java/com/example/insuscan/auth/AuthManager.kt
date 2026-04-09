@@ -5,6 +5,8 @@ import android.content.Intent
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.example.insuscan.auth.exception.AuthException
+import com.example.insuscan.auth.util.AuthErrorHandler
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
@@ -37,38 +39,38 @@ object AuthManager {
     fun getGoogleSignInIntent(): Intent? = googleSignInClient?.signInIntent
 
     // Sign in with Google credential
-    fun signInWithGoogle(idToken: String, onComplete: (Boolean, String?) -> Unit) {
+    fun signInWithGoogle(idToken: String, onComplete: (Boolean, AuthException?) -> Unit) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onComplete(true, null)
                 } else {
-                    onComplete(false, task.exception?.message)
+                    onComplete(false, AuthErrorHandler.toAuthException(task.exception?.message))
                 }
             }
     }
 
     // Sign in with email/password
-    fun signInWithEmail(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
+    fun signInWithEmail(email: String, password: String, onComplete: (Boolean, AuthException?) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onComplete(true, null)
                 } else {
-                    onComplete(false, task.exception?.message)
+                    onComplete(false, AuthErrorHandler.toAuthException(task.exception?.message))
                 }
             }
     }
 
     // Register with email/password
-    fun registerWithEmail(email: String, password: String, onComplete: (Boolean, String?) -> Unit) {
+    fun registerWithEmail(email: String, password: String, onComplete: (Boolean, AuthException?) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     onComplete(true, null)
                 } else {
-                    onComplete(false, task.exception?.message)
+                    onComplete(false, AuthErrorHandler.toAuthException(task.exception?.message))
                 }
             }
     }

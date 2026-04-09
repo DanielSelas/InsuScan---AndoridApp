@@ -1,5 +1,6 @@
 package com.example.insuscan.meal
 
+import com.example.insuscan.meal.exception.MealException
 import com.example.insuscan.profile.InsulinPlan
 
 object MealSessionManager {
@@ -31,6 +32,10 @@ object MealSessionManager {
         activePlanIsf = null
         activePlanTargetGlucose = null
     }
+
+    /** Returns the current meal or throws [MealException.NoActiveSession] if none exists. */
+    fun getCurrentMealOrThrow(): Meal =
+        currentMeal ?: throw MealException.NoActiveSession
 
     fun setCurrentMeal(meal: Meal) {
         currentMeal = meal

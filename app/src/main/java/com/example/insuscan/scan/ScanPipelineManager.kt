@@ -10,6 +10,7 @@ import com.example.insuscan.analysis.detection.PlateDetector
 import com.example.insuscan.analysis.estimation.PortionEstimator
 import com.example.insuscan.analysis.model.PortionResult
 import com.example.insuscan.analysis.detection.ReferenceObjectDetector
+import com.example.insuscan.camera.exception.CameraException
 import com.example.insuscan.mapping.FoodItemDtoMapper
 import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.meal.Meal
@@ -222,8 +223,11 @@ class ScanPipelineManager(private val context: Context) {
                 return@withContext PipelineResult.Failed(error)
             }
 
-            PipelineResult.Failed(Exception("Unexpected pipeline state"))
+            PipelineResult.Failed(CameraException.PortionEstimationFailed("Unexpected pipeline state"))
 
+        } catch (e: CameraException) {
+            Log.e(TAG, "Camera error: ${e.message}")
+            PipelineResult.Failed(e)
         } catch (e: Exception) {
             Log.e(TAG, "Pipeline error: ${e.message}")
             PipelineResult.Failed(e)
@@ -237,7 +241,7 @@ class ScanPipelineManager(private val context: Context) {
         warning: String?
     ): PipelineResult {
         if (dto.status == "FAILED" || dto.foodItems.isNullOrEmpty()) {
-            return PipelineResult.NoFoodDetected
+            return PipelineResult.Failed(CameraException.PlateNotFound)
         }
 
         val meal = convertMealDtoToMeal(dto, portionResult)

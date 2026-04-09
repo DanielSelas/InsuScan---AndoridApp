@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
+import com.example.insuscan.auth.exception.AuthException
 import com.example.insuscan.auth.helper.GoogleSignInHelper
 import com.example.insuscan.auth.helper.LoginFlowManager
 import com.example.insuscan.auth.util.AuthErrorHandler
@@ -56,7 +57,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             webClientId = getString(R.string.default_web_client_id),
             onLoading = { showLoading(it) },
             onSuccess = { email, name, photo -> flowManager.handleLoginSuccess(email, name, photo) },
-            onError = { showError(it) }
+            onError = { showError(it.message ?: "Google sign-in failed") }
         )
     }
 
@@ -159,13 +160,13 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         if (passError != null) { tilPassword.error = passError; return }
 
         showLoading(true)
-        AuthManager.signInWithEmail(email, password) { success, error ->
+        AuthManager.signInWithEmail(email, password) { success, exception ->
             showLoading(false)
             if (success) {
                 val displayName = AuthManager.currentUser()?.displayName ?: email.substringBefore("@")
                 flowManager.handleLoginSuccess(email, displayName, null)
             } else {
-                showError(AuthErrorHandler.mapFirebaseError(error))
+                showError(exception?.message ?: "Sign in failed")
             }
         }
     }
@@ -185,13 +186,13 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         if (matchError != null) { tilConfirmPassword.error = matchError; return }
 
         showLoading(true)
-        AuthManager.registerWithEmail(email, password) { success, error ->
+        AuthManager.registerWithEmail(email, password) { success, exception ->
             if (success) {
                 val displayName = email.substringBefore("@")
                 flowManager.handleLoginSuccess(email, displayName, null)
             } else {
                 showLoading(false)
-                showError(AuthErrorHandler.mapFirebaseError(error))
+                showError(exception?.message ?: "Registration failed")
             }
         }
     }
@@ -205,7 +206,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 if (task.isSuccessful) {
                     Toast.makeText(requireContext(), "Password reset email sent to $email", Toast.LENGTH_LONG).show()
                 } else {
-                    showError(AuthErrorHandler.mapFirebaseError(task.exception?.message))
+                    showError(AuthErrorHandler.toAuthException(task.exception?.message).message ?: "Failed to send reset email")
                 }
             }
     }
