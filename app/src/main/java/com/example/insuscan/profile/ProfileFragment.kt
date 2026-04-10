@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.auth.AuthManager
+import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.profile.helpers.ProfileDataHelper
 import com.example.insuscan.profile.helpers.ProfileImageHandler
 import com.example.insuscan.profile.helpers.ProfileRepository
@@ -144,7 +145,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                 ToastHelper.showShort(ctx, "Profile saved and synced!")
                 findNavController().popBackStack()
             } else {
-                ToastHelper.showShort(ctx, "Saved locally. Sync failed: ${result.exceptionOrNull()?.message}")
+                val errorMsg = when (val e = result.exceptionOrNull()) {
+                    is ApiException.NoConnection -> "Saved locally. No internet connection."
+                    is ApiException.Timeout -> "Saved locally. Request timed out."
+                    is ApiException.Unauthorized -> "Session expired. Please log in again."
+                    is ApiException.ServerError -> "Saved locally. Server error (${e.code})."
+                    else -> "Saved locally. Sync failed."
+                }
+                ToastHelper.showShort(ctx, errorMsg)
                 findNavController().popBackStack()
             }
         }

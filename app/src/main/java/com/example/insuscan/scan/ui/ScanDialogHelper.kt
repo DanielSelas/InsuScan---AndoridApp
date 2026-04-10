@@ -2,6 +2,8 @@ package com.example.insuscan.scan.ui
 
 import android.content.Context
 import androidx.appcompat.app.AlertDialog
+import com.example.insuscan.camera.exception.CameraException
+import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.network.exception.ScanException
 import com.example.insuscan.utils.ToastHelper
 
@@ -52,10 +54,21 @@ class ScanDialogHelper(
 
     fun handleScanError(error: Throwable) {
         when (error) {
+            // Scan-specific
             is ScanException.NoFoodDetected -> showNoFoodDetectedDialog()
             is ScanException.NetworkError -> showScanFailedDialog("No internet connection. Please check your network and try again.")
             is ScanException.ServerError -> showScanFailedDialog("Server error. Please try again later.")
             is ScanException.Unauthorized -> ToastHelper.showLong(context, "Session expired. Please log in again.")
+            // Camera / scan pipeline
+            is CameraException.PlateNotFound -> showNoFoodDetectedDialog()
+            is CameraException.NoScaleSource -> showScanFailedDialog("Place a reference object next to the food for accurate measurements.")
+            is CameraException.ARCoreSessionFailed -> ToastHelper.showLong(context, "AR unavailable. Scan will continue without depth data.")
+            is CameraException.PortionEstimationFailed -> showScanFailedDialog("Could not estimate portion size. Try again with better lighting.")
+            // Network (from ApiException via BaseRepository)
+            is ApiException.NoConnection -> showScanFailedDialog("No internet connection. Please check your network and try again.")
+            is ApiException.Timeout -> showScanFailedDialog("Request timed out. Please try again.")
+            is ApiException.ServerError -> showScanFailedDialog("Server error (${error.code}). Please try again later.")
+            is ApiException.Unauthorized -> ToastHelper.showLong(context, "Session expired. Please log in again.")
             else -> showScanFailedDialog("Something went wrong. Please try again.")
         }
     }
