@@ -16,6 +16,8 @@ import com.example.insuscan.scan.ScanMode
 import com.example.insuscan.scan.ScanResultCallback
 import com.example.insuscan.scan.coach.CameraCoachEvaluator
 import com.example.insuscan.scan.coach.MeasurementStrategy
+import com.example.insuscan.camera.exception.CameraException
+import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.scan.ui.ScanDialogHelper
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ReferenceObjectHelper
@@ -247,9 +249,15 @@ class ScanFlowController(
                 val result = hardware.pipelineManager.runAnalysis(bitmap, cacheFile, "NONE", capturedImagePath)
                 handlePipelineResult(result)
             }
+        } catch (e: CameraException) {
+            uiState.showLoading(false)
+            dialogHelper.handleScanError(e)
+        } catch (e: ApiException) {
+            uiState.showLoading(false)
+            dialogHelper.handleScanError(e)
         } catch (e: Exception) {
             uiState.showLoading(false)
-            ToastHelper.showShort(context, "Failed to process image: ${e.message}")
+            ToastHelper.showShort(context, "Failed to process image. Please try again.")
         }
     }
 }

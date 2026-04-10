@@ -5,6 +5,7 @@ import android.content.Context
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.network.repository.MealRepositoryImpl
 import com.example.insuscan.summary.helpers.SummaryCalculationHelper.DOSE_BLOCKING_THRESHOLD
@@ -137,12 +138,21 @@ class SummaryPersistenceHandler(
                     MealSessionManager.clearSession()
                     onMealSavedSuccessfully()
                 } else {
-                    val errorMsg = result.exceptionOrNull()?.message ?: "Unknown error"
-                    showError("Failed to save: $errorMsg")
+                    val errorMsg = when (val e = result.exceptionOrNull()) {
+                        is ApiException.NoConnection -> "No internet connection. Meal saved locally."
+                        is ApiException.Timeout -> "Request timed out. Please try again."
+                        is ApiException.ServerError -> "Server error (${e.code}). Please try again later."
+                        is ApiException.Unauthorized -> "Session expired. Please log in again."
+                        else -> "Failed to save. Please try again."
+                    }
+                    showError(errorMsg)
                     ui.logButton.isEnabled = true
                 }
+            } catch (e: ApiException.NoConnection) {
+                showError("No internet connection. Please try again.")
+                ui.logButton.isEnabled = true
             } catch (e: Exception) {
-                showError("Error: ${e.message}")
+                showError("Failed to save. Please try again.")
                 ui.logButton.isEnabled = true
             }
         }
