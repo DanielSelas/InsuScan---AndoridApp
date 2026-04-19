@@ -48,13 +48,17 @@ class PortionEstimator(private val context: Context) {
         )
     }
 
-    fun configureSyringe(lengthCm: Float) {
-        referenceDetector.setExpectedObjectDimensions(lengthCm, 1.0f, 1.0f)
+    fun configureForType(refType: com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType) {
+        referenceDetector.configureForType(refType)
     }
 
     private fun refreshSettings() {
-        val customLength = com.example.insuscan.profile.UserProfileManager.getCustomSyringeLength(context)
-        configureSyringe(customLength)
+        val serverValue = com.example.insuscan.profile.UserProfileManager.getCustomSyringeLength(context).let {
+            if (it > 0f) "INSULIN_SYRINGE" else "NONE"
+        }
+        val refType = com.example.insuscan.utils.ReferenceObjectHelper.fromServerValue(serverValue)
+            ?: com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE
+        referenceDetector.configureForType(refType)
     }
 
     /**
@@ -72,12 +76,14 @@ class PortionEstimator(private val context: Context) {
     ): PortionResult {
         if (!isInitialized) {
             Log.w(TAG, "PortionEstimator not initialized")
+
             return PortionResult.Error("System not initialized")
         }
 
         refreshSettings()
 
         // Step 1: Detect Plate (reuse if already detected by caller)
+        Log.d(TAG, "Input bitmap size: w=${bitmap.width}px, h=${bitmap.height}px")
         val plateResult = precomputedPlateResult ?: plateDetector.detectPlate(bitmap)
         val plateBounds = if (plateResult.isFound) plateResult.bounds else null
 
@@ -154,6 +160,7 @@ class PortionEstimator(private val context: Context) {
                     referenceObjectDetected = false,
                     arMeasurementUsed = false,
                     arDepthIsReal = false,
+                    pixelToCmRatio = null,
                     warning = "No reference object or AR available. Place a reference object for accurate measurements."
                 )
             }
@@ -166,6 +173,16 @@ class PortionEstimator(private val context: Context) {
                 "plate=${plateDimensions.diameterCm}cm, depth=${depthResult.depthCm}cm, " +
                 "source=${scaleSource::class.simpleName}")
 
+        Log.d(TAG, "========== PORTION ESTIMATOR ==========")
+        Log.d(TAG, "scaleSource      : ${scaleSource::class.simpleName}")
+        Log.d(TAG, "plateDiameterCm  : ${plateDimensions.diameterCm}")
+        Log.d(TAG, "depthCm          : ${depthResult.depthCm}")
+        Log.d(TAG, "containerType    : $containerType")
+        Log.d(TAG, "pixelToCmRatio   : ${(scaleSource as? ScaleSource.ReferenceObject)?.pixelToCmRatio}")
+        Log.d(TAG, "refObjectDetected: $hasRefObject")
+        Log.d(TAG, "arUsed           : $hasArMeasurement")
+        Log.d(TAG, "=======================================")
+
         return PortionResult.Success(
             estimatedWeightGrams = 0f,
             volumeCm3 = volumeCm3,
@@ -176,6 +193,7 @@ class PortionEstimator(private val context: Context) {
             referenceObjectDetected = hasRefObject,
             arMeasurementUsed = hasArMeasurement,
             arDepthIsReal = arMeasurement?.isRealDepth ?: false,
+            pixelToCmRatio = if (scaleSource is ScaleSource.ReferenceObject) scaleSource.pixelToCmRatio else null,
             warning = null
         )
     }

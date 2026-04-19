@@ -8,11 +8,11 @@ import org.opencv.core.RotatedRect
 
 class StrictReferenceStrategy : ReferenceObjectStrategy {
     companion object {
-        private const val MIN_ASPECT_RATIO = 4.0
-        private const val MAX_ASPECT_RATIO = 25.0
-        private const val MIN_RECTANGULARITY = 0.7
+        private const val MIN_ASPECT_RATIO = 3.0
+        private const val MAX_ASPECT_RATIO = 30.0
+        private const val MIN_RECTANGULARITY = 0.55
         private const val CONFIDENCE = 0.9f
-        private const val MIN_LENGTH_THRESHOLD_RATIO = 0.07
+        private const val MIN_LENGTH_THRESHOLD_RATIO = 0.05
     }
 
     override val mode = ReferenceObjectDetector.DetectionMode.STRICT

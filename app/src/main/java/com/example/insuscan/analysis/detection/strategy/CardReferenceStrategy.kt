@@ -11,13 +11,13 @@ import org.opencv.core.RotatedRect
 class CardReferenceStrategy : ReferenceObjectStrategy {
     companion object {
         private const val TAG = "CardStrategy"
-        private const val MIN_ASPECT_RATIO = 1.4
-        private const val MAX_ASPECT_RATIO = 1.8
-        private const val MIN_RECTANGULARITY = 0.85
-        private const val MIN_THICKNESS_RATIO = 0.05
+        private const val MIN_ASPECT_RATIO = 1.2
+        private const val MAX_ASPECT_RATIO = 2.2
+        private const val MIN_RECTANGULARITY = 0.75
+        private const val MIN_THICKNESS_RATIO = 0.04
         private const val CONFIDENCE = 0.95f
         private const val HOMOGRAPHY_CONFIDENCE = 0.97f
-        private const val MIN_LENGTH_THRESHOLD_RATIO = 0.07
+        private const val MIN_LENGTH_THRESHOLD_RATIO = 0.05
     }
 
     override val mode = ReferenceObjectDetector.DetectionMode.CARD
@@ -41,6 +41,7 @@ class CardReferenceStrategy : ReferenceObjectStrategy {
 
         if (aspectRatio < MIN_ASPECT_RATIO || aspectRatio > MAX_ASPECT_RATIO) {
             stats.badRatio++
+            Log.d(TAG, "Rejected: aspectRatio=${"%.2f".format(aspectRatio)} not in [$MIN_ASPECT_RATIO,$MAX_ASPECT_RATIO]")
             return null
         }
 
@@ -49,6 +50,7 @@ class CardReferenceStrategy : ReferenceObjectStrategy {
 
         if (rectangularity <= MIN_RECTANGULARITY) {
             stats.badSolidity++
+            Log.d(TAG, "Rejected: rectangularity=${"%.2f".format(rectangularity)} <= $MIN_RECTANGULARITY")
             return null
         }
 
@@ -62,6 +64,7 @@ class CardReferenceStrategy : ReferenceObjectStrategy {
         val minLengthThreshold = imgWidth * MIN_LENGTH_THRESHOLD_RATIO
         if (length < minLengthThreshold) {
             stats.tooSmall++
+            Log.d(TAG, "Rejected: length=${length.toInt()}px < min=${minLengthThreshold.toInt()}px")
             return null
         }
 
@@ -95,5 +98,7 @@ class CardReferenceStrategy : ReferenceObjectStrategy {
             confidence = finalConfidence,
             debugInfo = ""
         )
+
+
     }
 }

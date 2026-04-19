@@ -7,6 +7,7 @@ import com.example.insuscan.analysis.detection.strategy.*
 import com.example.insuscan.analysis.detection.util.ReferenceDebugStats
 import com.example.insuscan.analysis.model.DetectionResult
 import com.example.insuscan.analysis.model.FallbackDetectionResult
+import com.example.insuscan.utils.ReferenceObjectHelper
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.*
@@ -19,32 +20,26 @@ import org.opencv.imgproc.Imgproc
 class ReferenceObjectDetector(private val context: Context) {
 
     companion object {
-        private const val TAG = "RefObjectDetector"
+            private const val TAG = "RefObjectDetector"
 
-        // Known object dimensions (can be configured)
-        const val DEFAULT_SYRINGE_LENGTH_CM = 12.0f
-        const val CARD_WIDTH_CM = 8.56f
-        const val CARD_HEIGHT_CM = 5.398f
-        const val CARD_RATIO = CARD_WIDTH_CM / CARD_HEIGHT_CM
+            // Detection area thresholds
+            private const val MIN_CONTOUR_AREA = 1000.0
+            private const val MAX_CONTOUR_AREA = 500000.0
 
-        // Detection area thresholds
-        private const val MIN_CONTOUR_AREA = 1000.0
-        private const val MAX_CONTOUR_AREA = 500000.0
+            // OpenCV Magic Numbers extracted
+            private const val BLUR_KERNEL_SIZE = 5.0
+            private const val BLUR_SIGMA = 0.0
+            private const val CANNY_THRESHOLD_LOW = 50.0
+            private const val CANNY_THRESHOLD_HIGH = 150.0
 
-        // OpenCV Magic Numbers extracted
-        private const val BLUR_KERNEL_SIZE = 5.0
-        private const val BLUR_SIGMA = 0.0
-        private const val CANNY_THRESHOLD_LOW = 50.0
-        private const val CANNY_THRESHOLD_HIGH = 150.0
-        
-        // Relative sizing logic
-        private const val REF_RESOLUTION_PIXELS = 2_000_000.0
-    }
+            // Relative sizing logic
+            private const val REF_RESOLUTION_PIXELS = 2_000_000.0
+        }
 
     private var isOpenCvInitialized = false
-    private var expectedObjectLengthCm = DEFAULT_SYRINGE_LENGTH_CM
-    private var expectedObjectWidthCm = 1.0f
-    private var expectedObjectHeightCm = 1.0f
+    private var expectedObjectLengthCm = ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.lengthCm
+    private var expectedObjectWidthCm = ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.widthCm
+    private var expectedObjectHeightCm = ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.heightCm
 
     /** Detection mode determines which aspect ratio and solidity thresholds to use. */
     enum class DetectionMode {
@@ -63,6 +58,10 @@ class ReferenceObjectDetector(private val context: Context) {
         isOpenCvInitialized = OpenCVLoader.initLocal()
         Log.d(TAG, "OpenCV initialized: $isOpenCvInitialized")
         return isOpenCvInitialized
+    }
+
+    fun configureForType(refType: com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType) {
+        setExpectedObjectDimensions(refType.lengthCm, refType.widthCm, refType.heightCm)
     }
 
     fun setExpectedObjectDimensions(lengthCm: Float, widthCm: Float, heightCm: Float) {
@@ -166,6 +165,8 @@ class ReferenceObjectDetector(private val context: Context) {
         stats.candidates = candidates.size
         if (candidates.isEmpty()) return null
 
+        Log.d(TAG, "Detection done — total=${stats.totalContours}, tooSmall=${stats.tooSmall}, tooLarge=${stats.tooLarge}, badRatio=${stats.badRatio}, badSolidity=${stats.badSolidity}, candidates=${stats.candidates}")
+
         return candidates.maxByOrNull { it.confidence }?.copy(debugInfo = stats.toString())
     }
 
@@ -198,9 +199,9 @@ class ReferenceObjectDetector(private val context: Context) {
             val originalHeight = expectedObjectHeightCm
 
             when (fallbackMode) {
-                DetectionMode.CARD -> setExpectedObjectDimensions(8.5f, 5.5f, 0f)
-                DetectionMode.STRICT -> setExpectedObjectDimensions(DEFAULT_SYRINGE_LENGTH_CM, 1.25f, 1.25f)
-                DetectionMode.FLEXIBLE -> setExpectedObjectDimensions(DEFAULT_SYRINGE_LENGTH_CM, 1.5f, 1.5f)
+                DetectionMode.CARD     -> configureForType(ReferenceObjectHelper.ReferenceObjectType.CARD)
+                DetectionMode.STRICT   -> configureForType(ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE)
+                DetectionMode.FLEXIBLE -> configureForType(ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE)
             }
 
             val fallbackResult = detectReferenceObject(bitmap, plateBounds, fallbackMode)

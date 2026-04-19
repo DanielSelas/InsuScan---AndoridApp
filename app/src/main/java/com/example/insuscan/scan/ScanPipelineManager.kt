@@ -126,11 +126,13 @@ class ScanPipelineManager(private val context: Context) {
             val rawVolume = successRes?.volumeCm3
             val volumeCm3 = if (rawVolume != null && rawVolume > 0f) rawVolume else null
 
-            val diameter = if (successRes?.referenceObjectDetected == true && successRes.plateDiameterCm > 0) {
-                successRes.plateDiameterCm
-            } else if (successRes?.arMeasurementUsed == true) {
-                successRes.plateDiameterCm
-            } else null
+//            val diameter = if (successRes?.referenceObjectDetected == true && successRes.plateDiameterCm > 0) {
+//                successRes.plateDiameterCm
+//            } else if (successRes?.arMeasurementUsed == true) {
+//                successRes.plateDiameterCm
+//            } else null
+            val diameter: Float? = null
+
 
             // Only send depth when from REAL AR Depth API — never send heuristic guesses.
             // When AR depth is unavailable, the server's AI will estimate depth visually from the image,
@@ -169,16 +171,26 @@ class ScanPipelineManager(private val context: Context) {
 
             val referenceType = refType
 
-            val pixelToCmRatio = (portionResult as? PortionResult.Success)?.let { pr ->
-                if (pr.referenceObjectDetected && pr.plateDiameterCm > 0 && plateBounds != null) {
-                    pr.plateDiameterCm / plateBounds.width().toFloat()
-                } else null
-            }
+            val pixelToCmRatio = (portionResult as? PortionResult.Success)?.pixelToCmRatio
+
+
+            Log.d(TAG, "========== SCAN PAYLOAD ==========")
+            Log.d(TAG, "plateDiameterCm  : $diameter")
+            Log.d(TAG, "plateDepthCm     : $depth")
+            Log.d(TAG, "containerType    : $containerType")
+            Log.d(TAG, "pixelToCmRatio   : $pixelToCmRatio")
+            Log.d(TAG, "estimatedWeight  : $estimatedWeight")
+            Log.d(TAG, "volumeCm3        : $volumeCm3")
+            Log.d(TAG, "confidence       : $confidence")
+            Log.d(TAG, "referenceType    : $referenceType")
+            Log.d(TAG, "sideImage        : ${sideImage != null}")
+            Log.d(TAG, "==================================")
 
             val scanResult = scanRepository.scanImage(
                 bitmap, email, estimatedWeight, volumeCm3,
                 confidence, referenceType, diameter, depth,
                 containerType = containerType,
+                pixelToCmRatio = pixelToCmRatio,
                 sideImageBitmap = sideImage
             )
 

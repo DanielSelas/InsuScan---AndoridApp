@@ -2,6 +2,7 @@ package com.example.insuscan.camera.validator
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import java.io.File
 import kotlin.math.sqrt
 
@@ -17,12 +18,12 @@ import kotlin.math.sqrt
 object ImageValidator {
 
     // Minimum image requirements
-    private const val MIN_WIDTH = 1920
-    private const val MIN_HEIGHT = 1080
-    private const val MIN_BRIGHTNESS = 40
-    private const val MAX_BRIGHTNESS = 220
-    private const val MIN_SHARPNESS_SCORE = 100.0
-
+    private const val MIN_WIDTH = 640
+    private const val MIN_HEIGHT = 480
+    private const val MIN_BRIGHTNESS = 20
+    private const val MAX_BRIGHTNESS = 240
+    private const val MIN_SHARPNESS_SCORE = 40.0
+    private const val TAG = "ImageValidator"
 
      // Runs full validation for a captured image file.
     fun validateCapturedImage(imageFile: File): ValidationResult {
@@ -33,7 +34,11 @@ object ImageValidator {
         val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
             ?: return ValidationResult.Error("The image cannot be read.")
 
-        return validateBitmap(bitmap)
+         Log.d(TAG, "Validating image: ${imageFile.name} (${imageFile.length()} bytes)")
+         Log.d(TAG, "📁 FILE | path=${imageFile.absolutePath} | size=${"%.2f".format(imageFile.length() / 1024.0)}KB | lastModified=${java.util.Date(imageFile.lastModified())}")
+
+
+         return validateBitmap(bitmap)
     }
 
 
@@ -41,36 +46,45 @@ object ImageValidator {
     fun validateBitmap(bitmap: Bitmap): ValidationResult {
         val issues = mutableListOf<String>()
 
+        Log.d(TAG, "Resolution: ${bitmap.width}x${bitmap.height}")
+
         // Resolution check
         if (bitmap.width < MIN_WIDTH || bitmap.height < MIN_HEIGHT) {
-            issues.add(
-                "Resolution is too low (${bitmap.width}x${bitmap.height}). " +
-                        "Minimum required is ${MIN_WIDTH}x${MIN_HEIGHT}."
-            )
+            val msg = "Resolution is too low (${bitmap.width}x${bitmap.height}). Minimum required is ${MIN_WIDTH}x${MIN_HEIGHT}."
+            issues.add(msg)
+            Log.w(TAG, "Resolution check failed: $msg")
         }
 
         // Brightness check
         val brightness = calculateAverageBrightness(bitmap)
+        Log.d(TAG, "Brightness: $brightness")
         when {
-            brightness < MIN_BRIGHTNESS ->
-                issues.add("The picture is too dark. Please take it in a brighter place.")
-            brightness > MAX_BRIGHTNESS ->
-                issues.add("The image is too bright. Please reduce the lighting.")
+            brightness < MIN_BRIGHTNESS -> {
+                val msg = "The picture is too dark. Please take it in a brighter place."
+                issues.add(msg)
+                Log.w(TAG, "Brightness check failed: brightness=$brightness")
+            }
+            brightness > MAX_BRIGHTNESS -> {
+                val msg = "The image is too bright. Please reduce the lighting."
+                issues.add(msg)
+                Log.w(TAG, "Brightness check failed: brightness=$brightness")
+            }
         }
 
         // Sharpness check
         val sharpness = calculateSharpnessScore(bitmap)
+        Log.d(TAG, "Sharpness: $sharpness")
         if (sharpness < MIN_SHARPNESS_SCORE) {
-            issues.add("The picture is blurry. Please keep the phone steady and try again.")
+            val msg = "The picture is blurry. Please keep the phone steady and try again."
+            issues.add(msg)
+            Log.w(TAG, "Sharpness check failed: sharpness=$sharpness")
         }
 
         return if (issues.isEmpty()) {
-            ValidationResult.Valid(
-                brightness = brightness,
-                sharpness = sharpness,
-                resolution = "${bitmap.width}x${bitmap.height}"
-            )
+            Log.d(TAG, "✅ VALIDATION PASSED | resolution=${bitmap.width}x${bitmap.height} | brightness=$brightness (range: $MIN_BRIGHTNESS–$MAX_BRIGHTNESS) | sharpness=${"%.1f".format(sharpness)} (min: $MIN_SHARPNESS_SCORE)")
+            ValidationResult.Valid(brightness = brightness, sharpness = sharpness, resolution = "${bitmap.width}x${bitmap.height}")
         } else {
+            Log.w(TAG, "❌ VALIDATION FAILED | ${issues.size} issue(s): ${issues.joinToString(" | ")}")
             ValidationResult.Invalid(issues)
         }
     }
@@ -98,7 +112,9 @@ object ImageValidator {
             }
         }
 
-        return if (count > 0) (totalBrightness / count).toInt() else 0
+       Log.v(TAG, "🔆 BRIGHTNESS SAMPLE | pixels=$count | totalBrightness=$totalBrightness | avg=${if (count > 0) totalBrightness / count else 0}")
+
+       return if (count > 0) (totalBrightness / count).toInt() else 0
     }
 
     // Computes a sharpness score using Laplacian variance (approx).
@@ -126,6 +142,9 @@ object ImageValidator {
         // Variance
         val mean = grayValues.average()
         val variance = grayValues.map { (it - mean) * (it - mean) }.average()
+
+        Log.v(TAG, "🔍 SHARPNESS SAMPLE | pixels=${grayValues.size} | mean=${"%.2f".format(mean)} | variance=${"%.2f".format(variance)} | score=${"%.2f".format(sqrt(variance))}")
+
 
         return sqrt(variance)
     }
@@ -161,6 +180,7 @@ object ImageValidator {
 
         // If there is a reasonable ratio of bright pixels, a reference object might be present
         val whiteRatio = whitePixelCount.toFloat() / totalSamples
+        Log.d(TAG, "🔎 REF OBJECT HINT | whitePixels=$whitePixelCount / $totalSamples | ratio=${"%.3f".format(whiteRatio)} | hintFound=${whiteRatio in 0.02f..0.15f}")
         return whiteRatio in 0.02f..0.15f // between 2% and 15% of the sampled pixels
     }
 }

@@ -9,9 +9,10 @@ import org.opencv.core.RotatedRect
 class FlexibleReferenceStrategy : ReferenceObjectStrategy {
     companion object {
         private const val MIN_ASPECT_RATIO = 2.0
-        private const val MAX_ASPECT_RATIO = 25.0
+        private const val MAX_ASPECT_RATIO = 30.0
         private const val CONFIDENCE = 0.7f
-        private const val MIN_LENGTH_THRESHOLD_RATIO = 0.07
+        private const val MIN_LENGTH_THRESHOLD_RATIO = 0.05
+        private const val MIN_THICKNESS_RATIO = 0.01
     }
 
     override val mode = ReferenceObjectDetector.DetectionMode.FLEXIBLE
@@ -35,6 +36,12 @@ class FlexibleReferenceStrategy : ReferenceObjectStrategy {
 
         if (aspectRatio < MIN_ASPECT_RATIO || aspectRatio > MAX_ASPECT_RATIO) {
             stats.badRatio++
+            return null
+        }
+
+        val minThickness = imgWidth * MIN_THICKNESS_RATIO
+        if (thickness < minThickness) {
+            stats.badSolidity++
             return null
         }
 

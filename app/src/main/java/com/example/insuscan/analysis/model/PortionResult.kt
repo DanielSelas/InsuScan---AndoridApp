@@ -14,6 +14,7 @@ sealed class PortionResult {
         val referenceObjectDetected: Boolean,
         val arMeasurementUsed: Boolean,
         val arDepthIsReal: Boolean,
+        val pixelToCmRatio: Float?,
         val warning: String?
     ) : PortionResult()
 

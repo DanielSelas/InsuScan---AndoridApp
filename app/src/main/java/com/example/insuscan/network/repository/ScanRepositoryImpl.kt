@@ -71,8 +71,8 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
     }
 
     private fun createImagePart(bitmap: Bitmap, partName: String, fileName: String): MultipartBody.Part {
-        // Downscale to 800px max dimension for faster upload and significantly faster Gemini processing
-        val maxDim = 800f
+        // Downscale to 1200px max dimension for faster upload and significantly faster Gemini processing
+        val maxDim = 1200f
         val scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height)
         
         val scaledBitmap = if (scale < 1f) {
