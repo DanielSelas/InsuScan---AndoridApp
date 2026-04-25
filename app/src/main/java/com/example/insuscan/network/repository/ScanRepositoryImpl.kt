@@ -17,30 +17,17 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
     private val api = RetrofitClient.api
 
     override suspend fun scanImage(
-        bitmap: Bitmap,
-        email: String,
-        estimatedWeight: Float?,
-        volumeCm3: Float?,
-        confidence: Float?,
-        referenceObjectType: String?,
-        plateDiameterCm: Float?,
-        plateDepthCm: Float?,
-        // v2 pipeline fields
-        containerType: String?,
-        pixelToCmRatio: Float?,
-        foodRegionsJson: String?,
-        // Side image for depth estimation fallback
-        sideImageBitmap: Bitmap?
+        topImage: Bitmap,
+        sideImage: Bitmap,
+        referenceObjectType: String,
+        email: String
     ): Result<MealDto> {
         return try {
-            val part = createImagePart(bitmap, "file", "meal.jpg")
-            val sidePart = sideImageBitmap?.let { createImagePart(it, "sideFile", "side.jpg") }
+            val topPart = createImagePart(topImage, "topFile", "meal.jpg")
+            val sidePart = createImagePart(sideImage, "sideFile", "side.jpg")
 
             val response = api.analyzeImage(
-                part, email, estimatedWeight, volumeCm3, confidence, 
-                referenceObjectType, plateDiameterCm, plateDepthCm,
-                containerType, pixelToCmRatio, foodRegionsJson,
-                sideFile = sidePart
+                topPart, sidePart, referenceObjectType, email
             )
 
             when {

@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-import com.example.insuscan.analysis.estimation.PortionEstimator
+
 import com.example.insuscan.ar.ArCoreManager
 import com.example.insuscan.camera.CameraManager
 import com.example.insuscan.camera.model.ImageQualityResult
@@ -28,7 +28,7 @@ class ScanHardwareController(
     lateinit var cameraManager: CameraManager
     var arCoreManager: ArCoreManager? = null
     lateinit var orientationHelper: OrientationHelper
-    var portionEstimator: PortionEstimator? = null
+
     lateinit var pipelineManager: ScanPipelineManager
     lateinit var refChipsController: ReferenceChipsController
 
@@ -51,13 +51,7 @@ class ScanHardwareController(
         cameraManager.arCoreManager = arCoreManager
         cameraManager.onImageQualityUpdate = { quality -> onQualityUpdate(quality) }
 
-        // 3. Portion Estimator & Pipeline
-        portionEstimator = PortionEstimator(context)
-        portionEstimator?.initialize()
-        
         pipelineManager = ScanPipelineManager(context)
-        pipelineManager.portionEstimator = portionEstimator
-        pipelineManager.arCoreManager = arCoreManager
 
         // 4. Reference Chips
         refChipsController = ReferenceChipsController(
@@ -119,8 +113,6 @@ class ScanHardwareController(
 
     fun onDestroy() {
         if (::cameraManager.isInitialized) cameraManager.shutdown()
-        portionEstimator?.release()
-        portionEstimator = null
         arCoreManager?.release()
         arCoreManager = null
     }
