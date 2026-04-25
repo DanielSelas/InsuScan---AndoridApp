@@ -103,22 +103,12 @@ interface InsuScanApi {
     // ===== Vision Analysis =====
 
     @Multipart
-    @POST("vision/analyze")
+    @POST("vision/v2/scan")
     suspend fun analyzeImage(
-        @Part file: MultipartBody.Part,
-        @Query("email") email: String,
-        @Query("estimatedWeightGrams") estimatedWeightGrams: Float? = null,
-        @Query("volumeCm3") volumeCm3: Float? = null,
-        @Query("portionConfidence") portionConfidence: Float? = null,
-        @Query("referenceObjectType") referenceObjectType: String? = null,
-        @Query("plateDiameterCm") plateDiameterCm: Float? = null,
-        @Query("plateDepthCm") plateDepthCm: Float? = null,
-        // v2 pipeline fields
-        @Query("containerType") containerType: String? = null,
-        @Query("pixelToCmRatio") pixelToCmRatio: Float? = null,
-        @Query("foodRegionsJson") foodRegionsJson: String? = null,
-        // Side image for depth estimation fallback
-        @Part sideFile: MultipartBody.Part? = null
+        @Part topFile: MultipartBody.Part,
+        @Part sideFile: MultipartBody.Part,
+        @Query("referenceObjectType") referenceObjectType: String,
+        @Query("email") email: String
     ): Response<MealDto>
 
     // Search USDA food database

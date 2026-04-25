@@ -45,7 +45,8 @@ data class MealDto(
     val confirmedTimestamp: String?,
     @SerializedName(value = "completedAt", alternate = ["completedTimestamp"])
     val completedTimestamp: String?,
-    val savedPlanName: String?
+    val savedPlanName: String?,
+    val reviewWarnings: List<String>? = null
     )
 
 data class MealIdDto(

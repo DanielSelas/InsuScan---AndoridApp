@@ -144,16 +144,7 @@ class ScanFlowController(
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val refCheck = hardware.pipelineManager.checkReferenceObject(bitmap, selectedReferenceType)
             Log.d(TAG, "🎯 REF CHECK RESULT | type=${refCheck::class.simpleName} | selectedRef=$selectedReferenceType | effectiveRef will be determined next")
-            val effectiveRefType = when (refCheck) {
-                is RefCheckResult.Proceed -> selectedReferenceType
-                is RefCheckResult.AlternativeFound -> {
-                    when (refCheck.detectedMode) {
-                        com.example.insuscan.analysis.detection.ReferenceObjectDetector.DetectionMode.STRICT -> "INSULIN_SYRINGE"
-                        com.example.insuscan.analysis.detection.ReferenceObjectDetector.DetectionMode.FLEXIBLE -> "SYRINGE_KNIFE"
-                        com.example.insuscan.analysis.detection.ReferenceObjectDetector.DetectionMode.CARD -> "CARD"
-                    }
-                }
-            }
+            val effectiveRefType = selectedReferenceType
             val result = hardware.pipelineManager.runAnalysis(bitmap, imageFile, effectiveRefType, capturedImagePath)
             handlePipelineResult(result)
         }
