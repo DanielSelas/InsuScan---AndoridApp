@@ -108,7 +108,8 @@ interface InsuScanApi {
         @Part topFile: MultipartBody.Part,
         @Part sideFile: MultipartBody.Part,
         @Query("referenceObjectType") referenceObjectType: String,
-        @Query("email") email: String
+        @Query("email") email: String,
+        @Query("arcoreData") arcoreData: String? = null
     ): Response<MealDto>
 
     // Search USDA food database

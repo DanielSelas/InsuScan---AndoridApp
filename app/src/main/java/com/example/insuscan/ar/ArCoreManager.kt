@@ -150,6 +150,11 @@ class ArCoreManager(private val context: Context) : GLSurfaceView.Renderer {
             session?.resume()
             isPaused = false
             Log.i(TAG, "ARCore session resumed")
+        } catch (e: com.google.ar.core.exceptions.FatalException) {
+            Log.w(TAG, "ARCore FatalException on resume — recreating session")
+            session?.close()
+            session = null
+            isAvailable = false
         } catch (e: Exception) {
             Log.e(TAG, "Failed to resume session", e)
         }
