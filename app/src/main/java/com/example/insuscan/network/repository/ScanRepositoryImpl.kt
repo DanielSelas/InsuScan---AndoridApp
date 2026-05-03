@@ -11,7 +11,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 import java.net.UnknownHostException
 import java.net.SocketTimeoutException
-
+import okhttp3.RequestBody.Companion.toRequestBody
 class ScanRepositoryImpl : BaseRepository(), ScanRepository {
 
     private val api = RetrofitClient.api
@@ -20,14 +20,15 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         topImage: Bitmap,
         sideImage: Bitmap,
         referenceObjectType: String,
-        email: String
+        email: String,
+        arcoreDataJson: String?
     ): Result<MealDto> {
         return try {
             val topPart = createImagePart(topImage, "topFile", "meal.jpg")
             val sidePart = createImagePart(sideImage, "sideFile", "side.jpg")
 
             val response = api.analyzeImage(
-                topPart, sidePart, referenceObjectType, email
+                topPart, sidePart, referenceObjectType, email, arcoreDataJson
             )
 
             when {
