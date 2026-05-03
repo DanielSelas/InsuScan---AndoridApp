@@ -10,6 +10,10 @@ interface ScanRepository {
         sideImage: Bitmap,
         referenceObjectType: String,
         email: String,
-        arcoreDataJson: String? = null
+        arcoreDataJson: String? = null,
+        topImageWidth: Int? = null,
+        topImageHeight: Int? = null,
+        sideImageWidth: Int? = null,
+        sideImageHeight: Int? = null
     ): Result<MealDto>
 }

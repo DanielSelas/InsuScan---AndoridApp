@@ -25,7 +25,7 @@ object ReferenceObjectHelper {
         NONE(R.string.ref_option_none, 0f, 0f, 0f, "NONE");
 
         fun scaleDescription(): String = when (this) {
-            INSULIN_SYRINGE -> "INSULIN SYRINGE — length=${lengthCm}cm, width=${widthCm}cm"
+            INSULIN_SYRINGE -> "INSULIN PEN — a slim cylindrical medical pen, approximately ${lengthCm}cm long and ${widthCm}cm in diameter"
             SYRINGE_KNIFE   -> "SYRINGE KNIFE — length=${lengthCm}cm, width=${widthCm}cm"
             CARD            -> "CREDIT CARD / ID CARD — width=${lengthCm}cm, height=${widthCm}cm"
             NONE            -> ""

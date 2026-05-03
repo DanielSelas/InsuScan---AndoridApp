@@ -105,7 +105,11 @@ class ScanPipelineManager(private val context: Context) {
                 sideImage = actualSideImage,
                 referenceObjectType = finalRefType,
                 email = email,
-                arcoreDataJson = arcoreDataJson
+                arcoreDataJson = arcoreDataJson,
+                topImageWidth = null,
+                topImageHeight = null,
+                sideImageWidth = null,
+                sideImageHeight = null
             )
 
             scanResult.onSuccess { mealDto ->
