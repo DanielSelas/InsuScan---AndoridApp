@@ -162,8 +162,6 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
                 return@setOnClickListener
             }
 
-            if (!validateGlucose()) return@setOnClickListener
-
             val quality = hardwareController.cameraManager.lastQualityResult
             if (quality == null || !quality.isPlateFound) {
                 ToastHelper.showShort(requireContext(), "Center the plate in the frame \uD83C\uDF7D️")
@@ -179,7 +177,6 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
         }
 
         uiState.galleryButton.setOnClickListener {
-            if (!validateGlucose()) return@setOnClickListener
             hardwareController.resetForGallery()
             galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
@@ -209,24 +206,12 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
         }
 
         hardwareController.refChipsController.setType(
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE
+            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE
         )
-        uiState.referenceButton.text = refOptions[0]
+        uiState.referenceButton.text = refOptions[1]
     }
 
-    private fun validateGlucose(): Boolean {
-        val text = uiState.glucoseInput.text.toString().trim()
-        if (text.isEmpty()) {
-            ToastHelper.showShort(requireContext(), "Please enter a valid blood glucose level before scanning.")
-            return false
-        }
-        val value = text.toIntOrNull()
-        if (value == null || value < 30 || value > 600) {
-            ToastHelper.showShort(requireContext(), "Blood glucose must be between 30 and 600 mg/dL.")
-            return false
-        }
-        return true
-    }
+
 
     // --- UI/Dialog Listeners ---
     override fun onSidePhotoReadyClicked() = uiState.hideSidePhotoCard { flowController.captureSidePhoto { initializeListeners() } }

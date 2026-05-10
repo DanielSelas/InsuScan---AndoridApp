@@ -39,8 +39,22 @@ class ScanUiStateManager(
 
     // Internal views for state management
     private val qualityStatusText: TextView = view.findViewById(R.id.tv_quality_status)
-    private val loadingOverlay: FrameLayout = view.findViewById(R.id.loading_overlay)
-    private val loadingMessage: TextView = view.findViewById(R.id.tv_loading_message)
+    private val simpleLoadingOverlay: FrameLayout = view.findViewById(R.id.loading_overlay)
+    private val fullLoadingOverlay: View = view.findViewById(R.id.layout_analyzing_meal)
+    private val step1Icon: ImageView = view.findViewById(R.id.step1_icon)
+    private val step2Icon: ImageView = view.findViewById(R.id.step2_icon)
+    private val step3Icon: ImageView = view.findViewById(R.id.step3_icon)
+    private val step4Icon: ImageView = view.findViewById(R.id.step4_icon)
+    private val step1Text: TextView = view.findViewById(R.id.step1_text)
+    private val step2Text: TextView = view.findViewById(R.id.step2_text)
+    private val step3Text: TextView = view.findViewById(R.id.step3_text)
+    private val step4Text: TextView = view.findViewById(R.id.step4_text)
+    
+    val ivLoadingAnimation: ImageView = view.findViewById(R.id.iv_loading_animation)
+    val btnSubmitScan: Button = view.findViewById(R.id.btn_submit_scan)
+    
+    private var loadingAnimationRunnable: Runnable? = null
+    private var duckAnimator: android.animation.ObjectAnimator? = null
     private val subtitleText: TextView = view.findViewById(R.id.tv_scan_subtitle)
     private val tvCoachPill: TextView = view.findViewById(R.id.tv_coach_pill)
     private val arIndicatorDot: View = view.findViewById(R.id.view_ar_indicator)
@@ -66,11 +80,106 @@ class ScanUiStateManager(
         tvSideCardSkip.setOnClickListener { listener.onSidePhotoSkipClicked() }
     }
 
-    fun showLoading(show: Boolean, message: String = "Processing image...") {
-        loadingOverlay.visibility = if (show) View.VISIBLE else View.GONE
-        loadingMessage.text = message
-        captureButton.isEnabled = !show
-        galleryButton.isEnabled = !show
+    fun showLoading(show: Boolean, message: String = "Processing image...", isFullAnalysis: Boolean = false) {
+        if (show) {
+            if (isFullAnalysis) {
+                simpleLoadingOverlay.visibility = View.GONE
+                fullLoadingOverlay.visibility = View.VISIBLE
+                btnSubmitScan.isEnabled = true
+                btnSubmitScan.text = "Show Results"
+                glucoseInput.isEnabled = true
+                startLoadingAnimation()
+            } else {
+                fullLoadingOverlay.visibility = View.GONE
+                simpleLoadingOverlay.visibility = View.VISIBLE
+            }
+            captureButton.isEnabled = false
+            galleryButton.isEnabled = false
+        } else {
+            simpleLoadingOverlay.visibility = View.GONE
+            fullLoadingOverlay.visibility = View.GONE
+            stopLoadingAnimation()
+            captureButton.isEnabled = true
+            galleryButton.isEnabled = true
+        }
+    }
+
+    private fun startLoadingAnimation() {
+        stopLoadingAnimation() // Ensure any existing animation is cancelled
+
+        val steps = listOf(
+            Pair(step1Icon, step1Text),
+            Pair(step2Icon, step2Text),
+            Pair(step3Icon, step3Text),
+            Pair(step4Icon, step4Text)
+        )
+
+        // Reset all steps to inactive
+        steps.forEach { (icon, text) ->
+            icon.setImageResource(R.drawable.ic_step_inactive)
+            text.setTextColor(android.graphics.Color.parseColor("#6C757D"))
+        }
+
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        var currentStep = 0
+
+        loadingAnimationRunnable = object : Runnable {
+            override fun run() {
+                if (currentStep > 0 && currentStep <= steps.size) {
+                    // Mark previous step as completed (green check)
+                    val prevStep = steps[currentStep - 1]
+                    prevStep.first.setImageResource(R.drawable.ic_step_check)
+                    prevStep.second.setTextColor(android.graphics.Color.parseColor("#0D1B2A"))
+                }
+
+                if (currentStep < steps.size) {
+                    // Mark current step as active (blue dot)
+                    val activeStep = steps[currentStep]
+                    activeStep.first.setImageResource(R.drawable.ic_step_active)
+                    activeStep.second.setTextColor(android.graphics.Color.parseColor("#0D1B2A"))
+                    
+                    currentStep++
+                    // Schedule next step in 2.0 seconds to simulate progress
+                    handler.postDelayed(this, 2000)
+                } else if (currentStep == steps.size) {
+                    // All steps completed, just wait (the actual API response will hide the loading screen)
+                }
+            }
+        }
+        
+        // Start dot animation immediately
+        handler.post(loadingAnimationRunnable!!)
+        
+        // Start duck scaling animation
+        startDuckBreathingAnimation()
+    }
+
+    private fun startDuckBreathingAnimation() {
+        duckAnimator?.cancel()
+        ivLoadingAnimation.scaleX = 1.0f
+        ivLoadingAnimation.scaleY = 1.0f
+        
+        val animatorX = android.animation.PropertyValuesHolder.ofFloat(View.SCALE_X, 1.0f, 1.15f)
+        val animatorY = android.animation.PropertyValuesHolder.ofFloat(View.SCALE_Y, 1.0f, 1.15f)
+        
+        duckAnimator = android.animation.ObjectAnimator.ofPropertyValuesHolder(ivLoadingAnimation, animatorX, animatorY).apply {
+            duration = 900
+            repeatCount = android.animation.ValueAnimator.INFINITE
+            repeatMode = android.animation.ValueAnimator.REVERSE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+            start()
+        }
+    }
+
+    private fun stopLoadingAnimation() {
+        loadingAnimationRunnable?.let {
+            android.os.Handler(android.os.Looper.getMainLooper()).removeCallbacks(it)
+            loadingAnimationRunnable = null
+        }
+        duckAnimator?.cancel()
+        duckAnimator = null
+        ivLoadingAnimation.scaleX = 1.0f
+        ivLoadingAnimation.scaleY = 1.0f
     }
 
     fun switchToCapturedImageMode(imageFile: File, fragment: androidx.fragment.app.Fragment, isSidePhotoMode: Boolean) {
