@@ -27,7 +27,7 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
             val sidePart = createImagePart(sideImage, "sideFile", "side.jpg")
 
             val response = api.analyzeImage(
-                topPart, sidePart, referenceObjectType, email
+                topPart, sidePart, referenceObjectType, email 
             )
 
             when {
