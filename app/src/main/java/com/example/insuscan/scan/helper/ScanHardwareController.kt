@@ -53,6 +53,8 @@ class ScanHardwareController(
 
         pipelineManager = ScanPipelineManager(context)
 
+        pipelineManager.arCoreManager = arCoreManager
+
         // 4. Reference Chips
         refChipsController = ReferenceChipsController(
             context = context,
@@ -101,8 +103,8 @@ class ScanHardwareController(
 
     fun onResume() {
         if (::orientationHelper.isInitialized) orientationHelper.start()
-        arCoreManager?.resume()
         uiState.hiddenArSurfaceView.onResume()
+        arCoreManager?.resume()
     }
 
     fun onPause() {

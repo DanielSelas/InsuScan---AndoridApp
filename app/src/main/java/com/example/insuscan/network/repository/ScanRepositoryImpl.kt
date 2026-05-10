@@ -11,7 +11,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 import java.net.UnknownHostException
 import java.net.SocketTimeoutException
-
+import okhttp3.RequestBody.Companion.toRequestBody
 class ScanRepositoryImpl : BaseRepository(), ScanRepository {
 
     private val api = RetrofitClient.api
@@ -20,14 +20,26 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         topImage: Bitmap,
         sideImage: Bitmap,
         referenceObjectType: String,
-        email: String
+        email: String,
+        arcoreDataJson: String?,
+        topImageWidth: Int?,
+        topImageHeight: Int?,
+        sideImageWidth: Int?,
+        sideImageHeight: Int?
     ): Result<MealDto> {
         return try {
-            val topPart = createImagePart(topImage, "topFile", "meal.jpg")
+            val scaledTopDims  = getScaledDimensions(topImage)
+            val scaledSideDims = getScaledDimensions(sideImage)
+
+            val topPart  = createImagePart(topImage,  "topFile",  "meal.jpg")
             val sidePart = createImagePart(sideImage, "sideFile", "side.jpg")
 
             val response = api.analyzeImage(
-                topPart, sidePart, referenceObjectType, email 
+
+                topPart, sidePart, referenceObjectType, email, arcoreDataJson,
+                scaledTopDims.first, scaledTopDims.second,
+                scaledSideDims.first, scaledSideDims.second
+
             )
 
             when {
@@ -47,6 +59,15 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         }
     }
 
+    private fun getScaledDimensions(bitmap: Bitmap): Pair<Int, Int> {
+        val maxDim = 1200f
+        val scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height)
+        return if (scale < 1f) {
+            Pair((bitmap.width * scale).toInt(), (bitmap.height * scale).toInt())
+        } else {
+            Pair(bitmap.width, bitmap.height)
+        }
+    }
     // Maps HTTP error codes to specific exceptions
     private fun mapErrorResponse(code: Int, message: String): ScanException {
         return when (code) {

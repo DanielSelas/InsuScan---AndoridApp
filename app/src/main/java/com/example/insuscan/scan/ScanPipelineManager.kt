@@ -14,6 +14,9 @@ import com.example.insuscan.utils.ReferenceObjectHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.example.insuscan.ar.ArCoreManager
+import com.example.insuscan.ar.model.ArMeasurement
+import com.google.gson.Gson
 
 sealed class RefCheckResult {
     data class Proceed(val refType: String?) : RefCheckResult()
@@ -40,8 +43,11 @@ class ScanPipelineManager(private val context: Context) {
         private const val TAG = "ScanPipeline"
     }
 
+    private var collectedArcoreDataJson: String? = null
     var isRefObjectExpectedInFrame: Boolean = false
     var wasRefFoundInLivePreview: Boolean = false
+
+    var arCoreManager: ArCoreManager? = null
 
     private val scanRepository: ScanRepository = ScanRepositoryImpl()
     private var sidePhotoOffered = false
@@ -91,11 +97,19 @@ class ScanPipelineManager(private val context: Context) {
             // If user skipped side photo, we must use the top image as the side image to not break the server
             val actualSideImage = sideImage ?: bitmap
 
+            val arcoreDataJson = collectedArcoreDataJson
+            Log.d(TAG, "arcoreData       : ${if (arcoreDataJson != null) "present" else "null"}")
+
             val scanResult = scanRepository.scanImage(
                 topImage = bitmap,
                 sideImage = actualSideImage,
                 referenceObjectType = finalRefType,
-                email = email
+                email = email,
+                arcoreDataJson = arcoreDataJson,
+                topImageWidth = null,
+                topImageHeight = null,
+                sideImageWidth = null,
+                sideImageHeight = null
             )
 
             scanResult.onSuccess { mealDto ->
@@ -118,6 +132,30 @@ class ScanPipelineManager(private val context: Context) {
         }
     }
 
+    private fun collectArcoreData(): String? {
+        val manager = arCoreManager ?: return null
+        if (!manager.isReady) return null
+
+        val measurement = manager.measurePlate(
+            plateBoundsPixels = android.graphics.Rect(0, 0, 1000, 1000),
+            imageWidth = 1000,
+            imageHeight = 1000
+        ) ?: return null
+
+        val data = mapOf(
+            "plateDepthM" to (measurement.depthCm / 100f),
+            "arConfidence" to measurement.confidence,
+            "itemDepthsM" to emptyMap<String, Float>()
+        )
+
+        return try {
+            Gson().toJson(data)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to serialize ARCore data: ${e.message}")
+            null
+        }
+    }
+
     private fun buildSuccessResult(
         dto: MealDto,
         capturedImagePath: String?
@@ -136,5 +174,10 @@ class ScanPipelineManager(private val context: Context) {
         }
 
         return PipelineResult.Success(meal, warning)
+    }
+
+    fun snapshotArcoreData() {
+        collectedArcoreDataJson = collectArcoreData()
+        Log.d(TAG, "arcoreData snapshot: ${if (collectedArcoreDataJson != null) "present" else "null"}")
     }
 }
