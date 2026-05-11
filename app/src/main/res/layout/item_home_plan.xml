@@ -5,30 +5,53 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingVertical="@dimen/spacing_small"
-    android:paddingHorizontal="@dimen/spacing_small"
+    android:paddingStart="0dp"
+    android:paddingEnd="0dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp"
     android:background="?attr/selectableItemBackground">
 
     <RadioButton
         android:id="@+id/rb_plan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="false" />
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:clickable="false"
+        android:button="@null"
+        android:background="@drawable/bg_radio_button" />
 
-    <TextView
-        android:id="@+id/tv_plan_name"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textSize="@dimen/text_body1"
-        android:textColor="@color/text_primary"
-        android:layout_marginStart="@dimen/spacing_small" />
+        android:orientation="vertical"
+        android:layout_marginStart="12dp">
+
+        <TextView
+            android:id="@+id/tv_plan_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14.5sp"
+            android:fontFamily="@font/inter"
+            android:textFontWeight="500"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tv_plan_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:fontFamily="@font/inter"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="1dp" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tv_plan_details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="@dimen/text_caption"
-        android:textColor="@color/text_hint" />
+        android:textSize="11.5sp"
+        android:fontFamily="@font/inter"
+        android:textColor="@color/text_secondary" />
 
 </LinearLayout>

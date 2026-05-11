@@ -1,170 +1,501 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="@dimen/spacing_medium">
+    android:background="@color/background">
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_top_area"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.35" />
+        android:orientation="vertical"
+        android:paddingBottom="24dp">
 
-    <ImageView
-        android:id="@+id/iv_home_avatar"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:contentDescription="@string/content_desc_profile_image"
-        android:scaleType="centerCrop"
-        android:src="@drawable/icon_no_bg"
-        app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintBottom_toTopOf="@id/tv_home_greeting"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintHeight_percent="0.2" />
-
-    <TextView
-        android:id="@+id/tv_home_greeting"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@color/text_primary"
-        android:textSize="@dimen/text_h1"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/tv_home_subtitle"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/iv_home_avatar"
-        tools:text="Hello, B1" />
-
-    <TextView
-        android:id="@+id/tv_home_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_tagline"
-        android:textColor="@color/text_secondary"
-        android:textSize="@dimen/text_body2"
-        app:layout_constraintBottom_toTopOf="@id/card_insulin_plans"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_home_greeting" />
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_insulin_plans"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginHorizontal="@dimen/spacing_medium"
-        android:layout_marginVertical="@dimen/spacing_medium"
-        app:cardBackgroundColor="@color/surface"
-        app:cardCornerRadius="@dimen/corner_radius_card"
-        app:cardElevation="@dimen/elevation_card"
-        app:layout_constraintBottom_toTopOf="@id/layout_bottom_buttons"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_home_subtitle">
-
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:padding="@dimen/spacing_small">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Insulin Plans"
-                android:textColor="@color/text_secondary"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="20dp"
+            android:paddingBottom="8dp">
 
             <LinearLayout
-                android:id="@+id/row_default_plan"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingVertical="@dimen/spacing_xs">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
-                <RadioButton
-                    android:id="@+id/rb_default_plan"
+                <TextView
+                    android:id="@+id/tv_home_greeting_sub"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true"
-                    android:clickable="false" />
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tv_home_greeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="26sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="700"
+                    android:textColor="@color/text_primary"
+                    android:letterSpacing="-0.02" />
+
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/iv_home_avatar"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_avatar" />
+
+        </LinearLayout>
+
+        <!-- Glucose Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/surface">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="16dp">
+
+                <com.example.insuscan.home.GlucoseGaugeView
+                    android:id="@+id/gauge_glucose"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="CURRENT GLUCOSE"
+                        android:textSize="10sp"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="500"
+                        android:letterSpacing="0.1"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_secondary" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="bottom"
+                        android:layout_marginTop="2dp">
+
+                        <TextView
+                            android:id="@+id/tv_glucose_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="--"
+                            android:textSize="32sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="700"
+                            android:textColor="@color/text_primary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text=" mg/dL"
+                            android:textSize="13sp"
+                            android:fontFamily="@font/inter"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginBottom="4dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_glucose_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="In range"
+                        android:textSize="11sp"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="500"
+                        android:textColor="@color/secondary"
+                        android:layout_marginTop="4dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Daily Intake Card -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/surface">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TODAY"
+                            android:textSize="10sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:letterSpacing="0.1"
+                            android:textAllCaps="true"
+                            android:textColor="@color/text_secondary" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Daily intake"
+                            android:textSize="15sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="600"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="2dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_meals_logged"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 meals logged"
+                        android:textSize="11sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/text_secondary" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="bottom">
+
+                            <TextView
+                                android:id="@+id/tv_total_carbs"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="28sp"
+                                android:fontFamily="@font/inter"
+                                android:textFontWeight="700"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="g"
+                                android:textSize="14sp"
+                                android:fontFamily="@font/inter"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="2dp" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="CARBS"
+                            android:textSize="10sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:letterSpacing="0.1"
+                            android:textAllCaps="true"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp" />
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="3dp"
+                            android:background="@color/primary"
+                            android:layout_marginTop="6dp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="bottom">
+
+                            <TextView
+                                android:id="@+id/tv_total_insulin"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="28sp"
+                                android:fontFamily="@font/inter"
+                                android:textFontWeight="700"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="u"
+                                android:textSize="14sp"
+                                android:fontFamily="@font/inter"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="2dp" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="INSULIN"
+                            android:textSize="10sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:letterSpacing="0.1"
+                            android:textAllCaps="true"
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="4dp" />
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="3dp"
+                            android:background="@color/status_warning"
+                            android:layout_marginTop="6dp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Scan CTA -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/btn_start_scan"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Scan a meal"
+                android:textSize="15sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/primary"
+                app:cornerRadius="14dp"
+                app:icon="@drawable/ic_nav_scan"
+                app:iconGravity="textStart"
+                app:iconTint="@color/white"
+                app:iconPadding="8dp" />
+
+            <Button
+                android:id="@+id/btn_open_chat"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="8dp"
+                android:text="Ask the assistant instead"
+                android:textSize="13sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:textAllCaps="false"
+                android:textColor="@color/text_secondary"
+                android:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_nav_chat"
+                app:iconGravity="textStart"
+                app:iconTint="@color/text_secondary"
+                app:iconPadding="6dp"
+                style="@style/Widget.Material3.Button.TextButton" />
+
+        </LinearLayout>
+
+        <!-- Insulin Plan Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="20dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Default"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_body1"
-                    android:textStyle="bold"
-                    android:layout_marginStart="@dimen/spacing_small" />
+                    android:text="INSULIN PLAN"
+                    android:textSize="10.5sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="500"
+                    android:letterSpacing="0.1"
+                    android:textAllCaps="true"
+                    android:textColor="@color/primary" />
 
                 <TextView
+                    android:id="@+id/tv_manage_plans"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="profile values"
-                    android:textColor="@color/text_hint"
-                    android:textSize="@dimen/text_caption" />
+                    android:text="Manage"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="500"
+                    android:textColor="@color/primary" />
+
             </LinearLayout>
 
-            <View
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/divider_height"
-                android:background="@color/divider" />
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/surface">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_plans"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                tools:listitem="@layout/item_insulin_plan" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <LinearLayout
+                        android:id="@+id/row_default_plan"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingTop="14dp"
+                        android:paddingBottom="14dp"
+                        android:background="?attr/selectableItemBackground">
+
+                        <RadioButton
+                            android:id="@+id/rb_default_plan"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:checked="true"
+                            android:clickable="false"
+                            android:button="@null"
+                            android:background="@drawable/bg_radio_button" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Default"
+                                android:textSize="14.5sp"
+                                android:fontFamily="@font/inter"
+                                android:textFontWeight="500"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Profile values"
+                                android:textSize="12sp"
+                                android:fontFamily="@font/inter"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginTop="1dp" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/tv_default_plan_details"
+                            android:textSize="11.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textColor="@color/text_secondary" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="0.5dp"
+                        android:background="@color/divider" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_plans"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
         </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <LinearLayout
-        android:id="@+id/layout_bottom_buttons"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/spacing_large"
-        android:layout_marginBottom="@dimen/spacing_small"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <Button
-            android:id="@+id/btn_open_chat"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_large"
-            android:background="@drawable/button_primary"
-            android:drawableStart="@drawable/ic_chat"
-            android:drawablePadding="4dp"
-            android:text="@string/chat_title"
-            android:textAllCaps="false"
-            android:textColor="@color/text_on_primary"
-            android:textSize="@dimen/text_body1"
-            android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/btn_start_scan"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/button_height_small"
-            android:layout_marginTop="@dimen/spacing_xs"
-            android:background="@drawable/button_border_primary"
-            android:text="@string/nav_quick_scan"
-            android:textAllCaps="false"
-            android:textColor="@color/primary"
-            android:textSize="@dimen/text_caption" />
 
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>
