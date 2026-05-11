@@ -85,6 +85,8 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             persistenceHandler.saveMeal(lastCalculatedResult)
         }
 
+        ui.addFoodButton.setOnClickListener { navigateToManualEntry() }
+
         ui.glucoseEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -137,7 +139,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         ui.setupGlucoseUnit()
         mealDisplayHandler.updateFoodDisplay()
         ui.updateAnalysisResults()
+
+        ui.updateEmptyStateVisibility()
+        if (MealSessionManager.currentMeal != null) {
         imageHandler.displayMealImage()
+        }
 
         val scannedGlucose = MealSessionManager.currentMeal?.glucoseLevel
         if (scannedGlucose != null && ui.glucoseEditText.text.isNullOrEmpty()) {

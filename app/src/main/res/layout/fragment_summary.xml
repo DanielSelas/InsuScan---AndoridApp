@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Top bar -->
     <include
         android:id="@+id/top_bar"
         layout="@layout/view_top_bar"
@@ -32,18 +31,44 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/padding_screen"
-            android:clipToPadding="false">
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="24dp">
 
-            <!-- ============== SCANNED IMAGE CARD ============== -->
+            <!-- Eyebrow + Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AI ANALYSIS COMPLETE"
+                android:textSize="10.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true"
+                android:textColor="@color/primary"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your dose is ready"
+                android:textSize="24sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="700"
+                android:textColor="@color/text_primary"
+                android:letterSpacing="-0.02"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Meal photo -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_image"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                android:visibility="gone"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
@@ -51,92 +76,427 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Image container with rounded corners -->
                     <FrameLayout
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/meal_preview_height">
+                        android:layout_height="160dp">
 
                         <ImageView
                             android:id="@+id/iv_meal_image"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
-                            android:contentDescription="@string/content_desc_scanned_meal_image" />
+                            android:contentDescription="Meal photo" />
 
-                        <!-- Tap to enlarge hint -->
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="bottom|end"
-                            android:layout_margin="@dimen/spacing_small"
-                            android:background="@color/overlay_dark"
-                            android:paddingHorizontal="@dimen/spacing_small"
-                            android:paddingVertical="@dimen/spacing_xs"
-                            android:text="@string/action_tap_to_enlarge"
-                            android:textColor="@color/text_on_primary"
-                            android:textSize="@dimen/text_caption" />
+                            android:text="MEAL PHOTO"
+                            android:textSize="10sp"
+                            android:fontFamily="@font/inter"
+                            android:textColor="@color/white"
+                            android:background="#66000000"
+                            android:padding="6dp"
+                            android:layout_gravity="bottom|start"
+                            android:layout_margin="10dp" />
 
                     </FrameLayout>
 
                 </LinearLayout>
+
             </androidx.cardview.widget.CardView>
 
-            <!-- ============== DETECTED FOOD CARD ============== -->
-            <androidx.cardview.widget.CardView
+            <!-- Stats row: Total Carbs + Recommended -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/surface">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/scan_detecting_food"
-                            android:textSize="@dimen/text_body1"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary" />
-
-                        <Button
-                            android:id="@+id/btn_edit_meal"
-                            android:layout_width="wrap_content"
-                            android:layout_height="@dimen/button_height_small"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:paddingHorizontal="@dimen/padding_input_horizontal"
-                            android:text="@string/action_edit"
-                            android:textSize="@dimen/text_caption"
-                            android:textAllCaps="false"
-                            style="@style/Widget.Material3.Button.TextButton" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/layout_meal_items_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="@dimen/spacing_small" />
+                        android:padding="16dp">
 
-                    <View
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="TOTAL CARBS"
+                            android:textSize="9.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:letterSpacing="0.08"
+                            android:textAllCaps="true"
+                            android:textColor="@color/text_secondary" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="bottom"
+                            android:layout_marginTop="4dp">
+
+                            <TextView
+                                android:id="@+id/tv_total_carbs"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0"
+                                android:textSize="32sp"
+                                android:fontFamily="@font/inter"
+                                android:textFontWeight="700"
+                                android:textColor="@color/text_primary" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="g"
+                                android:textSize="16sp"
+                                android:fontFamily="@font/inter"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginBottom="4dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/primary">
+
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider"
-                        android:layout_marginVertical="@dimen/spacing_medium" />
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="RECOMMENDED"
+                            android:textSize="9.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:letterSpacing="0.08"
+                            android:textAllCaps="true"
+                            android:textColor="#99FFFFFF" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="bottom"
+                            android:layout_marginTop="4dp">
+
+                            <TextView
+                                android:id="@+id/tv_recommended_dose"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0.0"
+                                android:textSize="32sp"
+                                android:fontFamily="@font/inter"
+                                android:textFontWeight="700"
+                                android:textColor="@color/white" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="units"
+                                android:textSize="14sp"
+                                android:fontFamily="@font/inter"
+                                android:textColor="#99FFFFFF"
+                                android:layout_marginBottom="4dp"
+                                android:layout_marginStart="4dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+
+            <!-- Dose Breakdown -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DOSE BREAKDOWN"
+                android:textSize="10.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="8dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Carb dose row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_carb_dose"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tv_carb_dose"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0.0 u"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="500"
+                        android:textColor="@color/text_primary" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/divider" />
+
+                <!-- Active plan row -->
+                <LinearLayout
+                    android:id="@+id/layout_active_plan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="12dp"
+                    android:background="?attr/selectableItemBackground">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Active Plan"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tv_active_plan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/primary" />
+
+                    <TextView
+                        android:id="@+id/tv_change_plan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Change"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="500"
+                        android:textColor="@color/primary"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/divider" />
+
+                <!-- Correction dose row -->
+                <LinearLayout
+                    android:id="@+id/layout_correction_dose"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="12dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/insulin_correction"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tv_correction_dose"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="+0.0 u"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="500"
+                        android:textColor="@color/status_warning" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/divider" />
+
+                <!-- Total row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingVertical="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Total"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="600"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/tv_final_dose"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0.0 u"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="700"
+                        android:textColor="@color/primary" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Detected items section -->
+            <TextView
+                android:id="@+id/tv_detected_items_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DETECTED ITEMS"
+                android:textSize="10.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/surface">
+
+                <LinearLayout
+                    android:id="@+id/layout_meal_items_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp" />
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Add / Edit buttons -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp">
+
+                <Button
+                    android:id="@+id/btn_add_food"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="+ Add item"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="500"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
+                    android:backgroundTint="@color/surface"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="0.5dp"
+                    app:cornerRadius="10dp"
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                <Button
+                    android:id="@+id/btn_edit_meal"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="✎ Edit"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="500"
+                    android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
+                    android:backgroundTint="@color/surface"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="0.5dp"
+                    app:cornerRadius="10dp"
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            </LinearLayout>
+
+            <!-- Glucose section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CURRENT GLUCOSE"
+                android:textSize="10.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -144,444 +504,316 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/summary_total_carbs"
-                            android:textSize="@dimen/text_body1"
-                            android:textColor="@color/text_primary" />
-
-                        <TextView
-                            android:id="@+id/tv_total_carbs"
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/til_glucose"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-- g"
-                            android:textSize="@dimen/text_h2"
-                            android:textStyle="bold"
-                            android:textColor="@color/primary" />
+                            app:boxBackgroundColor="@color/background"
+                            app:boxStrokeColor="@color/border"
+                            app:boxStrokeWidth="0.5dp"
+                            app:boxCornerRadiusTopStart="10dp"
+                            app:boxCornerRadiusTopEnd="10dp"
+                            app:boxCornerRadiusBottomStart="10dp"
+                            app:boxCornerRadiusBottomEnd="10dp"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-                    </LinearLayout>
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/et_current_glucose"
+                                android:layout_width="90dp"
+                                android:layout_height="wrap_content"
+                                android:inputType="number"
+                                android:textSize="18sp"
+                                android:fontFamily="@font/inter"
+                                android:textFontWeight="600"
+                                android:textColor="@color/text_primary"
+                                android:gravity="center"
+                                android:paddingTop="10dp"
+                                android:paddingBottom="10dp" />
 
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ============== GLUCOSE INPUT CARD ============== -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/glucose_current"
-                        android:textSize="@dimen/text_body1"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/glucose_input_hint"
-                        android:textSize="@dimen/text_caption"
-                        android:textColor="@color/text_hint"
-                        android:layout_marginTop="@dimen/spacing_xs" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginTop="@dimen/padding_input_horizontal">
-
-                        <EditText
-                            android:id="@+id/et_current_glucose"
-                            android:layout_width="@dimen/glucose_input_width"
-                            android:layout_height="@dimen/input_height_single"
-                            android:hint="120"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:textSize="@dimen/text_h3"
-                            android:textColor="@color/text_primary"
-                            android:background="@drawable/edit_text_background" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
                         <TextView
                             android:id="@+id/tv_glucose_unit"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/unit_mgdl"
-                            android:textSize="@dimen/text_body1"
+                            android:text="mg/dL"
+                            android:textSize="13sp"
+                            android:fontFamily="@font/inter"
                             android:textColor="@color/text_secondary"
-                            android:layout_marginStart="@dimen/spacing_medium" />
+                            android:layout_marginStart="10dp" />
 
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:layout_weight="1" />
+                        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
                         <TextView
                             android:id="@+id/tv_glucose_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text=""
-                            android:textSize="@dimen/text_body2"
-                            android:textStyle="bold" />
+                            android:textSize="11sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:textColor="@color/status_warning"
+                            android:background="@color/warning_bg"
+                            android:paddingStart="8dp"
+                            android:paddingEnd="8dp"
+                            android:paddingTop="4dp"
+                            android:paddingBottom="4dp" />
+
+                        <Button
+                            android:id="@+id/btn_use_last_glucose"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:layout_marginStart="8dp"
+                            android:text="Use last"
+                            android:textSize="12sp"
+                            android:fontFamily="@font/inter"
+                            android:textAllCaps="false"
+                            android:textColor="@color/text_primary"
+                            android:backgroundTint="@color/background"
+                            app:strokeColor="@color/border"
+                            app:strokeWidth="0.5dp"
+                            app:cornerRadius="8dp"
+                            style="@style/Widget.Material3.Button.OutlinedButton" />
 
                     </LinearLayout>
 
                 </LinearLayout>
+
             </androidx.cardview.widget.CardView>
 
-            <!-- ============== DOSE CALCULATION CARD ============== -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
+            <!-- Portion analysis -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/primary_very_light">
+                android:text="PORTION ANALYSIS"
+                android:textSize="10.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:letterSpacing="0.1"
+                android:textAllCaps="true"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="8dp" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/insulin_dose"
-                        android:textSize="@dimen/text_body1"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginTop="@dimen/padding_input_horizontal">
-
-                        <!-- Carb dose row -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingVertical="@dimen/spacing_small">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/insulin_carb_dose"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary" />
-
-                            <TextView
-                                android:id="@+id/tv_carb_dose"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0 u"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary" />
-
-                        </LinearLayout>
-
-                        <!-- Active Plan Name (clickable to change) -->
-                        <LinearLayout
-                            android:id="@+id/layout_active_plan"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingVertical="@dimen/spacing_small"
-                            android:background="?attr/selectableItemBackground">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Active Plan"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary" />
-
-                            <TextView
-                                android:id="@+id/tv_active_plan"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Default"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/primary" />
-
-                            <TextView
-                                android:id="@+id/tv_change_plan"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Change"
-                                android:textSize="@dimen/text_caption"
-                                android:textColor="@color/primary"
-                                android:layout_marginStart="@dimen/spacing_small"
-                                android:textStyle="bold" />
-                        </LinearLayout>
-
-                        <!-- Correction dose row -->
-                        <LinearLayout
-                            android:id="@+id/layout_correction_dose"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:paddingVertical="@dimen/spacing_small"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/insulin_correction"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary" />
-
-                            <TextView
-                                android:id="@+id/tv_correction_dose"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="+0.0 u"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/status_warning" />
-
-                        </LinearLayout>
-
-                        <!-- Divider -->
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/divider_height"
-                            android:background="@color/primary_light"
-                            android:layout_marginVertical="@dimen/spacing_medium" />
-
-                        <!-- Final dose row -->
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/insulin_recommended_dose"
-                                android:textSize="@dimen/text_h3"
-                                android:textStyle="bold"
-                                android:textColor="@color/primary_dark" />
-
-                            <TextView
-                                android:id="@+id/tv_final_dose"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0.0 u"
-                                android:textSize="@dimen/text_h1"
-                                android:textStyle="bold"
-                                android:textColor="@color/primary_dark" />
-
-                        </LinearLayout>
-
-                        <TextView
-                            android:id="@+id/tv_dose_rounding_hint"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Round to the nearest 0.5 or 1.0 on your pen"
-                            android:textSize="@dimen/text_caption"
-                            android:textColor="@color/text_hint"
-                            android:textAlignment="textEnd"
-                            android:layout_marginTop="@dimen/spacing_xxs" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ============== HIGH DOSE WARNING BANNER ============== -->
-            <LinearLayout
-                android:id="@+id/layout_high_dose_warning"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@color/status_warning"
-                android:padding="@dimen/padding_card"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⚠️"
-                    android:textSize="20sp"
-                    android:layout_marginEnd="@dimen/spacing_small" />
-
-                <TextView
-                    android:id="@+id/tv_high_dose_warning"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="High dose — please verify your meal data"
-                    android:textSize="@dimen/text_body2"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold" />
-
-            </LinearLayout>
-
-            <!-- ============== ANALYSIS RESULTS CARD ============== -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_analysis_results"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
                 android:visibility="gone"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/summary_portion_analysis"
-                        android:textSize="@dimen/text_body1"
-                        android:textStyle="bold"
-                        android:textColor="@color/text_primary" />
+                    android:padding="16dp">
 
                     <LinearLayout
-                        android:id="@+id/layout_analysis_results"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginTop="@dimen/padding_input_horizontal">
-
+                        android:orientation="horizontal"
+                        android:paddingVertical="8dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Est. weight"
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textColor="@color/text_secondary" />
                         <TextView
                             android:id="@+id/tv_portion_weight"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/summary_est_weight"
-                            android:textSize="@dimen/text_body2"
-                            android:textColor="@color/text_secondary"
-                            android:paddingVertical="@dimen/spacing_xxs" />
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:textColor="@color/text_primary" />
+                    </LinearLayout>
 
+                    <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="@color/divider" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="8dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Plate"
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textColor="@color/text_secondary" />
                         <TextView
                             android:id="@+id/tv_plate_dimensions"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/summary_plate"
-                            android:textSize="@dimen/text_body2"
-                            android:textColor="@color/text_secondary"
-                            android:paddingVertical="@dimen/spacing_xxs" />
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:textColor="@color/text_primary" />
+                    </LinearLayout>
 
+                    <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="@color/divider" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="8dp">
                         <TextView
-                            android:id="@+id/tv_analysis_confidence"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="@string/summary_confidence"
-                            android:textSize="@dimen/text_body2"
-                            android:textColor="@color/text_secondary"
-                            android:paddingVertical="@dimen/spacing_xxs" />
-
+                            android:layout_weight="1"
+                            android:text="Reference"
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textColor="@color/text_secondary" />
                         <TextView
                             android:id="@+id/tv_reference_status"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/summary_reference_object"
-                            android:textSize="@dimen/text_body2"
-                            android:textColor="@color/text_secondary"
-                            android:paddingVertical="@dimen/spacing_xxs" />
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:textColor="@color/text_primary" />
+                    </LinearLayout>
 
+                    <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="@color/divider" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingVertical="8dp">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Confidence"
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textColor="@color/text_secondary" />
+                        <TextView
+                            android:id="@+id/tv_analysis_confidence"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="13.5sp"
+                            android:fontFamily="@font/inter"
+                            android:textFontWeight="500"
+                            android:textColor="@color/text_primary" />
                     </LinearLayout>
 
                 </LinearLayout>
+
             </androidx.cardview.widget.CardView>
 
+            <!-- Warning text -->
+            <TextView
+                android:id="@+id/tv_disclaimer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Always confirm with your healthcare provider. InsuScan is a decision-support tool."
+                android:textSize="11.5sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Empty state -->
+            <LinearLayout
+                android:id="@+id/layout_empty_state"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="32dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="No meal scanned yet"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="500"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btn_scan_now"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Scan a meal"
+                    android:textAllCaps="false"
+                    android:fontFamily="@font/inter"
+                    android:backgroundTint="@color/primary"
+                    app:cornerRadius="12dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layout_high_dose_warning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:background="@color/warning_bg"
+                android:padding="12dp"
+                android:layout_marginTop="12dp"
+                android:visibility="gone">
+                <TextView
+                    android:id="@+id/tv_high_dose_warning"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter"
+                    android:textColor="@color/warning" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tv_dose_rounding_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:textSize="12sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_secondary"
+                android:gravity="center"
+                android:layout_marginTop="8dp" />
+
         </LinearLayout>
+
+
     </ScrollView>
 
-    <!-- Save button -->
+    <!-- Confirm button -->
     <Button
         android:id="@+id/btn_log_meal"
         android:layout_width="0dp"
-        android:layout_height="@dimen/button_height_large"
-        android:text="@string/scan_confirm_save"
-        android:textSize="@dimen/text_button"
+        android:layout_height="52dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="12dp"
+        android:text="✓  Confirm &amp; save meal"
+        android:textSize="15sp"
+        android:fontFamily="@font/inter"
+        android:textFontWeight="500"
         android:textAllCaps="false"
-        android:textColor="@color/text_on_primary"
-        android:background="@drawable/button_primary"
-        android:layout_marginStart="@dimen/spacing_medium"
-        android:layout_marginEnd="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_medium"
+        android:textColor="@color/white"
+        android:backgroundTint="@color/primary"
+        app:cornerRadius="14dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group_content"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="visible"
         app:constraint_referenced_ids="content_scroll_view,btn_log_meal" />
-
-    <!-- Empty State -->
-    <LinearLayout
-        android:id="@+id/layout_empty_state"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/top_bar"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:padding="@dimen/spacing_xl">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🍽️"
-            android:textSize="@dimen/text_emoji_large"
-            android:layout_marginBottom="@dimen/spacing_medium"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/empty_state_humor"
-            android:textSize="@dimen/text_h2"
-            android:textColor="@color/text_secondary"
-            android:textAlignment="center"
-            android:lineSpacingExtra="4dp"
-            android:textStyle="italic"
-            android:layout_marginBottom="@dimen/spacing_large"/>
-
-        <Button
-            android:id="@+id/btn_scan_now"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/nav_scan"
-            android:textSize="@dimen/text_button"
-            android:textColor="@color/text_on_primary"
-            android:background="@drawable/button_primary"
-            android:paddingHorizontal="@dimen/spacing_xl"
-            android:paddingVertical="@dimen/spacing_medium"/>
-
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
