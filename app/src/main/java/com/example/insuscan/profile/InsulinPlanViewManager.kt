@@ -79,7 +79,8 @@ class InsulinPlanViewManager(
         val view = LayoutInflater.from(context).inflate(R.layout.item_insulin_plan, container, false)
 
         val nameText = view.findViewById<TextView>(R.id.tv_plan_name)
-        val expandArrow = view.findViewById<ImageView>(R.id.iv_expand_arrow)
+        val summaryText = view.findViewById<TextView>(R.id.tv_plan_summary)
+        val expandArrow = view.findViewById<TextView>(R.id.iv_expand_arrow)
         val deleteButton = view.findViewById<ImageView>(R.id.iv_delete_plan)
         val details = view.findViewById<LinearLayout>(R.id.plan_details)
         val header = view.findViewById<LinearLayout>(R.id.plan_header)
@@ -88,6 +89,25 @@ class InsulinPlanViewManager(
         val targetField = view.findViewById<EditText>(R.id.et_plan_target)
 
         nameText.text = plan.name
+
+        fun updateSummary() {
+            val icr = icrField.text.toString().toIntOrNull()
+            val isf = isfField.text.toString().toIntOrNull()
+            val tg = targetField.text.toString().toIntOrNull()
+            if (icr != null || isf != null || tg != null) {
+                summaryText.text = buildString {
+                    if (icr != null) append("ICR 1:$icr")
+                    if (isf != null) append(" · ISF $isf")
+                    if (tg != null) append(" · TG $tg")
+                }
+                summaryText.visibility = View.VISIBLE
+            }
+        }
+
+        plan.icr?.let { icrField.setText(it.toInt().toString()) }
+        plan.isf?.let { isfField.setText(it.toInt().toString()) }
+        plan.targetGlucose?.let { targetField.setText(it.toString()) }
+        updateSummary()
 
         if (!plan.isDefault) {
             deleteButton.visibility = View.VISIBLE
@@ -98,21 +118,29 @@ class InsulinPlanViewManager(
             }
         }
 
-        plan.icr?.let { icrField.setText(it.toInt().toString()) }
-        plan.isf?.let { isfField.setText(it.toInt().toString()) }
-        plan.targetGlucose?.let { targetField.setText(it.toString()) }
-
         header.setOnClickListener {
             if (details.visibility == View.GONE) {
                 details.visibility = View.VISIBLE
-                expandArrow.setImageResource(android.R.drawable.arrow_up_float)
+                expandArrow.rotation = 90f
             } else {
                 details.visibility = View.GONE
-                expandArrow.setImageResource(android.R.drawable.arrow_down_float)
+                expandArrow.rotation = 0f
+                updateSummary()
             }
         }
 
         viewMap[plan.id] = view
         container.addView(view)
+
+        if (plans.indexOf(plan) < plans.size - 1) {
+            val divider = View(context).apply {
+                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1).apply {
+                    marginStart = 16
+                }
+                setBackgroundColor(android.graphics.Color.parseColor("#E5E7EB"))
+            }
+            container.addView(divider)
+        }
     }
+
 }

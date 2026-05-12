@@ -1,77 +1,131 @@
 package com.example.insuscan.profile
 
-import android.app.DatePickerDialog
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
-import android.widget.AdapterView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.auth.AuthManager
-import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.profile.helpers.ProfileDataHelper
 import com.example.insuscan.profile.helpers.ProfileImageHandler
 import com.example.insuscan.profile.helpers.ProfileRepository
 import com.example.insuscan.profile.helpers.ProfileUiManager
-import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import kotlinx.coroutines.launch
-import java.util.Calendar
-import com.example.insuscan.profile.InsulinPlan
-
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
+
     private lateinit var ui: ProfileUiManager
     private val imageHandler = ProfileImageHandler(this)
     private lateinit var dataHelper: ProfileDataHelper
     private val repository = ProfileRepository()
     private val ctx get() = requireContext()
 
+    private val fm get() = parentFragmentManager
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         ui = ProfileUiManager(view)
-        ui.setupSpinners(ctx)
-        
-        imageHandler.bind(ui, updateCallback = { syncPhotoToServer() })
+        ui.initRowLabels()
         dataHelper = ProfileDataHelper(ctx, ui)
+        imageHandler.bind(ui, updateCallback = { saveToServer() })
 
-        setupTopBar(view)
-        setupListeners()
+        TopBarHelper.setupTopBar(
+            rootView = view,
+            title = "Profile",
+            onBack = { findNavController().navigate(R.id.homeFragment) }
+        )
 
         dataHelper.loadProfile(imageHandler)
         dataHelper.loadGoogleProfile(imageHandler)
         fetchServerProfile()
+        bindRowListeners()
+        bindLogout()
     }
 
-    private fun setupTopBar(view: View) {
-        TopBarHelper.setupTopBar(
-            rootView = view,
-            title = "Profile Settings",
-            onBack = { findNavController().navigate(R.id.homeFragment) }
-        )
-    }
-
-    private fun setupListeners() {
-        ui.saveButton.setOnClickListener { saveProfile() }
-        ui.logoutButton.setOnClickListener { logout() }
-
-        ui.genderSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-                ui.pregnancyLayout.visibility = if (ui.genderOptions[position] == "Female") View.VISIBLE else View.GONE
-            }
-            override fun onNothingSelected(p0: AdapterView<*>?) {}
-        }
-        ui.pregnantSwitch.setOnCheckedChangeListener { _, isChecked ->
-            ui.dueDateLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
-        }
-        ui.dueDateTextView.setOnClickListener { showDatePicker() }
-
-        ui.profilePhoto.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
+    private fun bindRowListeners() {
         ui.editPhotoButton.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
+        ui.profilePhoto.setOnClickListener { imageHandler.showPhotoOptionsDialog() }
+
+        ui.rowNameEmail.setOnClickListener {
+            val current = UserProfileManager.getUserName(ctx) ?: ""
+            showEditSheet("Name", current, InputType.TYPE_CLASS_TEXT, "") { value ->
+                UserProfileManager.saveUserName(ctx, value)
+                ui.nameDisplay.text = value
+                saveToServer()
+            }
+        }
+
+        ui.rowAge.setOnClickListener {
+            val current = UserProfileManager.getUserAge(ctx)?.toString() ?: ""
+            showEditSheet("Age", current, InputType.TYPE_CLASS_NUMBER, "") { value ->
+                value.toIntOrNull()?.let {
+                    UserProfileManager.saveUserAge(ctx, it)
+                    ui.setRowValue(ui.rowAge, value)
+                    saveToServer()
+                }
+            }
+        }
+
+        ui.rowGender.setOnClickListener {
+            val current = UserProfileManager.getUserGender(ctx) ?: ""
+            showEditSheet("Gender", current, InputType.TYPE_CLASS_TEXT, "") { value ->
+                UserProfileManager.saveUserGender(ctx, value)
+                ui.setRowValue(ui.rowGender, value)
+                saveToServer()
+            }
+        }
+
+        ui.rowIcr.setOnClickListener {
+            val current = UserProfileManager.getInsulinCarbRatioRaw(ctx)?.split(":")?.lastOrNull()?.trim() ?: ""
+            showEditSheet("ICR — grams per unit", current, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL, "g/u") { value ->
+                UserProfileManager.saveInsulinCarbRatio(ctx, "1:$value")
+                ui.setRowValue(ui.rowIcr, "1u : ${value}g")
+                saveToServer()
+            }
+        }
+
+        ui.rowIsf.setOnClickListener {
+            val current = UserProfileManager.getCorrectionFactor(ctx)?.toInt()?.toString() ?: ""
+            showEditSheet("ISF — mg/dL per unit", current, InputType.TYPE_CLASS_NUMBER, "mg/dL") { value ->
+                value.toFloatOrNull()?.let {
+                    UserProfileManager.saveCorrectionFactor(ctx, it)
+                    ui.setRowValue(ui.rowIsf, "$value mg/dL")
+                    saveToServer()
+                }
+            }
+        }
+
+        ui.rowTargetGlucose.setOnClickListener {
+            val current = UserProfileManager.getTargetGlucose(ctx)?.toString() ?: ""
+            showEditSheet("Target glucose", current, InputType.TYPE_CLASS_NUMBER, "mg/dL") { value ->
+                value.toIntOrNull()?.let {
+                    UserProfileManager.saveTargetGlucose(ctx, it)
+                    ui.setRowValue(ui.rowTargetGlucose, "$value mg/dL")
+                    saveToServer()
+                }
+            }
+        }
+
+        ui.rowDoseRounding.setOnClickListener {
+            val current = if (UserProfileManager.getDoseRounding(ctx) == 0.5f) "0.5" else "1"
+            showEditSheet("Dose rounding", current, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL, "u") { value ->
+                value.toFloatOrNull()?.let {
+                    UserProfileManager.saveDoseRounding(ctx, it)
+                    ui.setRowValue(ui.rowDoseRounding, "$value u")
+                    saveToServer()
+                }
+            }
+        }
 
         ui.addPlanButton.setOnClickListener { showAddPlanDialog() }
 
+    }
+
+    private fun showEditSheet(label: String, current: String, inputType: Int, suffix: String, onSave: (String) -> Unit) {
+        ProfileEditBottomSheet(label, current, inputType, suffix, onSave).show(fm, "ProfileEditBottomSheet")
     }
 
     private fun showAddPlanDialog() {
@@ -79,89 +133,75 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
             orientation = android.widget.LinearLayout.VERTICAL
             setPadding(48, 32, 48, 32)
         }
-
-        val nameInput = android.widget.EditText(ctx).apply { hint = "Plan Name" }
-        val icrInput = android.widget.EditText(ctx).apply { 
-            hint = "ICR (1:X)" 
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        val nameInput = android.widget.EditText(ctx).apply { hint = "Plan name" }
+        val icrInput = android.widget.EditText(ctx).apply {
+            hint = "ICR (grams per unit)"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         }
-        val isfInput = android.widget.EditText(ctx).apply { 
-            hint = "ISF" 
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        val isfInput = android.widget.EditText(ctx).apply {
+            hint = "ISF (mg/dL per unit)"
+            inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
         }
-        val targetInput = android.widget.EditText(ctx).apply { 
-            hint = "Target Glucose" 
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+        val targetInput = android.widget.EditText(ctx).apply {
+            hint = "Target glucose"
+            inputType = InputType.TYPE_CLASS_NUMBER
         }
-
         layout.addView(nameInput)
         layout.addView(icrInput)
         layout.addView(isfInput)
         layout.addView(targetInput)
 
         android.app.AlertDialog.Builder(ctx)
-            .setTitle("New Insulin Plan")
+            .setTitle("New insulin plan")
             .setView(layout)
             .setPositiveButton("Add") { _, _ ->
                 val name = nameInput.text.toString().trim()
                 if (name.isNotBlank()) {
-                    val icr = icrInput.text.toString().toFloatOrNull()
-                    val isf = isfInput.text.toString().toFloatOrNull()
-                    val target = targetInput.text.toString().toIntOrNull()
-                    dataHelper.planViewManager.addNewPlan(name, icr, isf, target)
+                    dataHelper.planViewManager.addNewPlan(
+                        name,
+                        icrInput.text.toString().toFloatOrNull(),
+                        isfInput.text.toString().toFloatOrNull(),
+                        targetInput.text.toString().toIntOrNull()
+                    )
+
+                    UserProfileManager.saveInsulinPlans(
+                        ctx,
+                        dataHelper.planViewManager.getPlans().map { plan ->
+                            com.example.insuscan.network.dto.InsulinPlanDto(
+                                id = plan.id,
+                                name = plan.name,
+                                isDefault = plan.isDefault,
+                                icr = plan.icr,
+                                isf = plan.isf,
+                                targetGlucose = plan.targetGlucose
+                            )
+                        }
+                    )
+
+                    saveToServer()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
 
-    private fun showDatePicker() {
-        val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            ctx,
-            { _, year, month, day ->
-                ui.dueDateTextView.text = "%02d/%02d/%d".format(day, month + 1, year)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
+    private fun bindLogout() {
+        ui.logoutButton.setOnClickListener {
+            UserProfileManager.clearAllData(ctx)
+            AuthManager.signOut()
+            findNavController().navigate(R.id.loginFragment)
+        }
     }
 
-    private fun saveProfile() {
-        val userDto = dataHelper.validateAndSaveLocal() ?: return
-        ToastHelper.showShort(ctx, "Saving profile...")
-        
+    private fun saveToServer() {
         viewLifecycleOwner.lifecycleScope.launch {
-            ui.loadingOverlay.visibility = View.VISIBLE
-            ui.saveButton.isEnabled = false
-            
-            val result = repository.executeServerSync(ctx, userDto)
-            
-            ui.loadingOverlay.visibility = View.GONE
-            ui.saveButton.isEnabled = true
-            
-            if (result.isSuccess) {
-                ToastHelper.showShort(ctx, "Profile saved and synced!")
-                findNavController().popBackStack()
-            } else {
-                val errorMsg = when (val e = result.exceptionOrNull()) {
-                    is ApiException.NoConnection -> "Saved locally. No internet connection."
-                    is ApiException.Timeout -> "Saved locally. Request timed out."
-                    is ApiException.Unauthorized -> "Session expired. Please log in again."
-                    is ApiException.ServerError -> "Saved locally. Server error (${e.code})."
-                    else -> "Saved locally. Sync failed."
-                }
-                ToastHelper.showShort(ctx, errorMsg)
-                findNavController().popBackStack()
-            }
+            repository.executeServerSync(ctx, dataHelper.buildUserDto())
         }
     }
 
     private fun fetchServerProfile() {
         viewLifecycleOwner.lifecycleScope.launch {
             repository.fetchServerProfile(ctx).onSuccess { userDto ->
-                dataHelper.loadProfile(imageHandler)
                 val plans = userDto.insulinPlans?.map { dto ->
                     InsulinPlan(
                         id = dto.id ?: "",
@@ -173,21 +213,9 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
                     )
                 }
                 dataHelper.planViewManager.loadPlans(plans)
+                dataHelper.loadProfile(imageHandler)
             }
         }
     }
 
-    private fun syncPhotoToServer() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            dataHelper.validateAndSaveLocal()?.let { userDto ->
-                repository.executeServerSync(ctx, userDto)
-            }
-        }
-    }
-
-    private fun logout() {
-        UserProfileManager.clearAllData(ctx)
-        AuthManager.signOut()
-        findNavController().navigate(R.id.loginFragment)
-    }
 }
