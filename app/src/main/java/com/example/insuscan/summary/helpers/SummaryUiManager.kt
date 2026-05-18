@@ -24,6 +24,7 @@ class SummaryUiManager(val view: View, val context: Context) {
     val correctionLayout: LinearLayout = view.findViewById(R.id.layout_correction_dose)
     val correctionDoseText: TextView = view.findViewById(R.id.tv_correction_dose)
     val finalDoseText: TextView = view.findViewById(R.id.tv_final_dose)
+    val detectedItemsLabel: TextView = view.findViewById(R.id.tv_detected_items_label)
     val analysisCard: CardView = view.findViewById(R.id.card_analysis_results)
     val portionWeightText: TextView = view.findViewById(R.id.tv_portion_weight)
     val plateDimensionsText: TextView = view.findViewById(R.id.tv_plate_dimensions)
@@ -38,6 +39,9 @@ class SummaryUiManager(val view: View, val context: Context) {
     val emptyStateLayout: LinearLayout = view.findViewById(R.id.layout_empty_state)
     val scanNowButton: Button = view.findViewById(R.id.btn_scan_now)
     val contentScrollView: ScrollView? = view.findViewById(R.id.content_scroll_view)
+
+    val recommendedDoseText: TextView = view.findViewById(R.id.tv_recommended_dose)
+    val addFoodButton: Button = view.findViewById(R.id.btn_add_food)
 
     fun updateEmptyStateVisibility() {
         if (MealSessionManager.currentMeal != null) {
@@ -113,30 +117,33 @@ class SummaryUiManager(val view: View, val context: Context) {
         analysisCard.visibility = View.VISIBLE
 
         meal.portionWeightGrams?.let { weight ->
-            portionWeightText.text = "Estimated weight: ${weight.toInt()} g"
+            portionWeightText.text = "${weight.toInt()} g"
         }
 
         val diameter = meal.plateDiameterCm
         val depth = meal.plateDepthCm
         if (diameter != null && depth != null) {
-            plateDimensionsText.text = String.format("Plate: %.1f cm × %.1f cm", diameter, depth)
+            plateDimensionsText.text = String.format("%.1f cm × %.1f cm", diameter, depth)
+        }
+
+        val refType = meal.referenceObjectType
+        referenceStatusText.text = when {
+            meal.referenceObjectDetected == true && !refType.isNullOrBlank() && refType != "NONE" ->
+                refType.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
+            meal.referenceObjectDetected == true -> "Detected ✓"
+            meal.referenceObjectDetected == false -> "Not detected"
+            else -> "N/A"
         }
 
         meal.analysisConfidence?.let { confidence ->
             val percentage = (confidence * 100).toInt()
-            confidenceText.text = "Confidence: $percentage% (estimate)"
-            val color = when {
-                percentage >= 80 -> R.color.status_normal
-                percentage >= 50 -> R.color.status_warning
+            confidenceText.text = "$percentage%"
+            val colorRes = when {
+                percentage >= 80 -> R.color.secondary
+                percentage >= 60 -> R.color.status_warning
                 else -> R.color.status_critical
             }
-            confidenceText.setTextColor(ContextCompat.getColor(context, color))
-        }
-
-        referenceStatusText.text = when (meal.referenceObjectDetected) {
-            true -> "Reference: Detected ✓"
-            false -> "Reference: Not detected"
-            null -> "Reference: N/A"
+            confidenceText.setTextColor(ContextCompat.getColor(context, colorRes))
         }
     }
 

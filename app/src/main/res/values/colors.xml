@@ -3,70 +3,72 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <!-- ==================== Primary Colors ==================== -->
-    <!-- Main brand color - medical blue for trust and professionalism -->
-    <color name="primary">#2196F3</color>
-    <color name="primary_dark">#1976D2</color>
-    <color name="primary_light">#BBDEFB</color>
-    <color name="primary_very_light">#E3F2FD</color>
+    <!-- Primary (navy blue) -->
+    <color name="primary">#1A3B8C</color>
+    <color name="primary_dark">#122870</color>
+    <color name="primary_light">#D6E0F5</color>
+    <color name="primary_very_light">#EBF0FA</color>
 
-    <!-- ==================== Secondary Colors ==================== -->
-    <!-- Health green for success and normal values -->
-    <color name="secondary">#4CAF50</color>
-    <color name="secondary_dark">#388E3C</color>
-    <color name="secondary_light">#C8E6C9</color>
+    <!-- Secondary (success green) -->
+    <color name="secondary">#16A34A</color>
+    <color name="secondary_dark">#15803D</color>
+    <color name="secondary_light">#DCFCE7</color>
 
-    <!-- ==================== Status Colors ==================== -->
-    <!-- Critical for medical status indicators -->
-    <color name="status_normal">#4CAF50</color>     <!-- Green: glucose in range -->
-    <color name="status_warning">#FF9800</color>    <!-- Orange: slightly high -->
-    <color name="status_critical">#F44336</color>   <!-- Red: dangerously high/low -->
-    <color name="status_info">#2196F3</color>       <!-- Blue: informational -->
+    <!-- Status -->
+    <color name="status_normal">#16A34A</color>
+    <color name="status_warning">#EA580C</color>
+    <color name="status_critical">#DC2626</color>
+    <color name="status_info">#1A3B8C</color>
     <color name="status_error">@color/status_critical</color>
 
-    <!-- ==================== Background Colors ==================== -->
-    <color name="background">#FAFAFA</color>              <!-- Main app background -->
-    <color name="surface">#FFFFFF</color>                 <!-- Card/container surface -->
-    <color name="background_secondary">#F5F5F5</color>   <!-- Alternative background -->
+    <!-- Backgrounds -->
+    <color name="background">#F2F3F5</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="background_secondary">#E8E9EC</color>
 
-    <!-- ==================== Text Colors ==================== -->
-    <color name="text_primary">#212121</color>      <!-- Main text - dark for readability -->
-    <color name="text_secondary">#757575</color>    <!-- Secondary text - medium gray -->
-    <color name="text_disabled">#BDBDBD</color>     <!-- Disabled text - light gray -->
-    <color name="text_on_primary">#FFFFFF</color>   <!-- White text on colored backgrounds -->
-    <color name="text_hint">#9E9E9E</color>         <!-- Hint text in inputs -->
+    <!-- Text -->
+    <color name="text_primary">#1A1A2E</color>
+    <color name="text_secondary">#6B7280</color>
+    <color name="text_disabled">#BDBDBD</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    <color name="text_hint">#9CA3AF</color>
 
-    <!-- ==================== Divider & Border Colors ==================== -->
-    <color name="divider">#E0E0E0</color>           <!-- Standard divider -->
-    <color name="divider_light">#F0F0F0</color>     <!-- Lighter divider -->
-    <color name="divider_warm">#E8E8E8</color>      <!-- Warm-toned divider -->
-    <color name="border">#E0E0E0</color>            <!-- Input borders -->
+    <!-- Dividers & borders -->
+    <color name="divider">#E5E7EB</color>
+    <color name="divider_light">#F3F4F6</color>
+    <color name="divider_warm">#E5E7EB</color>
+    <color name="border">#E5E7EB</color>
+    <color name="divider_profile">#E5E7EB</color>
 
-    <!-- ==================== Semantic Colors ==================== -->
-    <color name="error">#F44336</color>             <!-- Error messages -->
-    <color name="success">#4CAF50</color>           <!-- Success messages -->
-    <color name="warning">#FF9800</color>           <!-- Warning messages -->
-    <color name="info">#2196F3</color>              <!-- Info messages -->
+    <!-- Semantic -->
+    <color name="error">#DC2626</color>
+    <color name="error_bg">#FEE2E2</color>
+    <color name="success">#16A34A</color>
+    <color name="success_bg">#DCFCE7</color>
+    <color name="warning">#EA580C</color>
+    <color name="warning_bg">#FEF3C7</color>
+    <color name="info">#1A3B8C</color>
+    <color name="info_bg">#EBF0FA</color>
 
-    <!-- ==================== Special Use Colors ==================== -->
-    <color name="overlay_dark">#99000000</color>    <!-- Semi-transparent black overlay -->
-    <color name="overlay_light">#33000000</color>   <!-- Light black overlay -->
-    <color name="ripple">#20000000</color>          <!-- Ripple effect on clicks -->
-    <color name="transparent">#00000000</color>     <!-- Fully transparent -->
-
-    <!-- ==================== Specific Component Colors ==================== -->
-    <color name="dose_badge">@color/primary</color>       <!-- Insulin dose badge -->
-    <color name="relevance_badge">@color/secondary</color>   <!-- Relevance indicator -->
-    <color name="activity_indicator">@color/warning</color>
-
-    <!-- ==================== Warning box colors ==================== -->
-    <color name="warning_background">#FFF3E0</color>
-    <color name="warning_text_dark">#E65100</color> <!-- Activity level indicator -->
-
-    <!-- ==================== Loading overlay (semi-transparent white) ==================== -->
+    <!-- Special -->
+    <color name="overlay_dark">#99000000</color>
+    <color name="overlay_light">#33000000</color>
     <color name="overlay_white">#80FFFFFF</color>
+    <color name="ripple">#20000000</color>
+    <color name="transparent">#00000000</color>
 
-    <!-- ==================== Profile dividers (light gray) ==================== -->
-    <color name="divider_profile">#EEEEEE</color>
+    <!-- Component-specific -->
+    <color name="dose_badge">@color/primary</color>
+    <color name="relevance_badge">@color/secondary</color>
+    <color name="activity_indicator">@color/warning</color>
+    <color name="warning_background">@color/warning_bg</color>
+    <color name="warning_text_dark">#92400E</color>
 
+    <!-- History meal time colors -->
+    <color name="meal_morning_bg">#FEF3C7</color>
+    <color name="meal_morning_icon">#D97706</color>
+    <color name="meal_afternoon_bg">#DCFCE7</color>
+    <color name="meal_afternoon_icon">#16A34A</color>
+    <color name="meal_evening_bg">#EBF0FA</color>
+    <color name="meal_evening_icon">#1A3B8C</color>
 </resources>

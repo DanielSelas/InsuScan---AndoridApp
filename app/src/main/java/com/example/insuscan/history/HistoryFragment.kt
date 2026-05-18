@@ -29,21 +29,16 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     private lateinit var emptyStateText: TextView
     private lateinit var adapter: MealHistoryAdapter
     private lateinit var btnFilterContainer: View
-    private lateinit var tvFilterStatus: TextView
     private lateinit var btnClearFilter: View
 
     private val viewModel: HistoryViewModel by viewModels {
         HistoryViewModelFactory(requireContext())
     }
 
-    private lateinit var latestMealCardHelper: com.example.insuscan.history.helpers.LatestMealCardHelper
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         view.findViewById<View>(R.id.top_bar)?.visibility = View.GONE
-
-        latestMealCardHelper = com.example.insuscan.history.helpers.LatestMealCardHelper(view)
 
         findViews(view)
         setupRecyclerView()
@@ -56,8 +51,11 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         emptyState = view.findViewById(R.id.layout_empty)
         emptyStateText = view.findViewById(R.id.tv_empty_history)
         btnFilterContainer = view.findViewById(R.id.btn_filter_container)
-        tvFilterStatus = view.findViewById(R.id.tv_filter_status)
         btnClearFilter = view.findViewById(R.id.btn_clear_filter)
+
+        val tvAvgCarbs = view.findViewById<TextView>(R.id.tv_avg_carbs)
+        val tvAvgDose = view.findViewById<TextView>(R.id.tv_avg_dose)
+        val tvTotalMeals = view.findViewById<TextView>(R.id.tv_total_meals)
     }
 
     private fun setupRecyclerView() {
@@ -108,8 +106,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
             val uiFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
             val displayDate = uiFormat.format(Date(selection))
-
-            tvFilterStatus.text = "Date: $displayDate"
             btnClearFilter.isVisible = true
 
             viewModel.setDateFilter(apiDateString)
@@ -123,7 +119,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             adapter.submitData(PagingData.empty())
         }
 
-        tvFilterStatus.text = "Filter by Date"
         btnClearFilter.isVisible = false
 
         viewModel.setDateFilter(null)
@@ -131,26 +126,33 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
     }
 
     private fun observeData() {
+        val tvAvgCarbs = view?.findViewById<TextView>(R.id.tv_avg_carbs)
+        val tvAvgDose = view?.findViewById<TextView>(R.id.tv_avg_dose)
+        val tvTotalMeals = view?.findViewById<TextView>(R.id.tv_total_meals)
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.historyFlow.collectLatest { pagingData ->
                 adapter.submitData(pagingData)
             }
         }
-        
+
         viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.latestMeal.collectLatest { meal ->
-                updateLatestMealCard(meal)
+            adapter.loadStateFlow.collectLatest {
+                val mealItems = adapter.snapshot().items
+                    .filterIsInstance<com.example.insuscan.history.models.HistoryUiModel.MealItem>()
+                if (mealItems.isNotEmpty()) {
+                    val avgCarbs = mealItems.mapNotNull { it.meal.carbs }.average()
+                    val avgDose = mealItems.mapNotNull { it.meal.insulinDose }.average()
+                    if (!avgCarbs.isNaN()) tvAvgCarbs?.text = avgCarbs.toInt().toString()
+                    if (!avgDose.isNaN()) tvAvgDose?.text = String.format("%.1f", avgDose)
+                    tvTotalMeals?.text = mealItems.size.toString()
+                }
             }
         }
-    }
-
-    private fun updateLatestMealCard(meal: com.example.insuscan.meal.Meal?) {
-        latestMealCardHelper.updateCard(meal)
     }
 
     override fun onResume() {
         super.onResume()
         adapter.refresh()
-        viewModel.refreshLatestMeal()
     }
 }

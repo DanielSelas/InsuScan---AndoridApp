@@ -1,134 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/spacing_small"
-    app:cardCornerRadius="@dimen/corner_radius_card"
-    app:cardElevation="@dimen/elevation_card"
-    app:cardBackgroundColor="@color/surface">
+    android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/plan_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:minHeight="52dp"
+        android:background="?attr/selectableItemBackground">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_plan_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_primary" />
+
+            <TextView
+                android:id="@+id/tv_plan_summary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="1dp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/iv_delete_plan"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@android:drawable/ic_menu_delete"
+            android:layout_marginEnd="12dp"
+            android:visibility="gone"
+            android:contentDescription="Delete plan" />
+
+        <TextView
+            android:id="@+id/iv_expand_arrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="›"
+            android:textSize="20sp"
+            android:textColor="@color/text_disabled"
+            android:fontFamily="@font/inter" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/plan_details"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/padding_card">
+        android:visibility="gone"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
 
-        <!-- Header row: name + expand arrow + delete -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/divider"
+            android:layout_marginBottom="12dp" />
+
+        <!-- ICR -->
         <LinearLayout
-            android:id="@+id/plan_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="ICR (1:X)"
+                android:textSize="13.5sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_primary" />
+
+            <EditText
+                android:id="@+id/et_plan_icr"
+                android:layout_width="72dp"
+                android:layout_height="36dp"
+                android:hint="10"
+                android:inputType="number"
+                android:textAlignment="center"
+                android:textSize="13.5sp"
+                android:fontFamily="@font/inter"
+                android:background="@drawable/edit_text_background" />
+
+        </LinearLayout>
+
+        <!-- ISF -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="ISF (mg/dL per unit)"
+                android:textSize="13.5sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_primary" />
+
+            <EditText
+                android:id="@+id/et_plan_isf"
+                android:layout_width="72dp"
+                android:layout_height="36dp"
+                android:hint="50"
+                android:inputType="number"
+                android:textAlignment="center"
+                android:textSize="13.5sp"
+                android:fontFamily="@font/inter"
+                android:background="@drawable/edit_text_background" />
+
+        </LinearLayout>
+
+        <!-- Target glucose -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/tv_plan_name"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="@dimen/text_body1"
-                android:textStyle="bold" />
+                android:text="Target glucose (mg/dL)"
+                android:textSize="13.5sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_primary" />
 
-            <ImageView
-                android:id="@+id/iv_expand_arrow"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/arrow_down_float"
-                android:layout_marginEnd="@dimen/spacing_small" />
-
-            <ImageView
-                android:id="@+id/iv_delete_plan"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_delete"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <!-- Expandable details -->
-        <LinearLayout
-            android:id="@+id/plan_details"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone"
-            android:layout_marginTop="@dimen/spacing_small">
-
-            <!-- ICR -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/spacing_small">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="ICR (1:X)"
-                    android:textSize="@dimen/text_body2" />
-
-                <EditText
-                    android:id="@+id/et_plan_icr"
-                    android:layout_width="@dimen/input_width_medium"
-                    android:layout_height="wrap_content"
-                    android:hint="10"
-                    android:inputType="number"
-                    android:textAlignment="center"
-                    android:background="@drawable/edit_text_background" />
-            </LinearLayout>
-
-            <!-- ISF -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/spacing_small">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="ISF"
-                    android:textSize="@dimen/text_body2" />
-
-                <EditText
-                    android:id="@+id/et_plan_isf"
-                    android:layout_width="@dimen/input_width_medium"
-                    android:layout_height="wrap_content"
-                    android:hint="50"
-                    android:inputType="number"
-                    android:textAlignment="center"
-                    android:background="@drawable/edit_text_background" />
-            </LinearLayout>
-
-            <!-- Target Glucose -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Target Glucose"
-                    android:textSize="@dimen/text_body2" />
-
-                <EditText
-                    android:id="@+id/et_plan_target"
-                    android:layout_width="@dimen/input_width_medium"
-                    android:layout_height="wrap_content"
-                    android:hint="100"
-                    android:inputType="number"
-                    android:textAlignment="center"
-                    android:background="@drawable/edit_text_background" />
-            </LinearLayout>
+            <EditText
+                android:id="@+id/et_plan_target"
+                android:layout_width="72dp"
+                android:layout_height="36dp"
+                android:hint="110"
+                android:inputType="number"
+                android:textAlignment="center"
+                android:textSize="13.5sp"
+                android:fontFamily="@font/inter"
+                android:background="@drawable/edit_text_background" />
 
         </LinearLayout>
+
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+
+</LinearLayout>

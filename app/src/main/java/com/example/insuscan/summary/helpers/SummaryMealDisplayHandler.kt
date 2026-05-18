@@ -25,7 +25,7 @@ class SummaryMealDisplayHandler(
 
         if (meal == null) {
             addSingleMessageRow("No meal data")
-            ui.totalCarbsText.text = "Total carbs: -- g"
+            ui.totalCarbsText.text = "--"
             return
         }
 
@@ -33,23 +33,28 @@ class SummaryMealDisplayHandler(
         if (!items.isNullOrEmpty()) {
             var calculatedTotalCarbs = 0f
 
+            ui.detectedItemsLabel.text = "DETECTED ITEMS · ${items.size}"
+
             items.forEachIndexed { index, item ->
                 calculatedTotalCarbs += (item.carbsGrams ?: 0f)
                 addFoodItemRow(item, index, index == items.lastIndex)
             }
-            
-            ui.totalCarbsText.text = String.format("Total carbs: %.2f g", calculatedTotalCarbs)
+
+            ui.totalCarbsText.text = String.format("%.1f", calculatedTotalCarbs)
         } else {
             addSingleMessageRow("No food detected in image")
-            ui.totalCarbsText.text = "Total carbs: 0 g"
+            ui.totalCarbsText.text = "0"
         }
     }
 
     private fun addFoodItemRow(item: FoodItem, index: Int, isLast: Boolean) {
         val row = LinearLayout(context).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 16, 0, 16)
+            setPadding(0, 14, 0, 14)
             gravity = android.view.Gravity.CENTER_VERTICAL
             isClickable = true
             isFocusable = true
@@ -61,54 +66,102 @@ class SummaryMealDisplayHandler(
         val name = item.nameHebrew ?: item.name
         val carbs = item.carbsGrams ?: 0f
         val weight = item.weightGrams?.toInt()
+        val confidence = item.confidence
         val hasMissingData = carbs == 0f
 
-        val nameText = TextView(context).apply {
+//        val numberText = TextView(context).apply {
+//            layoutParams = LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.WRAP_CONTENT,
+//                LinearLayout.LayoutParams.WRAP_CONTENT
+//            )
+//            text = String.format("%02d", index + 1)
+//            textSize = 10f
+//            typeface = android.graphics.Typeface.MONOSPACE
+//            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+//            setPadding(0, 0, 12, 0)
+//        }
+//        row.addView(numberText)
+
+        val infoLayout = LinearLayout(context).apply {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            orientation = LinearLayout.VERTICAL
+        }
+
+        val nameText = TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
             text = if (hasMissingData) "⚠️ $name" else name
-            textSize = 16f
+            textSize = 14.5f
             setTextColor(ContextCompat.getColor(context, if (hasMissingData) R.color.error else R.color.text_primary))
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
-        row.addView(nameText)
+        infoLayout.addView(nameText)
+
+        val subText = TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            val weightStr = if (weight != null && weight > 0) "${weight}g" else ""
+            val carbStr = if (!hasMissingData) " · ${carbs.toInt()}g carbs" else ""
+            text = weightStr + carbStr
+            textSize = 11f
+            typeface = android.graphics.Typeface.MONOSPACE
+            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+        }
+        infoLayout.addView(subText)
+        row.addView(infoLayout)
+
+//        val carbsText = TextView(context).apply {
+//            layoutParams = LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.WRAP_CONTENT,
+//                LinearLayout.LayoutParams.WRAP_CONTENT
+//            )
+//            text = if (hasMissingData) "Fix >" else String.format("%.0fg", carbs)
+//            textSize = 12f
+//            typeface = android.graphics.Typeface.MONOSPACE
+//            setTextColor(ContextCompat.getColor(context, if (hasMissingData) R.color.error else R.color.text_secondary))
+//            setPadding(0, 0, 12, 0)
+//        }
+//        row.addView(carbsText)
+
+        val conf = item.confidence
+        if (conf != null && conf > 0f) {
+            val confColor = when {
+                conf >= 0.85f -> ContextCompat.getColor(context, R.color.secondary)
+                conf >= 0.70f -> ContextCompat.getColor(context, R.color.status_warning)
+                else -> ContextCompat.getColor(context, R.color.status_critical)
+            }
+            val confText = TextView(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                text = "${(conf * 100f).toInt()}%"
+                textSize = 12f
+                setTextColor(confColor)
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setPadding(0, 0, 10, 0)
+            }
+            row.addView(confText)
+        }
+
+        val chevron = TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            text = "›"
+            textSize = 18f
+            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
+        }
+        row.addView(chevron)
 
         if (weight != null && weight > 0) {
-            val weightText = TextView(context).apply {
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                val fullText = "Weight: ${weight}g ✎"
-                val spannable = android.text.SpannableString(fullText)
-                val iconColor = ContextCompat.getColor(context, R.color.status_normal)
-                spannable.setSpan(
-                    android.text.style.ForegroundColorSpan(iconColor),
-                    fullText.length - 1,
-                    fullText.length,
-                    android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                )
-                text = spannable
-                textSize = 13f
-                setTextColor(ContextCompat.getColor(context, R.color.primary))
-                setPadding(16, 0, 16, 0)
-                setOnClickListener { showWeightEditDialog(index, item) }
-            }
-            row.addView(weightText)
+            row.setOnClickListener { showWeightEditDialog(index, item) }
         }
-
-        val trailingText = TextView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-            if (hasMissingData) {
-                text = "Fix >"
-                textSize = 14f
-                setTextColor(ContextCompat.getColor(context, R.color.error))
-                setTypeface(null, android.graphics.Typeface.BOLD)
-            } else {
-                text = String.format("Carbs: %.2f g", carbs)
-                textSize = 14f
-                setTextColor(ContextCompat.getColor(context, R.color.primary))
-                setTypeface(null, android.graphics.Typeface.BOLD)
-            }
-        }
-        row.addView(trailingText)
-
         if (hasMissingData) {
             row.setOnClickListener { onNavigateToManualEntry() }
         }
@@ -116,11 +169,13 @@ class SummaryMealDisplayHandler(
         ui.mealItemsContainer.addView(row)
 
         if (!isLast) {
-             val divider = View(context).apply {
-                layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 2)
-                setBackgroundColor(0xFFEEEEEE.toInt())
-             }
-             ui.mealItemsContainer.addView(divider)
+            val divider = View(context).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 1
+                )
+                setBackgroundColor(ContextCompat.getColor(context, R.color.divider))
+            }
+            ui.mealItemsContainer.addView(divider)
         }
     }
 

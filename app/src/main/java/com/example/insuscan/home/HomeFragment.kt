@@ -29,6 +29,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var greetingText: TextView
     private lateinit var profileImageHelper: ProfileImageHelper
     private lateinit var planSelector: InsulinPlanSelector
+    private lateinit var greetingSubText: TextView
+
 
     private val userRepository = UserRepositoryImpl()
     private val ctx get() = requireContext()
@@ -48,10 +50,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onResume()
         renderGreeting()
         profileImageHelper.loadImage()
+        planSelector.loadPlans(null)
     }
 
     private fun findViews(view: View) {
         greetingText = view.findViewById(R.id.tv_home_greeting)
+        greetingSubText = view.findViewById(R.id.tv_home_greeting_sub)
+
 
         profileImageHelper = ProfileImageHelper(
             fragment = this,
@@ -63,8 +68,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             defaultRadio = view.findViewById(R.id.rb_default_plan),
             recyclerView = view.findViewById(R.id.rv_plans)
         )
-
-
     }
 
     private fun setupNavigationListeners(view: View) {
@@ -75,6 +78,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         view.findViewById<Button>(R.id.btn_open_chat).setOnClickListener {
             applySelectedPlan()
             findNavController().navigate(R.id.action_home_to_chat)
+        }
+        view.findViewById<TextView>(R.id.tv_manage_plans).setOnClickListener {
+            findNavController().navigate(R.id.profileFragment)
         }
     }
 
@@ -97,6 +103,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     result.getOrNull()?.let { userDto ->
                         UserProfileManager.syncFromServer(ctx, userDto)
                         renderGreeting()
+
+                        val defaultIcr = userDto.insulinCarbRatio?.split(":")?.lastOrNull()?.trim() ?: "--"
+                        val defaultIsf = userDto.correctionFactor?.toInt()?.toString() ?: "--"
+                        val defaultTg = userDto.targetGlucose?.toString() ?: "--"
+                        view?.findViewById<TextView>(R.id.tv_default_plan_details)?.text =
+                            "ICR $defaultIcr · ISF $defaultIsf · TG $defaultTg"
+
                         planSelector.loadPlans(userDto.insulinPlans)
                         MealSessionManager.availablePlans = userDto.insulinPlans?.map { dto ->
                             InsulinPlan(
@@ -120,7 +133,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun renderGreeting() {
         val displayName = UserProfileManager.getUserName(ctx) ?: DEFAULT_NAME
-        greetingText.text = "Hello, $displayName"
+        val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
+        val greeting = when {
+            hour < 12 -> "Good morning"
+            hour < 17 -> "Good afternoon"
+            else -> "Good evening"
+        }
+        greetingSubText.text = greeting
+        greetingText.text = displayName
     }
 
     companion object {

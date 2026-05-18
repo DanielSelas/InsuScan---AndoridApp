@@ -290,17 +290,11 @@
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <EditText
-                android:id="@+id/et_glucose_level"
+            <!-- Glucose input moved to loading screen -->
+            <View
                 android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:hint="Blood glucose (mg/dL)"
-                android:inputType="number"
-                android:textSize="@dimen/text_body2"
-                android:textAlignment="center"
-                android:background="@drawable/edit_text_background"
-                android:layout_marginEnd="@dimen/spacing_small" />
+                android:layout_height="0dp"
+                android:layout_weight="1" />
 
             <Button
                 android:id="@+id/btn_reference_object"
@@ -388,6 +382,201 @@
 
     </androidx.cardview.widget.CardView>
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_analyzing_meal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F8F9FA"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <FrameLayout
+            android:id="@+id/loading_image_container"
+            android:layout_width="220dp"
+            android:layout_height="220dp"
+            android:background="@drawable/bg_rounded_blue_light"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/tv_loading_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            android:layout_marginBottom="32dp">
+
+            <ImageView
+                android:id="@+id/iv_loading_animation"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_gravity="center"
+                android:src="@drawable/duck_camera" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_loading_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Analyzing your meal"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#0D1B2A"
+            app:layout_constraintTop_toBottomOf="@id/loading_image_container"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tv_loading_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="This usually takes 5–8 seconds."
+            android:textSize="16sp"
+            android:textColor="#6C757D"
+            app:layout_constraintTop_toBottomOf="@id/tv_loading_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="48dp"/>
+
+        <!-- Steps List -->
+        <LinearLayout
+            android:id="@+id/loading_steps_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/tv_loading_subtitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="32dp">
+
+            <!-- Step 1 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                <ImageView
+                    android:id="@+id/step1_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_step_inactive" />
+                <TextView
+                    android:id="@+id/step1_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Processing image"
+                    android:textSize="16sp"
+                    android:textColor="#6C757D"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+            <!-- Step 2 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                <ImageView
+                    android:id="@+id/step2_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_step_inactive" />
+                <TextView
+                    android:id="@+id/step2_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Detecting food"
+                    android:textSize="16sp"
+                    android:textColor="#6C757D"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+            <!-- Step 3 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                <ImageView
+                    android:id="@+id/step3_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_step_inactive" />
+                <TextView
+                    android:id="@+id/step3_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Measuring portion"
+                    android:textSize="16sp"
+                    android:textColor="#6C757D"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+            <!-- Step 4 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="16dp">
+                <ImageView
+                    android:id="@+id/step4_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_step_inactive" />
+                <TextView
+                    android:id="@+id/step4_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Calculating dose"
+                    android:textSize="16sp"
+                    android:textColor="#6C757D"
+                    android:layout_marginStart="16dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Glucose Submit Container -->
+        <LinearLayout
+            android:id="@+id/layout_glucose_submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@drawable/card_background"
+            android:elevation="16dp"
+            android:gravity="center_vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <EditText
+                android:id="@+id/et_glucose_level"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_weight="1"
+                android:hint="Blood glucose (mg/dL)"
+                android:inputType="number"
+                android:textSize="15sp"
+                android:textAlignment="center"
+                android:background="@drawable/edit_text_background"
+                android:layout_marginEnd="12dp" />
+
+            <Button
+                android:id="@+id/btn_submit_scan"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:text="Show Results"
+                android:textSize="14sp"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColor="@color/text_on_primary"
+                android:background="@drawable/button_primary" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <FrameLayout
         android:id="@+id/loading_overlay"
         android:layout_width="match_parent"
@@ -401,16 +590,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
-
-        <TextView
-            android:id="@+id/tv_loading_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/scan_analyzing"
-            android:textColor="@color/text_on_primary"
-            android:textSize="@dimen/text_body1"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/loading_text_margin_top" />
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

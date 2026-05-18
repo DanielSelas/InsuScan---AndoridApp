@@ -2,27 +2,27 @@
 
     <item
         android:id="@+id/homeFragment"
-        android:icon="@android:drawable/ic_menu_view"
+        android:icon="@drawable/ic_nav_home"
         android:title="Home" />
 
     <item
-        android:id="@+id/summaryFragment"
-        android:icon="@android:drawable/ic_menu_info_details"
-        android:title="Summary" />
-
-    <item
-        android:id="@+id/scanFragment"
-        android:icon="@android:drawable/ic_menu_camera"
-        android:title="Scan" />
-
-    <item
         android:id="@+id/historyFragment"
-        android:icon="@android:drawable/ic_menu_recent_history"
+        android:icon="@drawable/ic_nav_history"
         android:title="History" />
 
     <item
+        android:id="@+id/scanFragment"
+        android:icon="@drawable/ic_nav_scan"
+        android:title="Scan" />
+
+    <item
+        android:id="@+id/chatFragment"
+        android:icon="@drawable/ic_nav_chat"
+        android:title="Assist" />
+
+    <item
         android:id="@+id/profileFragment"
-        android:icon="@android:drawable/ic_menu_manage"
-        android:title="Profile" />
+        android:icon="@drawable/ic_nav_profile"
+        android:title="You" />
 
 </menu>

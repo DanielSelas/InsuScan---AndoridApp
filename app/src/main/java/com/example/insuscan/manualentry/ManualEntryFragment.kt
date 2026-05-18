@@ -46,7 +46,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        TopBarHelper.setupTopBar(view, "Edit Meal") { findNavController().popBackStack() }
+        TopBarHelper.setupTopBar(view, "Edit Meal", onBack = { findNavController().popBackStack() })
         findViews(view)
         setupAdapters()
         setupHelpers(view)

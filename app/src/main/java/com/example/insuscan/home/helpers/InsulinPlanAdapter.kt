@@ -41,10 +41,12 @@ class InsulinPlanAdapter(
     inner class PlanViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val radio: RadioButton = view.findViewById(R.id.rb_plan)
         private val name: TextView = view.findViewById(R.id.tv_plan_name)
+        private val subtitle: TextView = view.findViewById(R.id.tv_plan_subtitle)
         private val details: TextView = view.findViewById(R.id.tv_plan_details)
 
         fun bind(plan: InsulinPlanDto) {
             name.text = plan.name ?: "Unnamed"
+            subtitle.text = formatSubtitle(plan)
             details.text = formatDetails(plan)
             radio.isChecked = selectedId != null && plan.id == selectedId
 
@@ -53,12 +55,20 @@ class InsulinPlanAdapter(
             }
         }
 
+        private fun formatSubtitle(plan: InsulinPlanDto): String {
+            return when {
+                plan.name?.lowercase()?.contains("sick") == true -> "Sick day values"
+                plan.name?.lowercase()?.contains("workout") == true -> "Reduced carb ratio"
+                plan.name?.lowercase()?.contains("stress") == true -> "Higher correction"
+                else -> "Custom values"
+            }
+        }
+
         private fun formatDetails(plan: InsulinPlanDto): String {
-            val parts = mutableListOf<String>()
-            plan.icr?.let { parts.add("ICR 1:${it.toInt()}") }
-            plan.isf?.let { parts.add("ISF ${it.toInt()}") }
-            plan.targetGlucose?.let { parts.add("TG $it") }
-            return if (parts.isEmpty()) "not configured" else parts.joinToString(" · ")
+            val icr = plan.icr?.let { "${it.toInt()}" } ?: "--"
+            val isf = plan.isf?.let { "${it.toInt()}" } ?: "--"
+            val tg = plan.targetGlucose?.toString() ?: "--"
+            return "ICR $icr · ISF $isf · TG $tg"
         }
     }
 }

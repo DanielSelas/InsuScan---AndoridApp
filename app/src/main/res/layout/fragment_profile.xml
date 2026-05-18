@@ -2,12 +2,10 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Top bar -->
     <include
         android:id="@+id/top_bar"
         layout="@layout/view_top_bar"
@@ -15,7 +13,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:id="@+id/profile_scroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -23,262 +21,64 @@
         app:layout_constraintTop_toBottomOf="@id/top_bar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btn_save_profile">
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/padding_card">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="120dp">
 
-            <!-- ============== PROFILE HEADER ============== -->
+            <!-- HEADER -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="@dimen/padding_card"
+                    android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <!-- Profile photo with edit button -->
                     <FrameLayout
-                        android:layout_width="@dimen/progress_size_large"
-                        android:layout_height="@dimen/progress_size_large">
+                        android:layout_width="56dp"
+                        android:layout_height="56dp">
 
                         <ImageView
                             android:id="@+id/iv_profile_photo"
-                            android:layout_width="@dimen/progress_size_large"
-                            android:layout_height="@dimen/progress_size_large"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:scaleType="centerCrop"
                             android:src="@drawable/ic_person"
-                            android:background="@drawable/circle_background"
-                            android:padding="@dimen/spacing_medium"
-                            android:scaleType="centerCrop" />
+                            android:contentDescription="Profile photo" />
 
-                        <!-- Camera icon overlay -->
                         <ImageView
                             android:id="@+id/iv_edit_photo"
-                            android:layout_width="@dimen/icon_standard"
-                            android:layout_height="@dimen/icon_standard"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
                             android:layout_gravity="bottom|end"
-                            android:src="@drawable/ic_camera"
-                            android:background="@drawable/button_secondary"
-                            android:padding="@dimen/spacing_xs"
-                            android:elevation="@dimen/elevation_card" />
+                            android:src="@drawable/ic_person"
+                            android:contentDescription="Edit photo" />
 
                     </FrameLayout>
 
                     <LinearLayout
+                        android:id="@+id/row_name_email"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:layout_marginStart="@dimen/spacing_medium">
-
-                        <!-- Name -->
-                        <EditText
-                            android:id="@+id/et_user_name"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="@string/hint_your_name"
-                            android:textSize="@dimen/text_h3"
-                            android:textStyle="bold"
-                            android:inputType="textPersonName"
-                            android:background="@android:color/transparent" />
-
-                        <!-- Email (read-only) -->
-                        <TextView
-                            android:id="@+id/tv_user_email"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            tools:text="email@example.com"
-                            android:textSize="@dimen/text_body2"
-                            android:textColor="@color/text_secondary"
-                            android:layout_marginTop="@dimen/spacing_xs" />
-
-                    </LinearLayout>
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- ============== PERSONAL INFO ============== -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/profile_personal_info"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:layout_marginStart="@dimen/spacing_xs" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <!-- Age -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_label_age"
-                            android:textSize="@dimen/text_body1" />
-
-                        <EditText
-                            android:id="@+id/et_user_age"
-                            android:layout_width="@dimen/input_width_medium"
-                            android:layout_height="wrap_content"
-                            tools:hint="30"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider"
-                        android:layout_marginVertical="@dimen/spacing_medium" />
-
-                    <!-- Gender -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_gender"
-                            android:textSize="@dimen/text_body1" />
-
-                        <Spinner
-                            android:id="@+id/spinner_gender"
-                            android:layout_width="@dimen/spinner_width_medium"
-                            android:layout_height="@dimen/input_height_single"
-                            android:background="@drawable/spinner_background" />
-                    </LinearLayout>
-
-                    <!-- Pregnancy (visible only for females) -->
-                    <LinearLayout
-                        android:id="@+id/layout_pregnancy"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="@dimen/divider_height"
-                            android:background="@color/divider_profile"
-                            android:layout_marginVertical="@dimen/padding_input_horizontal"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/profile_pregnant_question"
-                                android:textSize="@dimen/text_body1" />
-
-                            <androidx.appcompat.widget.SwitchCompat
-                                android:id="@+id/switch_pregnant"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <!-- Due date (visible only if pregnant) -->
-                        <LinearLayout
-                            android:id="@+id/layout_due_date"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginTop="@dimen/padding_input_horizontal"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="@string/profile_due_date"
-                                android:textSize="@dimen/text_body1" />
-
-                            <TextView
-                                android:id="@+id/tv_due_date"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/action_select_date"
-                                android:textColor="@color/primary_dark"
-                                android:padding="@dimen/spacing_small"
-                                android:background="@drawable/edit_text_background" />
-                        </LinearLayout>
-                    </LinearLayout>
-
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-
-
-            <!-- ============== INSULIN PARAMETERS ============== -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/profile_insulin_parameters"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
-                android:textColor="@color/text_secondary"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:layout_marginStart="@dimen/spacing_xs" />
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/spacing_medium"
-                app:cardCornerRadius="@dimen/corner_radius_card"
-                app:cardElevation="@dimen/elevation_card"
-                app:cardBackgroundColor="@color/surface">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="@dimen/padding_card">
-
-                    <!-- ICR -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
+                        android:gravity="center_vertical"
+                        android:layout_marginStart="14dp"
+                        android:background="?attr/selectableItemBackground">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -287,229 +87,193 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tv_user_name_display"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/profile_icr"
-                                android:textSize="@dimen/text_body1" />
+                                android:textSize="16sp"
+                                android:fontFamily="@font/inter"
+                                android:textFontWeight="600"
+                                android:textColor="@color/text_primary" />
 
                             <TextView
+                                android:id="@+id/tv_user_email"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="@string/profile_icr_desc"
-                                android:textSize="@dimen/text_caption"
-                                android:textColor="@color/text_hint" />
+                                android:textSize="12.5sp"
+                                android:fontFamily="@font/inter"
+                                android:textColor="@color/text_secondary"
+                                android:layout_marginTop="2dp" />
+
                         </LinearLayout>
 
-                        <LinearLayout
+                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:background="@drawable/edit_text_background"
-                            android:gravity="center_vertical"
-                            android:paddingStart="@dimen/spacing_small"
-                            android:paddingEnd="@dimen/spacing_small">
+                            android:text="›"
+                            android:textSize="20sp"
+                            android:textColor="@color/text_disabled"
+                            android:fontFamily="@font/inter" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="1 :"
-                                android:textSize="@dimen/text_body1"
-                                android:textColor="@color/text_primary"
-                                android:layout_marginEnd="@dimen/spacing_xs"/>
-
-                            <EditText
-                                android:id="@+id/et_insulin_carb_ratio"
-                                android:layout_width="@dimen/input_width_icr"
-                                android:layout_height="wrap_content"
-                                android:hint="10"
-                                android:inputType="number"
-                                android:textAlignment="viewStart"
-                                android:background="@android:color/transparent"
-                                android:padding="@dimen/spacing_small"/>
-                        </LinearLayout>
                     </LinearLayout>
 
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                    <!-- ISF -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/profile_isf"
-                                android:textSize="@dimen/text_body1" />
-
-                            <TextView
-                                android:id="@+id/tv_isf_subtitle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/profile_isf_desc"
-                                android:textSize="@dimen/text_caption"
-                                android:textColor="@color/text_hint" />
-                        </LinearLayout>
-
-                        <EditText
-                            android:id="@+id/et_correction_factor"
-                            android:layout_width="@dimen/input_width_medium"
-                            android:layout_height="wrap_content"
-                            android:hint="50"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                    <!-- Target Glucose -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/profile_target_glucose"
-                                android:textSize="@dimen/text_body1" />
-
-                            <TextView
-                                android:id="@+id/tv_target_subtitle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/unit_mgdl"
-                                android:textSize="@dimen/text_caption"
-                                android:textColor="@color/text_hint" />
-                        </LinearLayout>
-
-                        <EditText
-                            android:id="@+id/et_target_glucose"
-                            android:layout_width="@dimen/input_width_medium"
-                            android:layout_height="wrap_content"
-                            android:hint="100"
-                            android:inputType="number"
-                            android:textAlignment="center"
-                            android:background="@drawable/edit_text_background" />
-                    </LinearLayout>
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="@dimen/divider_height"
-                        android:background="@color/divider_profile"
-                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
-
-                    <!-- Dose Rounding -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/profile_dose_rounding"
-                            android:textSize="@dimen/text_body1" />
-
-                        <Spinner
-                            android:id="@+id/spinner_dose_rounding"
-                            android:layout_width="@dimen/spinner_width_small"
-                            android:layout_height="@dimen/input_height_single"
-                            android:background="@drawable/spinner_background" />
-                    </LinearLayout>
                 </LinearLayout>
-
             </androidx.cardview.widget.CardView>
-            <!-- ============== INSULIN PLANS ============== -->
+
+            <!-- PERSONAL INFO -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PERSONAL INFO"
+                android:textSize="11sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="600"
+                android:letterSpacing="0.08"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="6dp"
+                android:layout_marginStart="4dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <include layout="@layout/item_profile_row" android:id="@+id/row_age" />
+
+                    <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                        android:background="@color/divider" android:layout_marginStart="16dp" />
+
+                    <include layout="@layout/item_profile_row" android:id="@+id/row_gender" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- INSULIN PARAMETERS -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="INSULIN PARAMETERS"
+                android:textSize="11sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="600"
+                android:letterSpacing="0.08"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="6dp"
+                android:layout_marginStart="4dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/surface">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <include layout="@layout/item_profile_row" android:id="@+id/row_icr" />
+
+                    <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                        android:background="@color/divider" android:layout_marginStart="16dp" />
+
+                    <include layout="@layout/item_profile_row" android:id="@+id/row_isf" />
+
+                    <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                        android:background="@color/divider" android:layout_marginStart="16dp" />
+
+                    <include layout="@layout/item_profile_row" android:id="@+id/row_target_glucose" />
+
+                    <View android:layout_width="match_parent" android:layout_height="0.5dp"
+                        android:background="@color/divider" android:layout_marginStart="16dp" />
+
+                    <include layout="@layout/item_profile_row" android:id="@+id/row_dose_rounding" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- INSULIN PLANS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/spacing_small"
-                android:layout_marginStart="@dimen/spacing_xs">
+                android:layout_marginBottom="6dp"
+                android:layout_marginStart="4dp">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Insulin Plans"
-                    android:textSize="@dimen/text_body2"
-                    android:textStyle="bold"
+                    android:text="INSULIN PLANS"
+                    android:textSize="11sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="600"
+                    android:letterSpacing="0.08"
                     android:textColor="@color/text_secondary" />
 
-                <ImageButton
+                <TextView
                     android:id="@+id/btn_add_plan"
-                    android:layout_width="@dimen/icon_standard"
-                    android:layout_height="@dimen/icon_standard"
-                    android:src="@android:drawable/ic_input_add"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Add plan" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+ Add"
+                    android:textSize="13sp"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="500"
+                    android:textColor="@color/primary"
+                    android:paddingEnd="4dp" />
+
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/plans_container"
+            <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginBottom="@dimen/spacing_medium" />
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/surface">
+
+                <LinearLayout
+                    android:id="@+id/plans_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp" />
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- LOG OUT -->
+            <Button
+                android:id="@+id/btn_logout"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Log out"
+                android:textSize="14.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:textAllCaps="false"
+                android:textColor="@color/error"
+                android:backgroundTint="@color/error_bg"
+                app:cornerRadius="14dp"
+                style="@style/Widget.Material3.Button" />
 
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
-    <!-- Save Button -->
-    <Button
-        android:id="@+id/btn_save_profile"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/action_save_changes"
-        android:textAllCaps="false"
-        android:layout_marginHorizontal="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_small"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/btn_logout" />
-
-    <!-- Logout Button -->
-    <Button
-        android:id="@+id/btn_logout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/action_logout"
-        android:textAllCaps="false"
-        android:backgroundTint="@color/error"
-        android:layout_marginHorizontal="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_medium"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
-
-    <!-- Loading Indicator -->
     <FrameLayout
         android:id="@+id/loading_overlay"
         android:layout_width="match_parent"
@@ -529,6 +293,7 @@
             android:layout_gravity="center"
             android:indeterminate="true"
             android:indeterminateTint="@color/white" />
+
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

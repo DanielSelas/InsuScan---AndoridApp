@@ -16,18 +16,19 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
 
     override fun getItemViewType(position: Int): Int {
         return when (getItem(position)) {
-            is HistoryUiModel.Header -> R.layout.item_history_header
-            is HistoryUiModel.MealItem -> R.layout.item_meal_history_expandable
+            is HistoryUiModel.Header -> VIEW_TYPE_HEADER
+            is HistoryUiModel.MealItem -> VIEW_TYPE_MEAL
             else -> throw UnsupportedOperationException("Unknown view")
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return if (viewType == R.layout.item_history_header) {
+        return if (viewType == VIEW_TYPE_HEADER) {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.item_history_header, parent, false)
             HeaderViewHolder(view)
         } else {
-            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_meal_history_expandable, parent, false)
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_meal_history, parent, false)
+
             MealViewHolder(view) { mealId, adapterPos ->
                 if (expandedPositions.contains(mealId)) {
                     expandedPositions.remove(mealId)
@@ -50,6 +51,8 @@ class MealHistoryAdapter : PagingDataAdapter<HistoryUiModel, RecyclerView.ViewHo
     }
 
     companion object {
+        private const val VIEW_TYPE_HEADER = 0
+        private const val VIEW_TYPE_MEAL = 1
         private val UI_MODEL_COMPARATOR = object : DiffUtil.ItemCallback<HistoryUiModel>() {
             override fun areItemsTheSame(oldItem: HistoryUiModel, newItem: HistoryUiModel): Boolean {
                 return (oldItem is HistoryUiModel.MealItem && newItem is HistoryUiModel.MealItem &&

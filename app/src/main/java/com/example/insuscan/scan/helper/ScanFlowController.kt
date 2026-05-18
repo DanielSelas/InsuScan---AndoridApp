@@ -45,8 +45,47 @@ class ScanFlowController(
     private var pendingMainBitmap: Bitmap? = null
     private var pendingMainFile: File? = null
     private var pendingRefType: String? = null
+    private var pendingSuccessMeal: com.example.insuscan.meal.Meal? = null
+    private var pendingSuccessWarning: String? = null
+    private var isWaitingForResults = false
 
     private val context get() = fragment.requireContext()
+
+    init {
+        uiState.btnSubmitScan.setOnClickListener {
+            val text = uiState.glucoseInput.text.toString().trim()
+            if (text.isEmpty()) {
+                ToastHelper.showShort(context, "Please enter your blood glucose level.")
+                return@setOnClickListener
+            }
+            val value = text.toIntOrNull()
+            if (value == null || value < 30 || value > 600) {
+                ToastHelper.showShort(context, "Blood glucose must be between 30 and 600 mg/dL.")
+                return@setOnClickListener
+            }
+
+            val meal = pendingSuccessMeal
+            if (meal != null) {
+                submitSuccessMeal(meal, pendingSuccessWarning)
+            } else {
+                isWaitingForResults = true
+                uiState.btnSubmitScan.isEnabled = false
+                uiState.btnSubmitScan.text = "Waiting..."
+                uiState.glucoseInput.isEnabled = false
+            }
+        }
+    }
+
+    private fun submitSuccessMeal(meal: com.example.insuscan.meal.Meal, warning: String?) {
+        uiState.showLoading(false)
+        val strategy = MeasurementStrategy.decide(
+            hardware.cameraManager.lastQualityResult?.isReferenceObjectFound ?: false, 
+            hardware.arCoreManager?.isReady == true
+        )
+        uiState.showConfidenceBanner(strategy)
+        if (warning != null) ToastHelper.showLong(context, warning)
+        callback?.onScanSuccess(meal)
+    }
 
     fun updateQualityUI(quality: ImageQualityResult) {
         if (!fragment.isAdded || fragment.context == null) return
@@ -126,6 +165,9 @@ class ScanFlowController(
         pendingMainBitmap = null
         pendingMainFile = null
         pendingRefType = null
+        pendingSuccessMeal = null
+        pendingSuccessWarning = null
+        isWaitingForResults = false
     }
 
     private fun analyzePortionAndContinue(imageFile: File) {
@@ -138,7 +180,7 @@ class ScanFlowController(
         }
 
         hardware.pipelineManager.snapshotArcoreData()
-        uiState.showLoading(true, "Analyzing your meal...")
+        uiState.showLoading(true, "Processing top image...", isFullAnalysis = false)
         hardware.pipelineManager.isRefObjectExpectedInFrame = ReferenceObjectHelper.fromServerValue(selectedReferenceType) != ReferenceObjectHelper.ReferenceObjectType.NONE
         hardware.pipelineManager.wasRefFoundInLivePreview = hardware.cameraManager.lastQualityResult?.isReferenceObjectFound ?: false
 
@@ -156,14 +198,13 @@ class ScanFlowController(
 
             is PipelineResult.Success -> {
                 Log.d(TAG, "✅ PIPELINE SUCCESS | warning=${result.warning} | meal=${result.meal}")
-                uiState.showLoading(false)
-                val strategy = MeasurementStrategy.decide(
-                    hardware.cameraManager.lastQualityResult?.isReferenceObjectFound ?: false, 
-                    hardware.arCoreManager?.isReady == true
-                )
-                uiState.showConfidenceBanner(strategy)
-                if (result.warning != null) ToastHelper.showLong(context, result.warning)
-                callback?.onScanSuccess(result.meal)
+                pendingSuccessMeal = result.meal
+                pendingSuccessWarning = result.warning
+                if (isWaitingForResults) {
+                    uiState.btnSubmitScan.post {
+                        submitSuccessMeal(result.meal, result.warning)
+                    }
+                }
             }
             is PipelineResult.NeedSidePhoto -> {
                 Log.d(TAG, "📷 NEED SIDE PHOTO | requesting second capture")
@@ -187,6 +228,7 @@ class ScanFlowController(
     }
 
     fun proceedWithPortionAnalysis(sideImage: Bitmap? = null) {
+        uiState.showLoading(true, "Analyzing your meal...", isFullAnalysis = true)
         hardware.pipelineManager.isRefObjectExpectedInFrame = ReferenceObjectHelper.fromServerValue(selectedReferenceType) != ReferenceObjectHelper.ReferenceObjectType.NONE
         hardware.pipelineManager.wasRefFoundInLivePreview = hardware.cameraManager.lastQualityResult?.isReferenceObjectFound ?: false
 
@@ -212,7 +254,7 @@ class ScanFlowController(
                 outputDirectory = context.cacheDir,
                 onImageCaptured = { sideFile ->
                     val sideBitmap = BitmapFactory.decodeFile(sideFile.absolutePath)
-                    uiState.showLoading(true, "Analyzing your meal...")
+                    uiState.showLoading(true, "Analyzing your meal...", isFullAnalysis = true)
                     hardware.pipelineManager.snapshotArcoreData()
                     proceedWithPortionAnalysis(sideImage = sideBitmap)
                     initializeListeners()
@@ -249,7 +291,7 @@ class ScanFlowController(
             hardware.resetForGallery()
             isShowingCapturedImage = true
             uiState.switchToCapturedImageMode(cacheFile, fragment, isSidePhotoMode)
-            uiState.showLoading(true, "Analyzing your meal...")
+            uiState.showLoading(true, "Analyzing your meal...", isFullAnalysis = true)
             hardware.pipelineManager.skipSidePhoto()
             
             hardware.pipelineManager.isRefObjectExpectedInFrame = false

@@ -50,6 +50,7 @@ class SummaryDoseDisplayHandler(
         }
 
         ui.finalDoseText.text = String.format("%.1f u", result.roundedDose)
+        ui.recommendedDoseText.text = String.format("%.1f", result.roundedDose)
 
         val hintView = ui.view.findViewById<TextView>(R.id.tv_dose_rounding_hint)
         if (result.roundedDose > 0 && result.roundedDose % 0.5f != 0f) {
