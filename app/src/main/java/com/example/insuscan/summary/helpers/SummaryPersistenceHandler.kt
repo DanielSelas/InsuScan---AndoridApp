@@ -2,6 +2,7 @@ package com.example.insuscan.summary.helpers
 
 import android.app.AlertDialog
 import android.content.Context
+import com.example.insuscan.appdata.AppDataStore
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
@@ -136,6 +137,7 @@ class SummaryPersistenceHandler(
                 if (result.isSuccess) {
                     ToastHelper.showShort(context, "Meal logged successfully")
                     MealSessionManager.clearSession()
+                    AppDataStore.onMealsChanged()
                     onMealSavedSuccessfully()
                 } else {
                     val errorMsg = when (val e = result.exceptionOrNull()) {

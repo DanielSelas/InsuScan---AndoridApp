@@ -1,14 +1,11 @@
 package com.example.insuscan.home.helpers
 
 import android.content.Context
-import android.text.format.DateUtils
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.example.insuscan.R
 import com.example.insuscan.home.GlucoseGaugeView
-import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.meal.Meal
-import com.example.insuscan.network.repository.MealRepositoryImpl
 import com.example.insuscan.profile.UserProfileManager
 
 class HomeDailySummaryHelper(
@@ -21,19 +18,7 @@ class HomeDailySummaryHelper(
     private val gaugeGlucose: GlucoseGaugeView
 ) {
 
-    private val repository = MealRepositoryImpl()
-
-    suspend fun loadAndDisplay(email: String) {
-        val result = repository.getRecentMeals(email, count = 20)
-        result.onSuccess { dtoList ->
-            val todayMeals = dtoList
-                .map { MealDtoMapper.map(it) }
-                .filter { DateUtils.isToday(it.timestamp) }
-            displaySummary(todayMeals)
-        }
-    }
-
-    private fun displaySummary(meals: List<Meal>) {
+    fun displaySummary(meals: List<Meal>) {
         val count = meals.size
         val totalCarbs = meals.sumOf { it.carbs.toDouble() }.toFloat()
         val totalInsulin = meals.sumOf { (it.insulinDose ?: it.recommendedDose ?: 0f).toDouble() }.toFloat()
@@ -50,6 +35,22 @@ class HomeDailySummaryHelper(
             tvGlucoseStatus.text = statusText
             tvGlucoseStatus.setTextColor(ContextCompat.getColor(context, colorRes))
         }
+    }
+
+    fun showLoading() {
+        tvMealsLogged.text = "Refreshing..."
+        tvTotalCarbs.text = "--"
+        tvTotalInsulin.text = "--"
+        tvGlucoseValue.text = "--"
+        tvGlucoseStatus.text = ""
+    }
+
+    fun showError(message: String) {
+        tvMealsLogged.text = "Could not refresh"
+        tvTotalCarbs.text = "--"
+        tvTotalInsulin.text = "--"
+        tvGlucoseValue.text = "--"
+        tvGlucoseStatus.text = ""
     }
 
     private fun resolveGlucoseStatus(glucose: Int): Pair<String, Int> {

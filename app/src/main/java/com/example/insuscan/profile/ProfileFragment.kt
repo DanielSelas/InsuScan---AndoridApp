@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
+import com.example.insuscan.appdata.AppDataStore
 import com.example.insuscan.auth.AuthManager
 import com.example.insuscan.profile.helpers.ProfileDataHelper
 import com.example.insuscan.profile.helpers.ProfileImageHandler
@@ -194,10 +195,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun saveToServer() {
+        AppDataStore.notifyLocalProfileChange()
         viewLifecycleOwner.lifecycleScope.launch {
             repository.executeServerSync(ctx, dataHelper.buildUserDto())
         }
     }
+
+
+
 
     private fun fetchServerProfile() {
         viewLifecycleOwner.lifecycleScope.launch {

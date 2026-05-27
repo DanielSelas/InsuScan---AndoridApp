@@ -2,6 +2,7 @@ package com.example.insuscan.chat.delegates
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
+import com.example.insuscan.appdata.AppDataStore
 import com.example.insuscan.auth.AuthManager
 import com.example.insuscan.chat.ChatMessage
 import com.example.insuscan.chat.ChatViewModel
@@ -119,6 +120,7 @@ class ChatSyncDelegate(private val viewModel: ChatViewModel, private val applica
                 viewModel.removeMessage(loadingMsg.id)
 
                 result.onSuccess {
+                    AppDataStore.onMealsChanged()
                     viewModel.conversationManager.onMealSaved()
                 }.onFailure { error ->
                     viewModel.addMessage(ChatMessage.BotText(text = "❌ Failed to save: ${error.message ?: "Unknown error"}"))
