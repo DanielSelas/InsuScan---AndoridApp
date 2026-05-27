@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import androidx.recyclerview.widget.RecyclerView
+import com.example.insuscan.home.helpers.HomeDailySummaryHelper
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.InsulinPlan
 
@@ -30,7 +31,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var profileImageHelper: ProfileImageHelper
     private lateinit var planSelector: InsulinPlanSelector
     private lateinit var greetingSubText: TextView
-
+    private lateinit var dailySummaryHelper: HomeDailySummaryHelper
 
     private val userRepository = UserRepositoryImpl()
     private val ctx get() = requireContext()
@@ -51,6 +52,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         renderGreeting()
         profileImageHelper.loadImage()
         planSelector.loadPlans(null)
+
+        loadDailySummary()
+
     }
 
     private fun findViews(view: View) {
@@ -67,6 +71,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             defaultRow = view.findViewById(R.id.row_default_plan),
             defaultRadio = view.findViewById(R.id.rb_default_plan),
             recyclerView = view.findViewById(R.id.rv_plans)
+        )
+
+        dailySummaryHelper = HomeDailySummaryHelper(
+            context = ctx,
+            tvMealsLogged = view.findViewById(R.id.tv_meals_logged),
+            tvTotalCarbs = view.findViewById(R.id.tv_total_carbs),
+            tvTotalInsulin = view.findViewById(R.id.tv_total_insulin),
+            tvGlucoseValue = view.findViewById(R.id.tv_glucose_value),
+            tvGlucoseStatus = view.findViewById(R.id.tv_glucose_status),
+            gaugeGlucose = view.findViewById(R.id.gauge_glucose)
         )
     }
 
@@ -141,6 +155,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
         greetingSubText.text = greeting
         greetingText.text = displayName
+    }
+
+    private fun loadDailySummary() {
+        val email = UserProfileManager.getUserEmail(ctx) ?: return
+        lifecycleScope.launch {
+            try {
+                dailySummaryHelper.loadAndDisplay(email)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load daily summary", e)
+            }
+        }
     }
 
     companion object {

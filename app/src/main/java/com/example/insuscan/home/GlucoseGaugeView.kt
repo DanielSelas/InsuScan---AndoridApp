@@ -52,7 +52,7 @@ class GlucoseGaugeView @JvmOverloads constructor(
 
     private fun resolveColor(glucoseVal: Int): Int {
         return when {
-            glucoseVal < rangeMin -> ContextCompat.getColor(context, R.color.status_warning)
+            glucoseVal < rangeMin -> ContextCompat.getColor(context, R.color.status_critical)
             glucoseVal > rangeMax -> ContextCompat.getColor(context, R.color.status_warning)
             else -> ContextCompat.getColor(context, R.color.secondary)
         }
