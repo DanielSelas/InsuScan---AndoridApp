@@ -34,6 +34,22 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         ui = ProfileUiManager(view)
         ui.initRowLabels()
         dataHelper = ProfileDataHelper(ctx, ui)
+        dataHelper.planViewManager.onPlansEdited = {
+            UserProfileManager.saveInsulinPlans(
+                ctx,
+                dataHelper.planViewManager.getPlans().map { plan ->
+                    com.example.insuscan.network.dto.InsulinPlanDto(
+                        id = plan.id,
+                        name = plan.name,
+                        isDefault = plan.isDefault,
+                        icr = plan.icr,
+                        isf = plan.isf,
+                        targetGlucose = plan.targetGlucose
+                    )
+                }
+            )
+            saveToServer()
+        }
         imageHandler.bind(ui, updateCallback = { saveToServer() })
 
         TopBarHelper.setupTopBar(

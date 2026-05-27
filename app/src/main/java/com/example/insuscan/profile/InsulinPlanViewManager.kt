@@ -15,6 +15,8 @@ class InsulinPlanViewManager(
     private val container: LinearLayout
 ) {
 
+    var onPlansEdited: (() -> Unit)? = null
+
     private val plans = mutableListOf<InsulinPlan>()
     private val viewMap = mutableMapOf<String, View>()
 
@@ -73,6 +75,7 @@ class InsulinPlanViewManager(
         )
         plans.add(plan)
         addPlanCard(plan)
+        onPlansEdited?.invoke()
     }
 
     private fun addPlanCard(plan: InsulinPlan) {
@@ -109,12 +112,25 @@ class InsulinPlanViewManager(
         plan.targetGlucose?.let { targetField.setText(it.toString()) }
         updateSummary()
 
+        val planFieldsWatcher = object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                updateSummary()
+                onPlansEdited?.invoke()
+            }
+        }
+        icrField.addTextChangedListener(planFieldsWatcher)
+        isfField.addTextChangedListener(planFieldsWatcher)
+        targetField.addTextChangedListener(planFieldsWatcher)
+
         if (!plan.isDefault) {
             deleteButton.visibility = View.VISIBLE
             deleteButton.setOnClickListener {
                 plans.removeAll { it.id == plan.id }
                 viewMap.remove(plan.id)
                 container.removeView(view)
+                onPlansEdited?.invoke()
             }
         }
 

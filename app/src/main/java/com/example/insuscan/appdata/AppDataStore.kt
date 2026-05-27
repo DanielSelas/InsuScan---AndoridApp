@@ -46,6 +46,8 @@ object AppDataStore {
     private val _saveErrors = MutableSharedFlow<String>(extraBufferCapacity = 4)
     val saveErrors: SharedFlow<String> = _saveErrors.asSharedFlow()
 
+    private val _mealAddedSignal = MutableSharedFlow<Unit>()
+    val mealAddedSignal: SharedFlow<Unit> = _mealAddedSignal.asSharedFlow()
     private val saveMutex = Mutex()
     private val pendingSaves = AtomicInteger(0)
 
@@ -123,6 +125,7 @@ object AppDataStore {
 
     fun onMealsChanged() {
         refreshMeals()
+        scope.launch { _mealAddedSignal.emit(Unit) }
     }
 
     fun clear() {

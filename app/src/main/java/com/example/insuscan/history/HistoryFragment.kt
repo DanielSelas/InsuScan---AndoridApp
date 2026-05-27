@@ -104,9 +104,7 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         datePicker.addOnPositiveButtonClickListener { selection ->
             viewLifecycleOwner.lifecycleScope.launch {
                 viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    AppDataStore.mealsState.collect { state ->
-                        if (state is DataState.Ready) adapter.refresh()
-                    }
+                    AppDataStore.mealAddedSignal.collect { adapter.refresh() }
                 }
             }
 
