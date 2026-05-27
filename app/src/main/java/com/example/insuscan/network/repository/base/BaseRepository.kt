@@ -18,8 +18,10 @@ abstract class BaseRepository {
                     Result.failure(ApiException.Unauthorized)
                 response.code() == 404 ->
                     Result.failure(ApiException.NotFound())
-                response.code() in 400..499 ->
-                    Result.failure(ApiException.ClientError(response.code(), response.message()))
+                response.code() in 400..499 -> {
+                    val errorBody = try { response.errorBody()?.string() } catch (e: Exception) { null }
+                    Result.failure(ApiException.ClientError(response.code(), errorBody ?: response.message()))
+                }
                 response.code() in 500..599 ->
                     Result.failure(ApiException.ServerError(response.code(), response.message()))
                 else ->
@@ -45,9 +47,10 @@ abstract class BaseRepository {
                     Result.failure(ApiException.Unauthorized)
                 response.code() in 500..599 ->
                     Result.failure(ApiException.ServerError(response.code(), response.message()))
-                else ->
-                    Result.failure(ApiException.ClientError(response.code(), response.message()))
-            }
+                else -> {
+                    val errorBody = try { response.errorBody()?.string() } catch (e: Exception) { null }
+                    Result.failure(ApiException.ClientError(response.code(), errorBody ?: response.message()))
+                }            }
         } catch (e: SocketTimeoutException) {
             Result.failure(ApiException.Timeout(e))
         } catch (e: UnknownHostException) {

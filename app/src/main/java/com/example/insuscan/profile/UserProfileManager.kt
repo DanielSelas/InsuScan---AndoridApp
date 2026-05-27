@@ -114,9 +114,14 @@ object UserProfileManager {
 
     fun saveIsPregnant(context: Context, isPregnant: Boolean) = savePref(context, KEY_IS_PREGNANT, isPregnant)
     fun getIsPregnant(context: Context): Boolean = getPref(context, KEY_IS_PREGNANT, false)
-    fun saveDueDate(context: Context, dueDate: String) = savePref(context, KEY_DUE_DATE, dueDate)
-    fun getDueDate(context: Context): String? = getPrefNullable(context, KEY_DUE_DATE)
-
+    fun saveDueDate(context: Context, dueDate: String) {
+        if (dueDate.equals("Select Date", ignoreCase = true) || dueDate.isBlank()) return
+        savePref(context, KEY_DUE_DATE, dueDate)
+    }
+    fun getDueDate(context: Context): String? {
+        val value = getPrefNullable<String>(context, KEY_DUE_DATE)
+        return if (value.isNullOrBlank() || value.equals("Select Date", ignoreCase = true)) null else value
+    }
     fun saveDiabetesType(context: Context, type: String) = savePref(context, KEY_DIABETES_TYPE, type)
     fun getDiabetesType(context: Context): String? = getPrefNullable(context, KEY_DIABETES_TYPE)
 

@@ -50,6 +50,7 @@ object AppDataStore {
     val mealAddedSignal: SharedFlow<Unit> = _mealAddedSignal.asSharedFlow()
     private val saveMutex = Mutex()
     private val pendingSaves = AtomicInteger(0)
+    @Volatile private var lastSaveFailed = false
 
     fun init(context: Context) {
         appContext = context.applicationContext
@@ -62,6 +63,7 @@ object AppDataStore {
 
     fun refreshProfile() {
         if (pendingSaves.get() > 0) return
+        if (lastSaveFailed) return
         val email = UserProfileManager.getUserEmail(appContext) ?: run {
             _profileState.value = DataState.Error(IllegalStateException("No user email"))
             return
@@ -104,13 +106,23 @@ object AppDataStore {
         pendingSaves.incrementAndGet()
         scope.launch {
             saveMutex.withLock {
+
                 try {
                     val email = UserProfileManager.getUserEmail(appContext) ?: run {
                         _saveErrors.emit("No user email")
                         return@withLock
                     }
+                    android.util.Log.d("AppDataStore", "Sending UserDto: $userDto")
+
                     UserRepositoryImpl().updateUser(email, userDto)
-                        .onFailure { _saveErrors.emit("Failed to save: ${it.message ?: "Network error"}") }
+                        .onSuccess { lastSaveFailed = false }
+                        .onFailure {
+                            lastSaveFailed = true
+                            val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+                            val msg = "[$timestamp] Failed to save: ${it.message ?: "Network error"}"
+                            android.util.Log.e("AppDataStore", msg, it)
+                            _saveErrors.emit(msg)
+                        }
                 } finally {
                     pendingSaves.decrementAndGet()
                 }
