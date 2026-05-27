@@ -7,16 +7,16 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="@dimen/spacing_small"
     app:cardCornerRadius="@dimen/corner_radius_card"
-    app:cardElevation="@dimen/elevation_card"
+    app:cardElevation="0dp"
     app:cardBackgroundColor="@color/surface">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/padding_input_horizontal">
+        android:padding="16dp">
 
-        <!-- Header row: name + delete -->
+        <!-- Header row: name + undo + delete -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -28,76 +28,78 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                tools:text="@string/label_food_name"
-                android:textSize="@dimen/text_body1"
-                android:textStyle="bold"
+                tools:text="Cherry Tomatoes"
+                android:textSize="15sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="600"
                 android:textColor="@color/text_primary"
                 android:maxLines="2"
                 android:ellipsize="end" />
 
             <ImageButton
                 android:id="@+id/btn_undo_item"
-                android:layout_width="@dimen/button_height_small"
-                android:layout_height="@dimen/button_height_small"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_revert"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Reset item to original"
+                android:layout_marginEnd="4dp"
+                app:tint="@color/text_secondary"
                 android:visibility="gone" />
 
             <ImageButton
                 android:id="@+id/btn_delete"
-                android:layout_width="@dimen/button_height_small"
-                android:layout_height="@dimen/button_height_small"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:src="@android:drawable/ic_menu_delete"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/content_desc_delete_item"
                 app:tint="@color/status_error" />
+
         </LinearLayout>
 
-        <!-- Weight and carbs display -->
+        <!-- Weight chip + carbs info row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="@dimen/spacing_small"
+            android:layout_marginTop="6dp"
             android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/tv_weight"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="100g"
-                android:textSize="@dimen/text_body2"
-                android:textColor="@color/text_secondary"
-                android:background="@color/background_secondary"
-                android:paddingHorizontal="@dimen/spacing_small"
-                android:paddingVertical="@dimen/spacing_xs" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                tools:text=" → "
-                android:textSize="@dimen/text_body2"
-                android:textColor="@color/text_hint" />
+                tools:text="340g"
+                android:textSize="12sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:textColor="@color/primary"
+                android:background="@drawable/chip_primary_light"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp" />
 
             <TextView
                 android:id="@+id/tv_carbs"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="25g carbs"
-                android:textSize="@dimen/text_body2"
-                android:textStyle="bold"
-                android:textColor="@color/primary" />
+                tools:text="7g carbs (2g/100g)"
+                android:textSize="12sp"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/text_secondary"
+                android:layout_marginStart="8dp" />
 
-            <!-- Loading indicator -->
             <TextView
                 android:id="@+id/tv_loading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/loading_searching_data"
-                android:textSize="@dimen/text_caption"
+                android:textSize="12sp"
+                android:fontFamily="@font/inter"
                 android:textColor="@color/status_warning"
+                android:layout_marginStart="8dp"
                 android:visibility="gone" />
+
         </LinearLayout>
 
         <!-- Weight adjustment controls -->
@@ -105,7 +107,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="@dimen/spacing_small"
+            android:layout_marginTop="10dp"
             android:gravity="center_vertical">
 
             <ImageButton
@@ -136,6 +138,7 @@
                 android:src="@android:drawable/ic_input_add"
                 android:background="@drawable/btn_circle_outline"
                 android:contentDescription="@string/content_desc_increase_weight" />
+
         </LinearLayout>
 
     </LinearLayout>
