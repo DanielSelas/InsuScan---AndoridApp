@@ -31,7 +31,6 @@ class HistoryViewModel(
     private val context: Context
 ) : ViewModel() {
 
-    private val userEmail = com.example.insuscan.auth.AuthManager.getUserEmail() ?: UserProfileManager.getUserEmail(context) ?: ""
     private val _dateFilter = MutableStateFlow<String?>(null)
     
     // Separate flow for the "Top Card"
@@ -44,12 +43,13 @@ class HistoryViewModel(
 
     fun refreshLatestMeal() {
         viewModelScope.launch {
-            if (userEmail.isNotEmpty()) {
-                val result = repository.getLatestMeal(userEmail)
+            val email = currentEmail()
+            if (email.isNotEmpty()) {
+                val result = repository.getLatestMeal(email)
                 result.onSuccess { dto ->
-                     if (dto != null) {
-                         _latestMeal.value = mapDtoToMeal(dto)
-                     }
+                    if (dto != null) {
+                        _latestMeal.value = mapDtoToMeal(dto)
+                    }
                 }
             }
         }
@@ -62,13 +62,12 @@ class HistoryViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val historyFlow: Flow<PagingData<HistoryUiModel>> = _dateFilter.flatMapLatest { date ->
-        // Re-create the Pager whenever the date changes
         Log.d("HistoryFilter", "flatMapLatest triggered with date: $date")
 
         Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false)
         ) {
-            MealPagingSource(repository, userEmail, date)
+            MealPagingSource(repository, currentEmail(), date)
         }.flow
     }
         .map { pagingData ->
@@ -91,6 +90,11 @@ class HistoryViewModel(
         .cachedIn(viewModelScope)
 
     private fun mapDtoToMeal(dto: MealDto): Meal = MealDtoMapper.map(dto)
+
+    private fun currentEmail(): String =
+        com.example.insuscan.auth.AuthManager.getUserEmail()
+            ?: UserProfileManager.getUserEmail(context)
+            ?: ""
 }
 
 class HistoryViewModelFactory(private val context: Context) : ViewModelProvider.Factory {

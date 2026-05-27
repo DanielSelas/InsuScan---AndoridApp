@@ -3,25 +3,28 @@ package com.example.insuscan.profile
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.appdata.AppDataStore
+import com.example.insuscan.appdata.DataState
 import com.example.insuscan.auth.AuthManager
 import com.example.insuscan.profile.helpers.ProfileDataHelper
 import com.example.insuscan.profile.helpers.ProfileImageHandler
-import com.example.insuscan.profile.helpers.ProfileRepository
 import com.example.insuscan.profile.helpers.ProfileUiManager
 import com.example.insuscan.utils.TopBarHelper
 import kotlinx.coroutines.launch
+
 
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private lateinit var ui: ProfileUiManager
     private val imageHandler = ProfileImageHandler(this)
     private lateinit var dataHelper: ProfileDataHelper
-    private val repository = ProfileRepository()
     private val ctx get() = requireContext()
 
     private val fm get() = parentFragmentManager
@@ -41,7 +44,8 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         dataHelper.loadProfile(imageHandler)
         dataHelper.loadGoogleProfile(imageHandler)
-        fetchServerProfile()
+        loadPlansFromLocal()
+        observeDataStore()
         bindRowListeners()
         bindLogout()
     }
@@ -195,32 +199,36 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
     }
 
     private fun saveToServer() {
-        AppDataStore.notifyLocalProfileChange()
-        viewLifecycleOwner.lifecycleScope.launch {
-            repository.executeServerSync(ctx, dataHelper.buildUserDto())
+        AppDataStore.saveProfile(dataHelper.buildUserDto())
+    }
+    private fun loadPlansFromLocal() {
+        val plans = UserProfileManager.getInsulinPlans(ctx)?.map { dto ->
+            InsulinPlan(
+                id = dto.id ?: "",
+                name = dto.name ?: "",
+                isDefault = dto.isDefault,
+                icr = dto.icr,
+                isf = dto.isf,
+                targetGlucose = dto.targetGlucose
+            )
         }
+        dataHelper.planViewManager.loadPlans(plans)
     }
 
-
-
-
-    private fun fetchServerProfile() {
+    private fun observeDataStore() {
         viewLifecycleOwner.lifecycleScope.launch {
-            repository.fetchServerProfile(ctx).onSuccess { userDto ->
-                val plans = userDto.insulinPlans?.map { dto ->
-                    InsulinPlan(
-                        id = dto.id ?: "",
-                        name = dto.name ?: "",
-                        isDefault = dto.isDefault,
-                        icr = dto.icr,
-                        isf = dto.isf,
-                        targetGlucose = dto.targetGlucose
-                    )
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    AppDataStore.profileState.collect { state ->
+                        if (state is DataState.Ready) dataHelper.loadProfile(imageHandler)
+                    }
                 }
-                dataHelper.planViewManager.loadPlans(plans)
-                dataHelper.loadProfile(imageHandler)
+                launch {
+                    AppDataStore.saveErrors.collect { message ->
+                        Toast.makeText(ctx, message, Toast.LENGTH_LONG).show()
+                    }
+                }
             }
         }
     }
-
 }

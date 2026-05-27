@@ -26,6 +26,7 @@ object UserProfileSyncManager {
         user.lightExerciseAdjustment?.let { UserProfileManager.saveLightExerciseAdjustment(context, it) }
         user.intenseExerciseAdjustment?.let { UserProfileManager.saveIntenseExerciseAdjustment(context, it) }
         user.glucoseUnits?.let { UserProfileManager.saveGlucoseUnits(context, it) }
+        user.insulinPlans?.let { UserProfileManager.saveInsulinPlans(context, it) }
         UserProfileManager.setRegistrationComplete(context, true)
         UserProfileManager.resetTransientModes(context)
     }

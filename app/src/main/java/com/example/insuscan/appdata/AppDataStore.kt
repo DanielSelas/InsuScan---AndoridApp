@@ -3,6 +3,7 @@ package com.example.insuscan.appdata
 import android.content.Context
 import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.meal.Meal
+import com.example.insuscan.network.dto.UserDto
 import com.example.insuscan.network.repository.MealRepository
 import com.example.insuscan.network.repository.MealRepositoryImpl
 import com.example.insuscan.network.repository.UserRepository
@@ -12,10 +13,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.atomic.AtomicInteger
 
 object AppDataStore {
 
@@ -36,6 +43,12 @@ object AppDataStore {
     private val _mealsState = MutableStateFlow<DataState<List<Meal>>>(DataState.Loading)
     val mealsState: StateFlow<DataState<List<Meal>>> = _mealsState.asStateFlow()
 
+    private val _saveErrors = MutableSharedFlow<String>(extraBufferCapacity = 4)
+    val saveErrors: SharedFlow<String> = _saveErrors.asSharedFlow()
+
+    private val saveMutex = Mutex()
+    private val pendingSaves = AtomicInteger(0)
+
     fun init(context: Context) {
         appContext = context.applicationContext
     }
@@ -46,6 +59,7 @@ object AppDataStore {
     }
 
     fun refreshProfile() {
+        if (pendingSaves.get() > 0) return
         val email = UserProfileManager.getUserEmail(appContext) ?: run {
             _profileState.value = DataState.Error(IllegalStateException("No user email"))
             return
@@ -80,6 +94,25 @@ object AppDataStore {
                 .onFailure { error ->
                     _mealsState.value = DataState.Error(error)
                 }
+        }
+    }
+
+    fun saveProfile(userDto: UserDto) {
+        notifyLocalProfileChange()
+        pendingSaves.incrementAndGet()
+        scope.launch {
+            saveMutex.withLock {
+                try {
+                    val email = UserProfileManager.getUserEmail(appContext) ?: run {
+                        _saveErrors.emit("No user email")
+                        return@withLock
+                    }
+                    UserRepositoryImpl().updateUser(email, userDto)
+                        .onFailure { _saveErrors.emit("Failed to save: ${it.message ?: "Network error"}") }
+                } finally {
+                    pendingSaves.decrementAndGet()
+                }
+            }
         }
     }
 
