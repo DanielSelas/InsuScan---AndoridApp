@@ -26,12 +26,11 @@ class ReferenceChipsController(
     var onSelectionChanged: ((ReferenceObjectType) -> Unit)? = null
 
     private val chipSyringe: LinearLayout = chipGroup.findViewById(R.id.chip_ref_syringe)
-    private val chipFork: LinearLayout = chipGroup.findViewById(R.id.chip_ref_fork)
     private val chipCard: LinearLayout = chipGroup.findViewById(R.id.chip_ref_card)
     private val chipNone: LinearLayout = chipGroup.findViewById(R.id.chip_ref_none)
 
     private val allChips: List<LinearLayout>
-        get() = listOf(chipSyringe, chipFork, chipCard, chipNone)
+        get() = listOf(chipSyringe, chipCard, chipNone)
 
     fun setup() {
         val defaultType = resolveDefaultType()
@@ -43,7 +42,6 @@ class ReferenceChipsController(
         toggleButton?.visibility = View.GONE
 
         chipSyringe.setOnClickListener { onChipSelected(ReferenceObjectType.INSULIN_SYRINGE) }
-        chipFork.setOnClickListener { onChipSelected(ReferenceObjectType.SYRINGE_KNIFE) }
         chipCard.setOnClickListener { onChipSelected(ReferenceObjectType.CARD) }
         chipNone.setOnClickListener { onChipSelected(ReferenceObjectType.NONE) }
 
@@ -101,7 +99,6 @@ class ReferenceChipsController(
 
     private fun chipForType(type: ReferenceObjectType): LinearLayout = when (type) {
         ReferenceObjectType.INSULIN_SYRINGE -> chipSyringe
-        ReferenceObjectType.SYRINGE_KNIFE -> chipFork
         ReferenceObjectType.CARD -> chipCard
         ReferenceObjectType.NONE -> chipNone
     }
@@ -126,7 +123,6 @@ class ReferenceChipsController(
     private fun updateToggleIcon(type: ReferenceObjectType) {
         toggleButton?.text = when (type) {
             ReferenceObjectType.INSULIN_SYRINGE -> "💉"
-            ReferenceObjectType.SYRINGE_KNIFE -> "🍴"
             ReferenceObjectType.CARD -> "💳"
             ReferenceObjectType.NONE -> "❌"
         }
@@ -141,13 +137,6 @@ class ReferenceChipsController(
                 zone.visibility = View.VISIBLE
                 zone.layoutParams = zone.layoutParams.apply {
                     width = (30 * density).toInt()
-                    height = (180 * density).toInt()
-                }
-            }
-            ReferenceObjectType.SYRINGE_KNIFE -> {
-                zone.visibility = View.VISIBLE
-                zone.layoutParams = zone.layoutParams.apply {
-                    width = (35 * density).toInt()
                     height = (180 * density).toInt()
                 }
             }

@@ -20,13 +20,11 @@ object ReferenceObjectHelper {
         val serverValue: String
     ) {
         INSULIN_SYRINGE(R.string.ref_option_insulin_syringe, 16f, 1.25f, 1.25f, "INSULIN_SYRINGE"),
-        SYRINGE_KNIFE(R.string.ref_option_syringe_knife, 21f, 1.5f, 0.5f, "SYRINGE_KNIFE"),
         CARD(R.string.ref_option_card, 8.56f, 5.398f, 0f, "CARD"),
         NONE(R.string.ref_option_none, 0f, 0f, 0f, "NONE");
 
         fun scaleDescription(): String = when (this) {
             INSULIN_SYRINGE -> "INSULIN PEN — a slim cylindrical medical pen, approximately ${lengthCm}cm long and ${widthCm}cm in diameter"
-            SYRINGE_KNIFE   -> "SYRINGE KNIFE — length=${lengthCm}cm, width=${widthCm}cm"
             CARD            -> "CREDIT CARD / ID CARD — width=${lengthCm}cm, height=${widthCm}cm"
             NONE            -> ""
         }

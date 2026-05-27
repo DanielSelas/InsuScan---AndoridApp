@@ -44,13 +44,11 @@ class ReferenceObjectDetector(private val context: Context) {
     /** Detection mode determines which aspect ratio and solidity thresholds to use. */
     enum class DetectionMode {
         STRICT,   // Pen/Syringe (High aspect ratio)
-        FLEXIBLE, // Cutlery (Medium/High ratio)
         CARD      // Credit Card (Specific ratio ~1.58)
     }
 
     private val strategies = mapOf(
         DetectionMode.STRICT to StrictReferenceStrategy(),
-        DetectionMode.FLEXIBLE to FlexibleReferenceStrategy(),
         DetectionMode.CARD to CardReferenceStrategy()
     )
 
@@ -199,9 +197,8 @@ class ReferenceObjectDetector(private val context: Context) {
             val originalHeight = expectedObjectHeightCm
 
             when (fallbackMode) {
-                DetectionMode.CARD     -> configureForType(ReferenceObjectHelper.ReferenceObjectType.CARD)
-                DetectionMode.STRICT   -> configureForType(ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE)
-                DetectionMode.FLEXIBLE -> configureForType(ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE)
+                DetectionMode.CARD   -> configureForType(ReferenceObjectHelper.ReferenceObjectType.CARD)
+                DetectionMode.STRICT -> configureForType(ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE)
             }
 
             val fallbackResult = detectReferenceObject(bitmap, plateBounds, fallbackMode)

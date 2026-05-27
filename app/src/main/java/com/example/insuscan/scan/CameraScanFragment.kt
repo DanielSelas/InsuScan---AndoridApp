@@ -183,11 +183,10 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
     }
 
     private fun setupGlucoseAndReference() {
-        val refOptions = arrayOf("No ref. object", "💉 Insulin Pen", "🍴 Fork / Knife", "💳 Card")
+        val refOptions = arrayOf("No ref. object", "💉 Insulin Pen", "💳 Card")
         val refTypes = arrayOf(
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE,
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE,
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE,
             com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD
         )
 
