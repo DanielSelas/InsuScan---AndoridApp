@@ -19,12 +19,34 @@ class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
             title = "Scan your meal",
             onBack = { findNavController().navigate(R.id.homeFragment) }
         )
-
         if (savedInstanceState == null) {
-            childFragmentManager.beginTransaction()
-                .replace(R.id.camera_scan_container, CameraScanFragment())
-                .commit()
+            if (MealSessionManager.currentMeal != null) {
+                showResumeOrNewScanDialog()
+            } else {
+                loadCameraFragment()
+            }
         }
+    }
+
+    private fun showResumeOrNewScanDialog() {
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Resume scan?")
+            .setMessage("You have an unsaved scan from earlier.")
+            .setCancelable(false)
+            .setPositiveButton("View Summary") { _, _ ->
+                findNavController().navigate(R.id.summaryFragment)
+            }
+            .setNegativeButton("New Scan") { _, _ ->
+                MealSessionManager.clearSession()
+                loadCameraFragment()
+            }
+            .show()
+    }
+
+    private fun loadCameraFragment() {
+        childFragmentManager.beginTransaction()
+            .replace(R.id.camera_scan_container, CameraScanFragment())
+            .commit()
     }
 
     override fun onScanSuccess(meal: Meal) {

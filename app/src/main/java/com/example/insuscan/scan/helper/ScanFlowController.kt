@@ -42,6 +42,7 @@ class ScanFlowController(
     var isDeviceSideAngle = false
 
     private var capturedImagePath: String? = null
+    var capturedSideImagePath: String? = null
     private var pendingMainBitmap: Bitmap? = null
     private var pendingMainFile: File? = null
     private var pendingRefType: String? = null
