@@ -156,13 +156,9 @@
     <string name="profile_age">Age</string>
     <string name="profile_weight">Weight</string>
     <string name="profile_height">Height</string>
-    <string name="profile_diabetes_type">Diabetes Type</string>
-    <string name="profile_type_1">Type 1</string>
-    <string name="profile_type_2">Type 2</string>
+
     <string name="profile_gender">Gender</string>
-    <string name="profile_pregnant_question">Are you pregnant?</string>
-    <string name="profile_due_date">Due Date</string>
-    <string name="profile_insulin_type">Insulin Type</string>
+
     <string name="profile_insulin_parameters">Insulin Parameters</string>
     <string name="profile_icr">ICR</string>
     <string name="profile_icr_desc">Insulin to Carb Ratio</string>
@@ -176,11 +172,7 @@
     <string name="profile_object_type">Object Type</string>
     <string name="profile_length_cm">Length</string>
     <string name="profile_dose_rounding">Dose Rounding</string>
-    <string name="profile_adj_factors">Adjustment Factors</string>
-    <string name="profile_adj_sick">Sick Day</string>
-    <string name="profile_adj_stress">Stress</string>
-    <string name="profile_adj_exercise_decrease">Light Exercise (Decrease)</string>
-    <string name="profile_adj_intense_exercise">Intense Exercise (Decrease)</string>
+
     <string name="profile_units_section">Units</string>
     <string name="profile_units_glucose">Glucose Units</string>
     <string name="hint_your_name">Your Name</string>
@@ -307,27 +299,6 @@
     <string name="profile_label_age">Age</string>
     <!-- Content descriptions -->
     <string name="content_desc_scanned_meal_image">Scanned meal</string>
-
-    <!-- ==================== Chat ==================== -->
-    <string name="nav_chat">Chat</string>
-    <string name="chat_title">Chat Assistant</string>
-    <string name="chat_input_hint">Type a message…</string>
-    <string name="chat_send_desc">Send message</string>
-    <string name="chat_camera_desc">Take or select photo</string>
-    <string name="chat_welcome">Hey! 👋 I\'m your meal assistant.\nTake a photo of your meal or type something to get started.</string>
-    <string name="chat_analyzing">Analyzing your meal…</string>
-    <string name="chat_scan_error">Something went wrong analyzing the image. Try again.</string>
-    <string name="chat_confirm_food">Does this look right? Tap Confirm or edit the items.</string>
-    <string name="chat_ask_glucose">What\'s your current glucose level?</string>
-    <string name="chat_ask_activity">Any activity adjustments?</string>
-    <string name="chat_calculating">Calculating your dose…</string>
-    <string name="chat_saved">Meal saved successfully! ✅</string>
-    <string name="chat_btn_confirm">Confirm</string>
-    <string name="chat_btn_edit">Edit</string>
-    <string name="chat_btn_save">Save Meal</string>
-    <string name="chat_btn_sport">After Sport</string>
-    <string name="chat_btn_sick">Sick Day</string>
-    <string name="chat_btn_continue">Continue</string>
 
     <!-- ==================== Reference Object Selection ==================== -->
     <string name="ref_dialog_title">Using a reference object?</string>

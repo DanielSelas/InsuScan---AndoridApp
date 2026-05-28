@@ -31,11 +31,11 @@ class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
         val glucoseInput = childFragmentManager.findFragmentById(R.id.camera_scan_container)
             ?.view?.findViewById<android.widget.EditText>(R.id.et_glucose_level)
         val glucoseValue = glucoseInput?.text?.toString()?.toIntOrNull()
-        val glucoseUnits = com.example.insuscan.profile.UserProfileManager.getGlucoseUnits(requireContext())
+//        val glucoseUnits = com.example.insuscan.profile.UserProfileManager.getGlucoseUnits(requireContext())
 
         val mealWithGlucose = meal.copy(
             glucoseLevel = glucoseValue,
-            glucoseUnits = glucoseUnits
+//            glucoseUnits = glucoseUnits
         )
         MealSessionManager.setCurrentMeal(mealWithGlucose)
         findNavController().navigate(R.id.summaryFragment)

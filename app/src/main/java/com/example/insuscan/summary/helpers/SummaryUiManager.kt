@@ -66,37 +66,30 @@ class SummaryUiManager(val view: View, val context: Context) {
     }
 
     fun setupGlucoseUnit() {
-        glucoseUnitText.text = UserProfileManager.getGlucoseUnits(context)
+        glucoseUnitText.text = "mg/dL"
     }
 
     fun updateGlucoseStatus() {
-        val glucoseStr = glucoseEditText.text.toString()
-        val glucose = glucoseStr.toIntOrNull()
-
+        val glucose = glucoseEditText.text.toString().toIntOrNull()
         if (glucose == null) {
             glucoseStatusText.text = ""
             return
         }
-
         val target = UserProfileManager.getTargetGlucose(context) ?: 100
-        val unit = UserProfileManager.getGlucoseUnits(context)
-
-        val glucoseInMgDl = if (unit == "mmol/L") (glucose * 18) else glucose
-
         when {
-            glucoseInMgDl < 70 -> {
+            glucose < 70 -> {
                 glucoseStatusText.text = "⚠️ Low!"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
             }
-            glucoseInMgDl < target - 20 -> {
+            glucose < target - 20 -> {
                 glucoseStatusText.text = "Below target"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
             }
-            glucoseInMgDl <= target + 30 -> {
+            glucose <= target + 30 -> {
                 glucoseStatusText.text = "✓ In range"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_normal))
             }
-            glucoseInMgDl <= 180 -> {
+            glucose <= 180 -> {
                 glucoseStatusText.text = "Above target"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
             }
@@ -106,7 +99,6 @@ class SummaryUiManager(val view: View, val context: Context) {
             }
         }
     }
-
     fun updateAnalysisResults() {
         val meal = MealSessionManager.currentMeal
 

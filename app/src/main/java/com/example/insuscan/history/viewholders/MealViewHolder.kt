@@ -67,20 +67,12 @@ class MealViewHolder(
 
         if (isExpanded) {
             val glucose = meal.glucoseLevel
-            tvGlucose.text = if (glucose != null) "$glucose ${meal.glucoseUnits ?: "mg/dL"}" else "--"
+            tvGlucose.text = if (glucose != null) "$glucose mg/dL" else "--"
 
             tvPlan.text = item.planDisplayText
 
-            tvStatus.text = when {
-                meal.wasSickMode -> "Sick"
-                meal.wasStressMode -> "Stress"
-                else -> "Normal"
-            }
-            tvStatus.setTextColor(ContextCompat.getColor(itemView.context, when {
-                meal.wasSickMode -> R.color.status_critical
-                meal.wasStressMode -> R.color.status_warning
-                else -> R.color.secondary
-            }))
+            tvStatus.text = "Normal"
+            tvStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.secondary))
 
             val foodLines = item.meal.foodItems?.joinToString("\n") { food ->
                 val name = food.name

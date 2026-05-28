@@ -12,23 +12,8 @@ object UserProfileManager {
     private const val KEY_TARGET_GLUCOSE = "target_glucose"
     private const val KEY_USER_AGE = "user_age"
     private const val KEY_USER_GENDER = "user_gender"
-    private const val KEY_IS_PREGNANT = "is_pregnant"
-    private const val KEY_DUE_DATE = "due_date"
-    private const val KEY_DIABETES_TYPE = "diabetes_type"
-    private const val KEY_INSULIN_TYPE = "insulin_type"
-    private const val KEY_ACTIVE_INSULIN_TIME = "active_insulin_time"
-    private const val KEY_SYRINGE_SIZE = "syringe_size"
-    private const val KEY_CUSTOM_SYRINGE_LENGTH = "custom_syringe_length"
     private const val KEY_DOSE_ROUNDING = "dose_rounding"
-    private const val KEY_GLUCOSE_UNITS = "glucose_units"
-    private const val KEY_SICK_DAY_ADJUSTMENT = "sick_day_adjustment"
-    private const val KEY_STRESS_ADJUSTMENT = "stress_adjustment"
-    private const val KEY_LIGHT_EXERCISE_ADJUSTMENT = "light_exercise_adjustment"
-    private const val KEY_INTENSE_EXERCISE_ADJUSTMENT = "intense_exercise_adjustment"
-    private const val KEY_SICK_MODE_ENABLED = "sick_mode_enabled"
-    private const val KEY_SICK_MODE_START_DATE = "sick_mode_start_date"
-    private const val KEY_STRESS_MODE_ENABLED = "stress_mode_enabled"
-    private const val KEY_EXERCISE_MODE_ENABLED = "exercise_mode_enabled"
+
     private const val KEY_PROFILE_PHOTO_URL = "profile_photo_url"
     private const val KEY_REGISTRATION_COMPLETE = "registration_complete"
     private const val KEY_INSULIN_PLANS = "insulin_plans"
@@ -112,58 +97,9 @@ object UserProfileManager {
     fun saveUserGender(context: Context, gender: String) = savePref(context, KEY_USER_GENDER, gender)
     fun getUserGender(context: Context): String? = getPrefNullable(context, KEY_USER_GENDER)
 
-    fun saveIsPregnant(context: Context, isPregnant: Boolean) = savePref(context, KEY_IS_PREGNANT, isPregnant)
-    fun getIsPregnant(context: Context): Boolean = getPref(context, KEY_IS_PREGNANT, false)
-    fun saveDueDate(context: Context, dueDate: String) {
-        if (dueDate.equals("Select Date", ignoreCase = true) || dueDate.isBlank()) return
-        savePref(context, KEY_DUE_DATE, dueDate)
-    }
-    fun getDueDate(context: Context): String? {
-        val value = getPrefNullable<String>(context, KEY_DUE_DATE)
-        return if (value.isNullOrBlank() || value.equals("Select Date", ignoreCase = true)) null else value
-    }
-    fun saveDiabetesType(context: Context, type: String) = savePref(context, KEY_DIABETES_TYPE, type)
-    fun getDiabetesType(context: Context): String? = getPrefNullable(context, KEY_DIABETES_TYPE)
-
-    fun saveInsulinType(context: Context, type: String) {
-        savePref(context, KEY_INSULIN_TYPE, type)
-        val dia = when (type) {
-            "Rapid-acting" -> 4f
-            "Short-acting" -> 5f
-            else -> 4f
-        }
-        saveActiveInsulinTime(context, dia)
-    }
-
-    fun getInsulinType(context: Context): String? = getPrefNullable(context, KEY_INSULIN_TYPE)
-    fun saveActiveInsulinTime(context: Context, hours: Float) = savePref(context, KEY_ACTIVE_INSULIN_TIME, hours)
-    fun getActiveInsulinTime(context: Context): Float = getPref(context, KEY_ACTIVE_INSULIN_TIME, 4f)
-
-    fun saveSyringeSize(context: Context, size: String) = savePref(context, KEY_SYRINGE_SIZE, size)
-    fun getSyringeSize(context: Context): String = getPref(context, KEY_SYRINGE_SIZE, "0.5ml")
-
-    fun saveCustomSyringeLength(context: Context, length: Float) = savePref(context, KEY_CUSTOM_SYRINGE_LENGTH, length)
-    fun getCustomSyringeLength(context: Context): Float = getPref(context, KEY_CUSTOM_SYRINGE_LENGTH, 12.0f)
-
     fun saveDoseRounding(context: Context, rounding: Float) = savePref(context, KEY_DOSE_ROUNDING, rounding)
     fun getDoseRounding(context: Context): Float = getPref(context, KEY_DOSE_ROUNDING, 0.5f)
 
-    fun getReferenceObjectType(context: Context): String = UserProfileCalculations.getReferenceObjectType(context)
-
-    fun saveGlucoseUnits(context: Context, units: String) = savePref(context, KEY_GLUCOSE_UNITS, units)
-    fun getGlucoseUnits(context: Context): String = getPref(context, KEY_GLUCOSE_UNITS, "mg/dL")
-
-    fun saveSickDayAdjustment(context: Context, percent: Int) = savePref(context, KEY_SICK_DAY_ADJUSTMENT, percent)
-    fun getSickDayAdjustment(context: Context): Int = getPref(context, KEY_SICK_DAY_ADJUSTMENT, 15)
-
-    fun saveStressAdjustment(context: Context, percent: Int) = savePref(context, KEY_STRESS_ADJUSTMENT, percent)
-    fun getStressAdjustment(context: Context): Int = getPref(context, KEY_STRESS_ADJUSTMENT, 10)
-
-    fun saveLightExerciseAdjustment(context: Context, percent: Int) = savePref(context, KEY_LIGHT_EXERCISE_ADJUSTMENT, percent)
-    fun getLightExerciseAdjustment(context: Context): Int = getPref(context, KEY_LIGHT_EXERCISE_ADJUSTMENT, 15)
-
-    fun saveIntenseExerciseAdjustment(context: Context, percent: Int) = savePref(context, KEY_INTENSE_EXERCISE_ADJUSTMENT, percent)
-    fun getIntenseExerciseAdjustment(context: Context): Int = getPref(context, KEY_INTENSE_EXERCISE_ADJUSTMENT, 30)
 
     fun saveInsulinPlans(context: Context, plans: List<com.example.insuscan.network.dto.InsulinPlanDto>) {
         val json = com.google.gson.Gson().toJson(plans)
@@ -180,32 +116,11 @@ object UserProfileManager {
         }
     }
 
-    fun setSickModeEnabled(context: Context, enabled: Boolean) {
-        savePref(context, KEY_SICK_MODE_ENABLED, enabled)
-        if (enabled) {
-            savePref(context, KEY_SICK_MODE_START_DATE, System.currentTimeMillis())
-        }
-    }
-    fun isSickModeEnabled(context: Context): Boolean = getPref(context, KEY_SICK_MODE_ENABLED, false)
-
-    fun getSickModeStartDate(context: Context): Long = getPref(context, KEY_SICK_MODE_START_DATE, 0L)
-    fun getSickModeDays(context: Context): Int = UserProfileCalculations.getSickModeDays(context)
-
-    fun setStressModeEnabled(context: Context, enabled: Boolean) = savePref(context, KEY_STRESS_MODE_ENABLED, enabled)
-    fun isStressModeEnabled(context: Context): Boolean = getPref(context, KEY_STRESS_MODE_ENABLED, false)
-
-    fun setExerciseModeEnabled(context: Context, enabled: Boolean) = savePref(context, KEY_EXERCISE_MODE_ENABLED, enabled)
-    fun isExerciseModeEnabled(context: Context): Boolean = getPref(context, KEY_EXERCISE_MODE_ENABLED, false)
 
     fun saveProfilePhotoUrl(context: Context, url: String) = savePref(context, KEY_PROFILE_PHOTO_URL, url)
     fun getProfilePhotoUrl(context: Context): String? = getPrefNullable(context, KEY_PROFILE_PHOTO_URL)
 
     fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) = UserProfileSyncManager.syncFromServer(context, user)
-
-    fun resetTransientModes(context: Context) {
-        setStressModeEnabled(context, false)
-        setExerciseModeEnabled(context, false)
-    }
 
     fun clearAllData(context: Context) {
         prefs(context).edit().clear().apply()

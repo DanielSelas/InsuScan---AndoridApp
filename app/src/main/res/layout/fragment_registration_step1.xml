@@ -149,67 +149,6 @@
                             android:background="@drawable/spinner_background" />
                     </LinearLayout>
 
-                    <!-- Pregnancy (visible only for females) -->
-                    <LinearLayout
-                        android:id="@+id/layout_reg_pregnancy"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:visibility="gone">
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:background="@color/divider_profile"
-                            android:layout_marginVertical="12dp"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Are you pregnant?"
-                                android:textSize="16sp" />
-
-                            <androidx.appcompat.widget.SwitchCompat
-                                android:id="@+id/switch_reg_pregnant"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content" />
-                        </LinearLayout>
-
-                        <!-- Due date (visible only if pregnant) -->
-                        <LinearLayout
-                            android:id="@+id/layout_reg_due_date"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginTop="12dp"
-                            android:visibility="gone">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Due Date"
-                                android:textSize="16sp" />
-
-                            <TextView
-                                android:id="@+id/tv_reg_due_date"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Select Date"
-                                android:textColor="@color/primary_dark"
-                                android:padding="8dp"
-                                android:background="@drawable/edit_text_background" />
-                        </LinearLayout>
-                    </LinearLayout>
-
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

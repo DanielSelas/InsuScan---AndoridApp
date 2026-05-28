@@ -37,6 +37,14 @@ class HomeDailySummaryHelper(
         }
     }
 
+    private fun resolveGlucoseStatus(glucose: Int): Pair<String, Int> {
+        return when {
+            glucose < 70 -> Pair("Low", R.color.status_critical)
+            glucose > 180 -> Pair("High", R.color.status_warning)
+            else -> Pair("In range", R.color.secondary)
+        }
+    }
+
     fun showLoading() {
         tvMealsLogged.text = "Refreshing..."
         tvTotalCarbs.text = "--"
@@ -53,14 +61,4 @@ class HomeDailySummaryHelper(
         tvGlucoseStatus.text = ""
     }
 
-    private fun resolveGlucoseStatus(glucose: Int): Pair<String, Int> {
-        val units = UserProfileManager.getGlucoseUnits(context)
-        val isMMol = units.contains("mmol", ignoreCase = true)
-        val valueInMgDl = if (isMMol) (glucose * 18) else glucose
-        return when {
-            valueInMgDl < 70 -> Pair("Low", R.color.status_critical)
-            valueInMgDl > 180 -> Pair("High", R.color.status_warning)
-            else -> Pair("In range", R.color.secondary)
-        }
-    }
 }

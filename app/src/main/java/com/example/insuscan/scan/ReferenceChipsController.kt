@@ -88,14 +88,7 @@ class ReferenceChipsController(
         applySelection(type)
     }
 
-    private fun resolveDefaultType(): ReferenceObjectType {
-        val profileType = UserProfileManager.getReferenceObjectType(context)
-        return when {
-            profileType.contains("Card", ignoreCase = true) -> ReferenceObjectType.CARD
-            profileType.contains("Pen", ignoreCase = true) -> ReferenceObjectType.INSULIN_SYRINGE
-            else -> ReferenceObjectType.INSULIN_SYRINGE
-        }
-    }
+    private fun resolveDefaultType(): ReferenceObjectType = ReferenceObjectType.INSULIN_SYRINGE
 
     private fun chipForType(type: ReferenceObjectType): LinearLayout = when (type) {
         ReferenceObjectType.INSULIN_SYRINGE -> chipSyringe

@@ -44,20 +44,9 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             glucoseLevel = from.currentGlucose ?: from.insulinCalculation?.currentGlucose,
             glucoseUnits = from.glucoseUnits,
 
-            // fixed: read activity from both top level and insulinCalculation
-            activityLevel = from.activityLevel ?: from.insulinCalculation?.activityLevel,
-
             // fixed: calculation breakdown - read from top level first, fallback to nested
             carbDose = from.carbDose ?: from.insulinCalculation?.carbDose,
             correctionDose = from.correctionDose ?: from.insulinCalculation?.correctionDose,
-            exerciseAdjustment = from.exerciseAdjustment ?: from.insulinCalculation?.exerciseAdjustment,
-            sickAdjustment = from.sickAdjustment ?: from.insulinCalculation?.sickAdjustment,
-            stressAdjustment = from.stressAdjustment ?: from.insulinCalculation?.stressAdjustment,
-            activeInsulin = from.activeInsulin, // top level only
-
-            // context flags
-            wasSickMode = from.wasSickMode == true,
-            wasStressMode = from.wasStressMode == true,
 
             // medical settings used at calculation time
             savedIcr = from.insulinCalculation?.insulinCarbRatio?.toFloatOrNull(),
@@ -97,10 +86,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
                 targetGlucose = meal.savedTargetGlucose,
                 correctionFactor = meal.savedIsf,
                 activePlanName = meal.savedPlanName,
-                sickAdjustment = meal.sickAdjustment,
-                stressAdjustment = meal.stressAdjustment,
-                exerciseAdjustment = meal.exerciseAdjustment,
-                activityLevel = meal.activityLevel
+
             ),
 
             // fixed: top-level fields that server expects
@@ -111,18 +97,11 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             // Calculation breakdown at top level
             carbDose = meal.carbDose,
             correctionDose = meal.correctionDose,
-            sickAdjustment = meal.sickAdjustment,
-            stressAdjustment = meal.stressAdjustment,
-            exerciseAdjustment = meal.exerciseAdjustment,
-            activeInsulin = meal.activeInsulin,
 
             // technical (save for documentation)
             profileComplete = meal.profileComplete,
             missingProfileFields = meal.missingProfileFields,
             insulinMessage = meal.insulinMessage,
-
-            wasSickMode = meal.wasSickMode,
-            wasStressMode = meal.wasStressMode,
 
             // fixed: separate doses
             recommendedDose = meal.recommendedDose,

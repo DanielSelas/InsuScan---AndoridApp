@@ -22,10 +22,6 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
     private lateinit var nameEditText: EditText
     private lateinit var ageEditText: EditText
     private lateinit var genderSpinner: Spinner
-    private lateinit var pregnancyLayout: LinearLayout
-    private lateinit var pregnantSwitch: SwitchCompat
-    private lateinit var dueDateLayout: LinearLayout
-    private lateinit var dueDateTextView: TextView
     private lateinit var nextButton: Button
 
     private val genderOptions = arrayOf("Select", "Male", "Female", "Other", "Prefer not to say")
@@ -43,10 +39,7 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
         nameEditText = view.findViewById(R.id.et_reg_name)
         ageEditText = view.findViewById(R.id.et_reg_age)
         genderSpinner = view.findViewById(R.id.spinner_reg_gender)
-        pregnancyLayout = view.findViewById(R.id.layout_reg_pregnancy)
-        pregnantSwitch = view.findViewById(R.id.switch_reg_pregnant)
-        dueDateLayout = view.findViewById(R.id.layout_reg_due_date)
-        dueDateTextView = view.findViewById(R.id.tv_reg_due_date)
+
         nextButton = view.findViewById(R.id.btn_next_step)
     }
 
@@ -57,18 +50,9 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
     private fun setupListeners() {
         genderSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val isFemale = genderOptions[position] == "Female"
-                pregnancyLayout.visibility = if (isFemale) View.VISIBLE else View.GONE
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
-
-        pregnantSwitch.setOnCheckedChangeListener { _, isChecked ->
-            dueDateLayout.visibility = if (isChecked) View.VISIBLE else View.GONE
-        }
-
-        dueDateTextView.setOnClickListener { showDatePicker() }
-
         nextButton.setOnClickListener {
             saveStepData()
             findNavController().navigate(R.id.action_registrationStep1_to_registrationStep2)
@@ -82,19 +66,6 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
         }
     }
 
-    private fun showDatePicker() {
-        val calendar = Calendar.getInstance()
-        DatePickerDialog(
-            requireContext(),
-            { _, year, month, day ->
-                val date = "%02d/%02d/%d".format(day, month + 1, year)
-                dueDateTextView.text = date
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
 
     private fun saveStepData() {
         val pm = UserProfileManager
@@ -108,10 +79,5 @@ class RegistrationStep1Fragment : Fragment(R.layout.fragment_registration_step1)
         val gender = genderOptions[genderSpinner.selectedItemPosition]
         if (gender != "Select") pm.saveUserGender(ctx, gender)
 
-        pm.saveIsPregnant(ctx, pregnantSwitch.isChecked)
-        if (pregnantSwitch.isChecked) {
-            val dueDate = dueDateTextView.text.toString()
-            if (dueDate != "Select Date") pm.saveDueDate(ctx, dueDate)
-        }
     }
 }
