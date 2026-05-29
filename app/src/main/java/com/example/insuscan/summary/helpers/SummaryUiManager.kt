@@ -11,6 +11,7 @@ import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
+import androidx.core.text.HtmlCompat
 
 class SummaryUiManager(val view: View, val context: Context) {
     val mealItemsContainer: LinearLayout = view.findViewById(R.id.layout_meal_items_container)
@@ -148,7 +149,7 @@ class SummaryUiManager(val view: View, val context: Context) {
         if (message.isNullOrBlank()) {
             referenceNoticeLayout.visibility = View.GONE
         } else {
-            referenceNoticeText.text = message
+            referenceNoticeText.text = HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_COMPACT)
             referenceNoticeLayout.visibility = View.VISIBLE
         }
     }

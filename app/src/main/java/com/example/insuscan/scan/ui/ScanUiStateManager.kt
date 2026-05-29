@@ -16,6 +16,7 @@ import com.example.insuscan.scan.coach.MeasurementStrategy
 import java.io.File
 import com.bumptech.glide.Glide
 import androidx.cardview.widget.CardView
+import androidx.core.text.HtmlCompat
 class ScanUiStateManager(
     private val view: View,
     private val listener: Listener
@@ -111,7 +112,7 @@ class ScanUiStateManager(
         if (message.isNullOrBlank()) {
             loadingReferenceNoticeLayout.visibility = View.GONE
         } else {
-            loadingReferenceNoticeText.text = message
+            loadingReferenceNoticeText.text = HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_COMPACT)
             loadingReferenceNoticeLayout.visibility = View.VISIBLE
         }
     }

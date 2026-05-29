@@ -85,7 +85,6 @@ class ScanFlowController(
             hardware.arCoreManager?.isReady == true
         )
         uiState.showConfidenceBanner(strategy)
-        if (warning != null) ToastHelper.showLong(context, warning)
         callback?.onScanSuccess(meal)
     }
 

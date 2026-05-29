@@ -26,23 +26,24 @@ object ReferenceNoticeBuilder {
     private fun buildPlateFallbackMessage(meal: Meal): String {
         val selected = meal.referenceObjectType
         val userSelectedNone = selected.isNullOrBlank() || selected.equals("NONE", ignoreCase = true)
-        val prefix = if (userSelectedNone) {
-            "No reference object was selected and none was detected in the image."
+        val body = if (userSelectedNone) {
+            "No reference object was detected, so size was estimated from a standard plate."
         } else {
-            "The selected reference object (${humanize(selected)}) was not found, and no alternative reference object was detected."
+            "The selected reference wasn't found and no other object was detected, so size was estimated from a standard plate."
         }
-        return "$prefix This scan used a standard plate size as fallback. Confidence is lower than usual — please review the results carefully."
+        return "<b>Lower accuracy — please review portions</b><br>$body"
     }
 
     private fun buildAlternativeMessage(meal: Meal, warnings: List<String>): String {
         val selected = meal.referenceObjectType
         val userSelectedNone = selected.isNullOrBlank() || selected.equals("NONE", ignoreCase = true)
-        val rawMessage = warnings.firstOrNull {
-            it.containsCode(CODE_ALTERNATIVE_TOP) || it.containsCode(CODE_ALTERNATIVE_SIDE)
-        } ?: return defaultAlternativeMessage(userSelectedNone)
-        return stripCodePrefix(rawMessage)
+        val body = if (userSelectedNone) {
+            "An object detected in the photo was used for sizing."
+        } else {
+            "The selected reference wasn't found, so another detected object was used for sizing."
+        }
+        return "<b>Backup reference used</b><br>$body"
     }
-
     private fun defaultAlternativeMessage(userSelectedNone: Boolean): String =
         if (userSelectedNone) {
             "No reference object was selected, but an alternative was detected and used for calibration."
