@@ -10,6 +10,7 @@ import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
 
 class SummaryUiManager(val view: View, val context: Context) {
     val mealItemsContainer: LinearLayout = view.findViewById(R.id.layout_meal_items_container)
@@ -30,6 +31,8 @@ class SummaryUiManager(val view: View, val context: Context) {
     val plateDimensionsText: TextView = view.findViewById(R.id.tv_plate_dimensions)
     val confidenceText: TextView = view.findViewById(R.id.tv_analysis_confidence)
     val referenceStatusText: TextView = view.findViewById(R.id.tv_reference_status)
+    val referenceNoticeLayout: CardView = view.findViewById(R.id.layout_reference_notice)
+    val referenceNoticeText: TextView = view.findViewById(R.id.tv_reference_notice)
     val highDoseWarningLayout: LinearLayout = view.findViewById(R.id.layout_high_dose_warning)
     val highDoseWarningText: TextView = view.findViewById(R.id.tv_high_dose_warning)
     val logButton: Button = view.findViewById(R.id.btn_log_meal)
@@ -102,6 +105,8 @@ class SummaryUiManager(val view: View, val context: Context) {
     fun updateAnalysisResults() {
         val meal = MealSessionManager.currentMeal
 
+        showReferenceNotice(meal?.let { ReferenceNoticeBuilder.build(it) })
+
         if (meal == null || !hasAnalysisData(meal)) {
             analysisCard.visibility = View.GONE
             return
@@ -136,6 +141,15 @@ class SummaryUiManager(val view: View, val context: Context) {
                 else -> R.color.status_critical
             }
             confidenceText.setTextColor(ContextCompat.getColor(context, colorRes))
+        }
+    }
+
+    private fun showReferenceNotice(message: String?) {
+        if (message.isNullOrBlank()) {
+            referenceNoticeLayout.visibility = View.GONE
+        } else {
+            referenceNoticeText.text = message
+            referenceNoticeLayout.visibility = View.VISIBLE
         }
     }
 

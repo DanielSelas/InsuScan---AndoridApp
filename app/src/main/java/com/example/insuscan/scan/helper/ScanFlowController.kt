@@ -24,6 +24,7 @@ import com.example.insuscan.utils.ReferenceObjectHelper
 import com.example.insuscan.utils.ToastHelper
 import kotlinx.coroutines.launch
 import java.io.File
+import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
 
 class ScanFlowController(
     private val fragment: Fragment,
@@ -205,6 +206,8 @@ class ScanFlowController(
                     uiState.btnSubmitScan.post {
                         submitSuccessMeal(result.meal, result.warning)
                     }
+                } else {
+                    uiState.showLoadingReferenceNotice(ReferenceNoticeBuilder.build(result.meal))
                 }
             }
             is PipelineResult.NeedSidePhoto -> {

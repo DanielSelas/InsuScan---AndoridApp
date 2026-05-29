@@ -15,7 +15,7 @@ import com.example.insuscan.scan.coach.CoachSeverity
 import com.example.insuscan.scan.coach.MeasurementStrategy
 import java.io.File
 import com.bumptech.glide.Glide
-
+import androidx.cardview.widget.CardView
 class ScanUiStateManager(
     private val view: View,
     private val listener: Listener
@@ -52,7 +52,8 @@ class ScanUiStateManager(
     
     val ivLoadingAnimation: ImageView = view.findViewById(R.id.iv_loading_animation)
     val btnSubmitScan: Button = view.findViewById(R.id.btn_submit_scan)
-    
+    private val loadingReferenceNoticeLayout: CardView = view.findViewById(R.id.layout_loading_reference_notice)
+    private val loadingReferenceNoticeText: TextView = view.findViewById(R.id.tv_loading_reference_notice)
     private var loadingAnimationRunnable: Runnable? = null
     private var duckAnimator: android.animation.ObjectAnimator? = null
     private val subtitleText: TextView = view.findViewById(R.id.tv_scan_subtitle)
@@ -85,6 +86,7 @@ class ScanUiStateManager(
             if (isFullAnalysis) {
                 simpleLoadingOverlay.visibility = View.GONE
                 fullLoadingOverlay.visibility = View.VISIBLE
+                loadingReferenceNoticeLayout.visibility = View.GONE
                 btnSubmitScan.isEnabled = true
                 btnSubmitScan.text = "Show Results"
                 glucoseInput.isEnabled = true
@@ -98,9 +100,19 @@ class ScanUiStateManager(
         } else {
             simpleLoadingOverlay.visibility = View.GONE
             fullLoadingOverlay.visibility = View.GONE
+            loadingReferenceNoticeLayout.visibility = View.GONE
             stopLoadingAnimation()
             captureButton.isEnabled = true
             galleryButton.isEnabled = true
+        }
+    }
+
+    fun showLoadingReferenceNotice(message: String?) {
+        if (message.isNullOrBlank()) {
+            loadingReferenceNoticeLayout.visibility = View.GONE
+        } else {
+            loadingReferenceNoticeText.text = message
+            loadingReferenceNoticeLayout.visibility = View.VISIBLE
         }
     }
 

@@ -12,7 +12,10 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
     // converts server MealDto -> local Meal (for loading history)
     override fun map(from: MealDto): Meal {
         android.util.Log.d("PLAN_DEBUG", "from.savedPlanName = ${from.savedPlanName}")
-        android.util.Log.d("PLAN_DEBUG", "from.insulinCalculation?.activePlanName = ${from.insulinCalculation?.activePlanName}")
+        android.util.Log.d(
+            "PLAN_DEBUG",
+            "from.insulinCalculation?.activePlanName = ${from.insulinCalculation?.activePlanName}"
+        )
         return Meal(
             title = from.foodItems?.firstOrNull()?.name ?: "Meal Analysis",
             carbs = from.totalCarbs ?: 0f,
@@ -52,7 +55,10 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             savedIcr = from.insulinCalculation?.insulinCarbRatio?.toFloatOrNull(),
             savedIsf = from.insulinCalculation?.correctionFactor,
             savedTargetGlucose = from.insulinCalculation?.targetGlucose,
-            savedPlanName = from.savedPlanName ?: from.insulinCalculation?.activePlanName
+            savedPlanName = from.savedPlanName ?: from.insulinCalculation?.activePlanName,
+
+            // pipeline warnings (used by UI to show reference-object notice)
+            reviewWarnings = from.reviewWarnings
         )
     }
 
@@ -87,7 +93,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
                 correctionFactor = meal.savedIsf,
                 activePlanName = meal.savedPlanName,
 
-            ),
+                ),
 
             // fixed: top-level fields that server expects
             currentGlucose = meal.glucoseLevel,

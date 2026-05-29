@@ -47,4 +47,5 @@ data class Meal(
     val missingProfileFields: List<String> = emptyList(),
     val insulinMessage: String? = null,
     val sideImagePath: String? = null,
+    val reviewWarnings: List<String>? = null,
 )
