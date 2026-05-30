@@ -12,17 +12,20 @@ import com.example.insuscan.MainActivity
 import com.example.insuscan.R
 import com.example.insuscan.home.helpers.ProfileImageHelper
 import com.example.insuscan.home.helpers.InsulinPlanSelector
-import com.example.insuscan.network.dto.InsulinPlanDto
-import com.example.insuscan.network.repository.UserRepositoryImpl
+
 import com.example.insuscan.profile.UserProfileManager
 import kotlinx.coroutines.launch
-import android.widget.LinearLayout
-import android.widget.RadioButton
-import androidx.recyclerview.widget.RecyclerView
+
+import com.example.insuscan.home.helpers.HomeDailySummaryHelper
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.InsulinPlan
 
-
+import android.text.format.DateUtils
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.insuscan.appdata.AppDataStore
+import com.example.insuscan.appdata.DataState
+import com.example.insuscan.meal.Meal
 
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
@@ -30,9 +33,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var profileImageHelper: ProfileImageHelper
     private lateinit var planSelector: InsulinPlanSelector
     private lateinit var greetingSubText: TextView
+    private lateinit var dailySummaryHelper: HomeDailySummaryHelper
 
-
-    private val userRepository = UserRepositoryImpl()
     private val ctx get() = requireContext()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -43,14 +45,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         profileImageHelper.loadImage()
         planSelector.loadPlans(null)
         setupNavigationListeners(view)
-        fetchUserProfile()
+        observeDataStore()
     }
 
     override fun onResume() {
         super.onResume()
         renderGreeting()
         profileImageHelper.loadImage()
-        planSelector.loadPlans(null)
     }
 
     private fun findViews(view: View) {
@@ -67,6 +68,16 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             defaultRow = view.findViewById(R.id.row_default_plan),
             defaultRadio = view.findViewById(R.id.rb_default_plan),
             recyclerView = view.findViewById(R.id.rv_plans)
+        )
+
+        dailySummaryHelper = HomeDailySummaryHelper(
+            context = ctx,
+            tvMealsLogged = view.findViewById(R.id.tv_meals_logged),
+            tvTotalCarbs = view.findViewById(R.id.tv_total_carbs),
+            tvTotalInsulin = view.findViewById(R.id.tv_total_insulin),
+            tvGlucoseValue = view.findViewById(R.id.tv_glucose_value),
+            tvGlucoseStatus = view.findViewById(R.id.tv_glucose_status),
+            gaugeGlucose = view.findViewById(R.id.gauge_glucose)
         )
     }
 
@@ -92,44 +103,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             MealSessionManager.setActivePlan("Default", null, null, null)
         }
     }
-    private fun fetchUserProfile() {
-        val email = UserProfileManager.getUserEmail(ctx) ?: return
-
-        lifecycleScope.launch {
-            try {
-                val result = userRepository.getUser(email)
-
-                if (result.isSuccess) {
-                    result.getOrNull()?.let { userDto ->
-                        UserProfileManager.syncFromServer(ctx, userDto)
-                        renderGreeting()
-
-                        val defaultIcr = userDto.insulinCarbRatio?.split(":")?.lastOrNull()?.trim() ?: "--"
-                        val defaultIsf = userDto.correctionFactor?.toInt()?.toString() ?: "--"
-                        val defaultTg = userDto.targetGlucose?.toString() ?: "--"
-                        view?.findViewById<TextView>(R.id.tv_default_plan_details)?.text =
-                            "ICR $defaultIcr · ISF $defaultIsf · TG $defaultTg"
-
-                        planSelector.loadPlans(userDto.insulinPlans)
-                        MealSessionManager.availablePlans = userDto.insulinPlans?.map { dto ->
-                            InsulinPlan(
-                                id = dto.id ?: "",
-                                name = dto.name ?: "Custom",
-                                isDefault = dto.isDefault,
-                                icr = dto.icr,
-                                isf = dto.isf,
-                                targetGlucose = dto.targetGlucose
-                            )
-                        } ?: emptyList()
-                    }
-                } else {
-                    Log.e(TAG, "Server profile fetch failed")
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error fetching user profile", e)
-            }
-        }
-    }
 
     private fun renderGreeting() {
         val displayName = UserProfileManager.getUserName(ctx) ?: DEFAULT_NAME
@@ -141,6 +114,55 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         }
         greetingSubText.text = greeting
         greetingText.text = displayName
+    }
+
+
+    private fun observeDataStore() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch { AppDataStore.profileState.collect { handleProfileState(it) } }
+                launch { AppDataStore.mealsState.collect { handleMealsState(it) } }
+            }
+        }
+    }
+
+    private fun handleProfileState(state: DataState<Long>) {
+        when (state) {
+            is DataState.Loading -> planSelector.loadPlans(UserProfileManager.getInsulinPlans(ctx))
+            is DataState.Ready -> {
+                renderGreeting()
+                val rawRatio = UserProfileManager.getInsulinCarbRatioRaw(ctx)
+                val defaultIcr = rawRatio?.split(":")?.lastOrNull()?.trim() ?: "--"
+                val defaultIsf = UserProfileManager.getCorrectionFactor(ctx)?.toInt()?.toString() ?: "--"
+                val defaultTg = UserProfileManager.getTargetGlucose(ctx)?.toString() ?: "--"
+                view?.findViewById<TextView>(R.id.tv_default_plan_details)?.text =
+                    "ICR $defaultIcr · ISF $defaultIsf · TG $defaultTg"
+                val plans = UserProfileManager.getInsulinPlans(ctx)
+                planSelector.loadPlans(plans)
+                MealSessionManager.availablePlans = plans?.map { dto ->
+                    InsulinPlan(
+                        id = dto.id ?: "",
+                        name = dto.name ?: "Custom",
+                        isDefault = dto.isDefault,
+                        icr = dto.icr,
+                        isf = dto.isf,
+                        targetGlucose = dto.targetGlucose
+                    )
+                } ?: emptyList()
+            }
+            is DataState.Error -> Log.e(TAG, "Profile refresh failed: ${state.cause.message}")
+        }
+    }
+
+    private fun handleMealsState(state: DataState<List<Meal>>) {
+        when (state) {
+            is DataState.Loading -> dailySummaryHelper.showLoading()
+            is DataState.Ready -> {
+                val todayMeals = state.data.filter { DateUtils.isToday(it.timestamp) }
+                dailySummaryHelper.displaySummary(todayMeals)
+            }
+            is DataState.Error -> dailySummaryHelper.showError(state.cause.message ?: "Failed to load data")
+        }
     }
 
     companion object {

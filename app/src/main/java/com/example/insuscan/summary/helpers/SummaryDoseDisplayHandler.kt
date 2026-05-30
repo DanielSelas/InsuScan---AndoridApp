@@ -71,33 +71,55 @@ class SummaryDoseDisplayHandler(
     }
 
     private fun showPlanSelectionDialog() {
-        val plans = MealSessionManager.availablePlans
-        if (plans.isEmpty()) return
+        val customPlans = MealSessionManager.availablePlans
 
-        val planNames = plans.map { plan ->
+        val defaultIcr = UserProfileManager.getGramsPerUnit(context)
+        val defaultIsf = UserProfileManager.getCorrectionFactor(context)
+        val defaultTg = UserProfileManager.getTargetGlucose(context)
+
+        val defaultLabel = buildString {
+            append("Default")
+            val details = buildList {
+                if (defaultIcr != null) add("ICR 1:${defaultIcr.toInt()}")
+                if (defaultIsf != null) add("ISF ${defaultIsf.toInt()}")
+                if (defaultTg != null) add("TG $defaultTg")
+            }.joinToString(" · ")
+            if (details.isNotEmpty()) append(" ($details)")
+        }
+
+        val allEntries = mutableListOf(defaultLabel)
+        allEntries += customPlans.map { plan ->
             val details = buildList {
                 if (plan.icr != null) add("ICR 1:${plan.icr.toInt()}")
                 if (plan.isf != null) add("ISF ${plan.isf.toInt()}")
                 if (plan.targetGlucose != null) add("TG ${plan.targetGlucose}")
             }.joinToString(" · ")
             if (details.isNotEmpty()) "${plan.name} ($details)" else plan.name
-        }.toTypedArray()
+        }
 
-        val currentPlanName = MealSessionManager.activePlanName ?: "Default"
-        val checkedIndex = plans.indexOfFirst { it.name == currentPlanName }.coerceAtLeast(0)
+        val currentName = MealSessionManager.activePlanName
+        val checkedIndex = if (currentName == null || currentName == "Default") {
+            0
+        } else {
+            val idx = customPlans.indexOfFirst { it.name == currentName }
+            if (idx >= 0) idx + 1 else 0
+        }
 
         AlertDialog.Builder(context)
             .setTitle("Select Insulin Plan")
-            .setSingleChoiceItems(planNames, checkedIndex) { dialog, which ->
-                val selected = plans[which]
-                MealSessionManager.setActivePlan(selected.name, selected.icr, selected.isf, selected.targetGlucose)
+            .setSingleChoiceItems(allEntries.toTypedArray(), checkedIndex) { dialog, which ->
+                if (which == 0) {
+                    MealSessionManager.clearActivePlan()
+                } else {
+                    val selected = customPlans[which - 1]
+                    MealSessionManager.setActivePlan(selected.name, selected.icr, selected.isf, selected.targetGlucose)
+                }
                 onPlanChanged()
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
-
     private fun updateHighDoseWarning(dose: Float) {
         if (dose > SummaryCalculationHelper.DOSE_WARNING_THRESHOLD) {
             ui.highDoseWarningLayout.visibility = View.VISIBLE

@@ -71,7 +71,6 @@ class CameraCoachEvaluator {
         return when (refType) {
             ReferenceObjectHelper.ReferenceObjectType.CARD -> "credit card 💳"
             ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> "insulin pen 🖊️"
-            ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE -> "fork/knife 🍴"
             else -> "reference object"
         }
     }

@@ -20,8 +20,7 @@ data class MealDto(
     val profileComplete: Boolean?,
     val missingProfileFields: List<String>?,
     val insulinMessage: String?,
-    val wasSickMode: Boolean?,
-    val wasStressMode: Boolean?,
+
 
     // added: server stores these at top level too
     val currentGlucose: Int?,
@@ -31,10 +30,6 @@ data class MealDto(
     // Calculation breakdown (top level)
     val carbDose: Float?,
     val correctionDose: Float?,
-    val sickAdjustment: Float?,
-    val stressAdjustment: Float?,
-    val exerciseAdjustment: Float?,
-    val activeInsulin: Float?,
 
     val recommendedDose: Float?,
     val actualDose: Float?,
@@ -85,11 +80,6 @@ data class InsulinCalculationDto(
     val correctionFactor: Float?,
     val activePlanName: String?,
 
-    // added: adjustment values from server
-    val sickAdjustment: Float?,
-    val stressAdjustment: Float?,
-    val exerciseAdjustment: Float?,
-    val activityLevel: String?  // "normal", "light", "intense"
 )
 
 // For creating new meal

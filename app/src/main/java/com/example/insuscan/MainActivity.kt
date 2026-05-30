@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        com.example.insuscan.utils.FileLogger.init(applicationContext)
+//        com.example.insuscan.utils.FileLogger.init(applicationContext)
         com.example.insuscan.utils.FileLogger.log("MAIN", "App Started")
 
         initializeViews()

@@ -10,6 +10,8 @@ import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
+import androidx.core.text.HtmlCompat
 
 class SummaryUiManager(val view: View, val context: Context) {
     val mealItemsContainer: LinearLayout = view.findViewById(R.id.layout_meal_items_container)
@@ -30,6 +32,8 @@ class SummaryUiManager(val view: View, val context: Context) {
     val plateDimensionsText: TextView = view.findViewById(R.id.tv_plate_dimensions)
     val confidenceText: TextView = view.findViewById(R.id.tv_analysis_confidence)
     val referenceStatusText: TextView = view.findViewById(R.id.tv_reference_status)
+    val referenceNoticeLayout: CardView = view.findViewById(R.id.layout_reference_notice)
+    val referenceNoticeText: TextView = view.findViewById(R.id.tv_reference_notice)
     val highDoseWarningLayout: LinearLayout = view.findViewById(R.id.layout_high_dose_warning)
     val highDoseWarningText: TextView = view.findViewById(R.id.tv_high_dose_warning)
     val logButton: Button = view.findViewById(R.id.btn_log_meal)
@@ -66,37 +70,30 @@ class SummaryUiManager(val view: View, val context: Context) {
     }
 
     fun setupGlucoseUnit() {
-        glucoseUnitText.text = UserProfileManager.getGlucoseUnits(context)
+        glucoseUnitText.text = "mg/dL"
     }
 
     fun updateGlucoseStatus() {
-        val glucoseStr = glucoseEditText.text.toString()
-        val glucose = glucoseStr.toIntOrNull()
-
+        val glucose = glucoseEditText.text.toString().toIntOrNull()
         if (glucose == null) {
             glucoseStatusText.text = ""
             return
         }
-
         val target = UserProfileManager.getTargetGlucose(context) ?: 100
-        val unit = UserProfileManager.getGlucoseUnits(context)
-
-        val glucoseInMgDl = if (unit == "mmol/L") (glucose * 18) else glucose
-
         when {
-            glucoseInMgDl < 70 -> {
+            glucose < 70 -> {
                 glucoseStatusText.text = "⚠️ Low!"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
             }
-            glucoseInMgDl < target - 20 -> {
+            glucose < target - 20 -> {
                 glucoseStatusText.text = "Below target"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
             }
-            glucoseInMgDl <= target + 30 -> {
+            glucose <= target + 30 -> {
                 glucoseStatusText.text = "✓ In range"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_normal))
             }
-            glucoseInMgDl <= 180 -> {
+            glucose <= 180 -> {
                 glucoseStatusText.text = "Above target"
                 glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
             }
@@ -106,9 +103,10 @@ class SummaryUiManager(val view: View, val context: Context) {
             }
         }
     }
-
     fun updateAnalysisResults() {
         val meal = MealSessionManager.currentMeal
+
+        showReferenceNotice(meal?.let { ReferenceNoticeBuilder.build(it) })
 
         if (meal == null || !hasAnalysisData(meal)) {
             analysisCard.visibility = View.GONE
@@ -144,6 +142,15 @@ class SummaryUiManager(val view: View, val context: Context) {
                 else -> R.color.status_critical
             }
             confidenceText.setTextColor(ContextCompat.getColor(context, colorRes))
+        }
+    }
+
+    private fun showReferenceNotice(message: String?) {
+        if (message.isNullOrBlank()) {
+            referenceNoticeLayout.visibility = View.GONE
+        } else {
+            referenceNoticeText.text = HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_COMPACT)
+            referenceNoticeLayout.visibility = View.VISIBLE
         }
     }
 

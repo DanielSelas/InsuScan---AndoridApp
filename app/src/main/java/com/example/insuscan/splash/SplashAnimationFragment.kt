@@ -11,11 +11,26 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
+import com.example.insuscan.appdata.AppDataStore
+import com.example.insuscan.appdata.DataState
+import com.example.insuscan.profile.UserProfileManager
+
+import androidx.lifecycle.lifecycleScope
+
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 
 class SplashAnimationFragment : Fragment(R.layout.fragment_splash_animation) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val email = UserProfileManager.getUserEmail(requireContext())
+        if (email != null && AppDataStore.profileState.value is DataState.Error) {
+            AppDataStore.refreshAll()
+        }
 
         val duckWalking = view.findViewById<ImageView>(R.id.img_duck_walking)
         val duckCamera = view.findViewById<ImageView>(R.id.img_duck_camera)
@@ -103,12 +118,20 @@ class SplashAnimationFragment : Fragment(R.layout.fragment_splash_animation) {
     }
 
     private fun navigateToHome() {
-        if (isAdded) {
-            findNavController().navigate(R.id.action_splashAnimation_to_homeFragment)
+        viewLifecycleOwner.lifecycleScope.launch {
+            withTimeoutOrNull(DATA_TIMEOUT_MS) {
+                combine(AppDataStore.profileState, AppDataStore.mealsState) { profile, meals ->
+                    profile !is DataState.Loading && meals !is DataState.Loading
+                }.first { it }
+            }
+            if (isAdded) {
+                findNavController().navigate(R.id.action_splashAnimation_to_homeFragment)
+            }
         }
     }
 
     companion object {
+        private const val DATA_TIMEOUT_MS = 5000L
         private const val SLIDE_DURATION = 1500L
         private const val MIDPOINT_DELAY = 750L
         private const val CROSSFADE_DURATION = 300L

@@ -26,19 +26,4 @@ object UserProfileCalculations {
         }
         return ratioText.toFloatOrNull()
     }
-
-    fun getReferenceObjectType(context: Context): String {
-        val size = UserProfileManager.getSyringeSize(context).lowercase()
-        return when {
-            size.contains("card") || size.contains("id") || size.contains("credit") -> "Card"
-            else -> "Pen"
-        }
-    }
-
-    fun getSickModeDays(context: Context): Int {
-        val startDate = UserProfileManager.getSickModeStartDate(context)
-        if (startDate == 0L) return 0
-        val diff = System.currentTimeMillis() - startDate
-        return (diff / (1000 * 60 * 60 * 24)).toInt()
-    }
 }

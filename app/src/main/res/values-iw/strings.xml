@@ -126,13 +126,9 @@
     <string name="profile_age">גיל</string>
     <string name="profile_weight">משקל</string>
     <string name="profile_height">גובה</string>
-    <string name="profile_diabetes_type">סוג סוכרת</string>
-    <string name="profile_type_1">סוג 1</string>
-    <string name="profile_type_2">סוג 2</string>
+
     <string name="profile_gender">מגדר</string>
-    <string name="profile_pregnant_question">האם את בהריון?</string>
-    <string name="profile_due_date">תאריך לידה משוער</string>
-    <string name="profile_insulin_type">סוג אינסולין</string>
+
     <string name="profile_insulin_parameters">פרמטרי אינסולין</string>
     <string name="profile_icr">ICR</string>
     <string name="profile_icr_desc">יחס אינסולין לפחמימות</string>
@@ -146,11 +142,7 @@
     <string name="profile_object_type">סוג אובייקט</string>
     <string name="profile_length_cm">אורך</string>
     <string name="profile_dose_rounding">עיגול מינון</string>
-    <string name="profile_adj_factors">גורמי התאמה</string>
-    <string name="profile_adj_sick">יום מחלה</string>
-    <string name="profile_adj_stress">סטרס</string>
-    <string name="profile_adj_exercise_decrease">פעילות קלה (הפחתה)</string>
-    <string name="profile_adj_intense_exercise">פעילות אינטנסיבית (הפחתה)</string>
+
     <string name="profile_units_section">יחידות</string>
     <string name="profile_units_glucose">יחידות גלוקוז</string>
     <string name="hint_your_name">השם שלך</string>
@@ -305,30 +297,10 @@
 
     <string name="content_desc_meal_image">תמונת ארוחה</string>
 
-    <string name="nav_chat">צ\'אט</string>
-    <string name="chat_title">עוזר צ\'אט</string>
-    <string name="chat_input_hint">הקלדת הודעה…</string>
-    <string name="chat_send_desc">שליחת הודעה</string>
-    <string name="chat_camera_desc">צילום או בחירת תמונה</string>
-    <string name="chat_welcome">היי! 👋 אני עוזר הארוחות שלך.\nכדי להתחיל, צלם תמונה של הארוחה או הקלד משהו.</string>
-    <string name="chat_analyzing">מנתח את הארוחה…</string>
-    <string name="chat_scan_error">משהו השתבש בניתוח התמונה. כדאי לנסות שוב.</string>
-    <string name="chat_confirm_food">זה נראה תקין? לחץ על אישור או ערוך את הפריטים.</string>
-    <string name="chat_ask_glucose">מהי רמת הגלוקוז הנוכחית שלך?</string>
-    <string name="chat_ask_activity">יש התאמות לפעילות גופנית?</string>
-    <string name="chat_calculating">מחשב את המינון…</string>
-    <string name="chat_saved">הארוחה נשמרה בהצלחה! ✅</string>
-    <string name="chat_btn_confirm">אישור</string>
-    <string name="chat_btn_edit">עריכה</string>
-    <string name="chat_btn_save">שמירת ארוחה</string>
-    <string name="chat_btn_sport">אחרי ספורט</string>
-    <string name="chat_btn_sick">יום מחלה</string>
-    <string name="chat_btn_continue">המשך</string>
 
     <!-- ==================== Reference Object Selection ==================== -->
     <string name="ref_dialog_title">משתמש באובייקט ייחוס?</string>
     <string name="ref_option_insulin_syringe">מזרק אינסולין</string>
-    <string name="ref_option_syringe_knife">מזלג / סכין</string>
     <string name="ref_option_card">כרטיס (אשראי / ת.ז.)</string>
     <string name="ref_option_none">ללא אובייקט ייחוס</string>
     <string name="history_label_reference">אובייקט ייחוס</string>

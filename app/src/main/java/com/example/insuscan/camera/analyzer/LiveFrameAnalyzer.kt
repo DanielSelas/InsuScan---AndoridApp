@@ -54,31 +54,18 @@ class LiveFrameAnalyzer(
             // Reference Object Mode Logic
             val refType = ReferenceObjectHelper.fromServerValue(selectedReferenceType)
             val mode = when (refType) {
-                ReferenceObjectHelper.ReferenceObjectType.CARD ->
-                    ReferenceObjectDetector.DetectionMode.CARD
-                ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE ->
-                    ReferenceObjectDetector.DetectionMode.STRICT
-                ReferenceObjectHelper.ReferenceObjectType.SYRINGE_KNIFE ->
-                    ReferenceObjectDetector.DetectionMode.FLEXIBLE
-                else -> {
-                    val syringeType = UserProfileManager.getSyringeSize(context).lowercase()
-                    when {
-                        syringeType.contains("card") || syringeType.contains("id") ->
-                            ReferenceObjectDetector.DetectionMode.CARD
-                        syringeType.contains("syringe") || syringeType.contains("pen") ->
-                            ReferenceObjectDetector.DetectionMode.STRICT
-                        else ->
-                            ReferenceObjectDetector.DetectionMode.FLEXIBLE
-                    }
-                }
+                ReferenceObjectHelper.ReferenceObjectType.CARD -> ReferenceObjectDetector.DetectionMode.CARD
+                ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE -> ReferenceObjectDetector.DetectionMode.STRICT
+                else -> null
             }
 
-            val fallbackResult = referenceObjectDetector.detectWithFallback(bitmap, null, mode)
-            val isRefFoundNow = fallbackResult.result is DetectionResult.Found
-            
-            val debugInfoStr = when (fallbackResult.result) {
-                is DetectionResult.Found -> (fallbackResult.result as DetectionResult.Found).debugInfo
-                is DetectionResult.NotFound -> (fallbackResult.result as DetectionResult.NotFound).debugInfo
+            val fallbackResult = if (mode != null) referenceObjectDetector.detectWithFallback(bitmap, null, mode) else null
+            val isRefFoundNow = fallbackResult?.result is DetectionResult.Found
+
+            val debugInfoStr = when (val result = fallbackResult?.result) {
+                is DetectionResult.Found -> result.debugInfo
+                is DetectionResult.NotFound -> result.debugInfo
+                null -> ""
             }
             
             val isPlateFoundNow = plateDetector.detectPlateSmoothed(bitmap).isFound

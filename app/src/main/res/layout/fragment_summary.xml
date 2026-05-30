@@ -580,6 +580,46 @@
 
             </androidx.cardview.widget.CardView>
 
+            <!-- Reference object notice (shown only when calibration fell back or used alternative) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/layout_reference_notice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/warning_bg">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="top">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⚠"
+                        android:textSize="16sp"
+                        android:textColor="@color/warning"
+                        android:layout_marginEnd="10dp"
+                        android:layout_marginTop="1dp" />
+
+                    <TextView
+                        android:id="@+id/tv_reference_notice"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12.5sp"
+                        android:fontFamily="@font/inter"
+                        android:textColor="@color/warning"
+                        android:lineSpacingExtra="2dp" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
             <!-- Portion analysis -->
             <TextView
                 android:layout_width="wrap_content"

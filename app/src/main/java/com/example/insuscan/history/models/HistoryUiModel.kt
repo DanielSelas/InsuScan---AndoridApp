@@ -40,8 +40,6 @@ sealed class HistoryUiModel {
         val isCorrectionVisible: Boolean
             get() = meal.correctionDose != null && meal.correctionDose != 0f
 
-        val isExerciseVisible: Boolean
-            get() = meal.exerciseAdjustment != null && meal.exerciseAdjustment != 0f
 
         // Receipt Style Data
         val carbDoseLabel: String
@@ -77,14 +75,7 @@ sealed class HistoryUiModel {
                        else DoseFormatter.formatDoseWithUnit(dose)
             }
 
-        val exerciseDoseValue: String
-            get() = DoseFormatter.formatDoseWithUnit(meal.exerciseAdjustment)
 
-        val sickDoseValue: String
-            get() = "+${DoseFormatter.formatDoseWithUnit(meal.sickAdjustment)}"
-        
-        val stressDoseValue: String
-            get() = "+${DoseFormatter.formatDoseWithUnit(meal.stressAdjustment)}"
 
         val totalDoseValue: String
             get() = DoseFormatter.formatDoseWithUnit(meal.insulinDose ?: meal.recommendedDose)
@@ -98,12 +89,7 @@ sealed class HistoryUiModel {
                 val carbs = item.carbsGrams?.toInt() ?: 0
                 "• $name ($weight" + "g) ... $carbs" + "g carbs"
             } ?: "• ${meal.title}"
-        
-        val isSickVisible: Boolean
-            get() = meal.sickAdjustment != null && meal.sickAdjustment != 0f
 
-        val isStressVisible: Boolean
-            get() = meal.stressAdjustment != null && meal.stressAdjustment != 0f
             
         val hasProfileError: Boolean
              get() = !meal.profileComplete && (meal.insulinDose == null || meal.insulinDose == 0f)

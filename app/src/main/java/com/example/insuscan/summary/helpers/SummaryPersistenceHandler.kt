@@ -2,6 +2,7 @@ package com.example.insuscan.summary.helpers
 
 import android.app.AlertDialog
 import android.content.Context
+import com.example.insuscan.appdata.AppDataStore
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
@@ -95,7 +96,6 @@ class SummaryPersistenceHandler(
 
     private fun buildUpdatedMeal(meal: Meal, result: DoseResult?): Meal {
         val glucoseValue = ui.glucoseEditText.text.toString().toIntOrNull()
-        val glucoseUnits = UserProfileManager.getGlucoseUnits(context)
 
         val finalResult = result ?: SummaryCalculationHelper.performCalculation(
             context, meal.carbs, glucoseValue,
@@ -110,7 +110,6 @@ class SummaryPersistenceHandler(
             savedIsf = MealSessionManager.activePlanIsf ?: UserProfileManager.getCorrectionFactor(context),
             savedTargetGlucose = MealSessionManager.activePlanTargetGlucose ?: UserProfileManager.getTargetGlucose(context),
             glucoseLevel = glucoseValue,
-            glucoseUnits = glucoseUnits,
             carbDose = finalResult.carbDose,
             correctionDose = finalResult.correctionDose
         )
@@ -136,6 +135,7 @@ class SummaryPersistenceHandler(
                 if (result.isSuccess) {
                     ToastHelper.showShort(context, "Meal logged successfully")
                     MealSessionManager.clearSession()
+                    AppDataStore.onMealsChanged()
                     onMealSavedSuccessfully()
                 } else {
                     val errorMsg = when (val e = result.exceptionOrNull()) {

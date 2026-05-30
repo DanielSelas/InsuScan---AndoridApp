@@ -25,10 +25,6 @@ data class Meal(
     // local image path
     val imagePath: String? = null,
 
-    // context flags
-    val wasSickMode: Boolean = false,
-    val wasStressMode: Boolean = false,
-
     // glucose and activity data
     val glucoseLevel: Int? = null,
     val glucoseUnits: String? = null,  // already exists - keep it
@@ -37,10 +33,6 @@ data class Meal(
     // calculation breakdown
     val carbDose: Float? = null,
     val correctionDose: Float? = null,
-    val exerciseAdjustment: Float? = null,
-    val sickAdjustment: Float? = null,
-    val stressAdjustment: Float? = null,
-    val activeInsulin: Float? = null, // IOB
 
     // added: separate recommended from actual
     val recommendedDose: Float? = null,
@@ -51,12 +43,9 @@ data class Meal(
     val savedTargetGlucose: Int? = null,
     val savedPlanName: String? = null,
 
-    // adjustment percentages at calculation time (for history display)
-    val savedSickPct: Int = 0,
-    val savedStressPct: Int = 0,
-    val savedExercisePct: Int = 0,
-
     val profileComplete: Boolean = false,
     val missingProfileFields: List<String> = emptyList(),
     val insulinMessage: String? = null,
+    val sideImagePath: String? = null,
+    val reviewWarnings: List<String>? = null,
 )

@@ -198,7 +198,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     }
 
     private fun updateTotalCarbs() {
-        totalCarbsText.text = "${foodItemAdapter.getTotalCarbs().toInt()}g"
+        totalCarbsText.text = "${foodItemAdapter.getTotalCarbs().toInt()}"
     }
 
     private fun updateEmptyState() {
