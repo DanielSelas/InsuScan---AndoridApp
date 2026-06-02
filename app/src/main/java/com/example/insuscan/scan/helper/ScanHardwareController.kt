@@ -119,6 +119,10 @@ class ScanHardwareController(
         arCoreManager = null
     }
 
+    fun setTorchEnabled(enabled: Boolean) {
+        if (::cameraManager.isInitialized) cameraManager.setTorchEnabled(enabled)
+    }
+
     fun resetForGallery() {
         onRefTypeChanged("NONE")
         refChipsController.setType(ReferenceObjectHelper.ReferenceObjectType.NONE)

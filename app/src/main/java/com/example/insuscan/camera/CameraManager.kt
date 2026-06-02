@@ -35,7 +35,10 @@ class CameraManager(private val context: Context) {
     private var imageCapture: ImageCapture? = null
     private var imageAnalyzer: ImageAnalysis? = null
     private var cameraProvider: ProcessCameraProvider? = null
+
+    private var camera: androidx.camera.core.Camera? = null
     private val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+
     
     private val referenceObjectDetector = ReferenceObjectDetector(context)
     private val plateDetector = PlateDetector()
@@ -114,7 +117,7 @@ class CameraManager(private val context: Context) {
                 // Rebind use cases
                 cameraProvider?.unbindAll()
 
-                cameraProvider?.bindToLifecycle(
+                camera = cameraProvider?.bindToLifecycle(
                     lifecycleOwner,
                     cameraSelector,
                     preview,
@@ -170,6 +173,10 @@ class CameraManager(private val context: Context) {
 
     fun stopPreview() {
         cameraProvider?.unbindAll()
+    }
+
+    fun setTorchEnabled(enabled: Boolean) {
+        camera?.cameraControl?.enableTorch(enabled)
     }
 
     // Stops camera and releases resources.

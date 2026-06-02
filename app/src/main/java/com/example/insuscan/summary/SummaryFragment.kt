@@ -154,13 +154,17 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
     }
 
     private fun proceedToHistory() {
-        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
-        bottomNav?.selectedItemId = R.id.historyFragment
+        val navOptions = androidx.navigation.NavOptions.Builder()
+            .setPopUpTo(R.id.nav_graph, false)
+            .build()
+        findNavController().navigate(R.id.historyFragment, null, navOptions)
     }
 
     private fun proceedToScan() {
-        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
-        bottomNav?.selectedItemId = R.id.scanFragment
+        val navOptions = androidx.navigation.NavOptions.Builder()
+            .setPopUpTo(R.id.nav_graph, false)
+            .build()
+        findNavController().navigate(R.id.scanFragment, null, navOptions)
     }
 
     private fun navigateToProfile() {

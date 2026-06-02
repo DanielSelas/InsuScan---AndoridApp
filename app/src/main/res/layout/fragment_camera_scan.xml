@@ -6,29 +6,17 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <TextView
-        android:id="@+id/tv_scan_subtitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/scan_instruction_frame"
-        android:textSize="@dimen/text_body2"
-        android:textColor="@color/text_secondary"
-        android:layout_marginTop="@dimen/spacing_small"
-        android:layout_marginStart="@dimen/spacing_large"
-        android:layout_marginEnd="@dimen/spacing_large"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
     <LinearLayout
         android:id="@+id/layout_step_indicator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:visibility="gone"
-        android:layout_marginTop="4dp"
-        app:layout_constraintTop_toBottomOf="@id/tv_scan_subtitle"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -55,104 +43,86 @@
 
     </LinearLayout>
 
-    <!-- Hidden GLSurfaceView strictly to maintain ARCore GL context in the background -->
     <android.opengl.GLSurfaceView
         android:id="@+id/hidden_ar_surface_view"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:alpha="0.0"
-        app:layout_constraintTop_toTopOf="@id/camera_preview"
-        app:layout_constraintBottom_toBottomOf="@id/camera_preview"
-        app:layout_constraintStart_toStartOf="@id/camera_preview"
-        app:layout_constraintEnd_toEndOf="@id/camera_preview" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.camera.view.PreviewView
         android:id="@+id/camera_preview"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="@dimen/spacing_medium"
-        android:layout_marginEnd="@dimen/spacing_medium"
-        android:layout_marginTop="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_medium"
         app:layout_constraintTop_toBottomOf="@id/layout_step_indicator"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/buttons_container" />
 
     <LinearLayout
-        android:id="@+id/layout_ar_indicator"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
+        android:id="@+id/layout_top_controls"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="@dimen/spacing_medium"
         android:paddingEnd="@dimen/spacing_medium"
-        android:elevation="10dp"
-        android:clipToPadding="false"
-        app:layout_constraintTop_toTopOf="@id/camera_preview"
-        app:layout_constraintStart_toStartOf="@id/camera_preview">
-
-        <View
-            android:id="@+id/view_ar_indicator"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:background="@drawable/bg_circle"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/tv_ar_explanation"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:layout_marginStart="8dp"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:background="@drawable/bg_status_pill"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp" />
-
-    </LinearLayout>
-
-    <View
-        android:id="@+id/view_target_zone"
-        android:layout_width="@dimen/spacing_xl"
-        android:layout_height="@dimen/meal_image_height"
-        android:background="@drawable/dashed_border_rect"
-        android:alpha="0.3"
-        android:layout_marginEnd="@dimen/spacing_xl"
-        app:layout_constraintEnd_toEndOf="@id/camera_preview"
-        app:layout_constraintTop_toTopOf="@id/camera_preview"
-        app:layout_constraintBottom_toBottomOf="@id/camera_preview" />
-
-    <View
-        android:id="@+id/view_plate_target_zone"
-        android:layout_width="220dp"
-        android:layout_height="220dp"
-        android:background="@drawable/dashed_border_oval"
-        android:alpha="0.55"
-        app:layout_constraintStart_toStartOf="@id/camera_preview"
-        app:layout_constraintEnd_toEndOf="@id/camera_preview"
-        app:layout_constraintTop_toTopOf="@id/camera_preview"
-        app:layout_constraintBottom_toBottomOf="@id/camera_preview" />
-
-    <TextView
-        android:id="@+id/tv_coach_pill"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/scan_coach_too_dark"
-        android:textColor="@color/text_on_primary"
-        android:background="@drawable/bg_status_pill"
-        android:paddingStart="@dimen/padding_input_horizontal"
-        android:paddingEnd="@dimen/padding_input_horizontal"
         android:paddingTop="@dimen/spacing_small"
         android:paddingBottom="@dimen/spacing_small"
-        android:layout_marginTop="@dimen/spacing_large"
-        android:visibility="gone"
+        android:elevation="10dp"
         app:layout_constraintTop_toTopOf="@id/camera_preview"
         app:layout_constraintStart_toStartOf="@id/camera_preview"
-        app:layout_constraintEnd_toEndOf="@id/camera_preview" />
+        app:layout_constraintEnd_toEndOf="@id/camera_preview">
+
+        <LinearLayout
+            android:id="@+id/layout_ar_indicator"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/spacing_small"
+            android:paddingEnd="@dimen/spacing_small">
+
+            <View
+                android:id="@+id/view_ar_indicator"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:background="@drawable/bg_circle"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/tv_ar_explanation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_marginStart="8dp"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:background="@drawable/bg_status_pill"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+
+        </LinearLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/btn_flash"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_flash"
+            android:background="@drawable/bg_icon_overlay"
+            android:contentDescription="Toggle flash"
+            android:scaleType="centerInside"
+            android:padding="9dp" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/chip_group_ref_object"
@@ -189,125 +159,137 @@
         app:layout_constraintStart_toStartOf="@id/camera_preview"
         app:layout_constraintEnd_toEndOf="@id/camera_preview" />
 
+    <View
+        android:id="@+id/view_plate_target_zone"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:background="@drawable/dashed_border_oval"
+        android:alpha="0.45"
+        app:layout_constraintStart_toStartOf="@id/camera_preview"
+        app:layout_constraintEnd_toEndOf="@id/camera_preview"
+        app:layout_constraintTop_toTopOf="@id/camera_preview"
+        app:layout_constraintBottom_toBottomOf="@id/camera_preview" />
+
+    <View
+        android:id="@+id/view_target_zone"
+        android:layout_width="50dp"
+        android:layout_height="140dp"
+        android:background="@drawable/dashed_border_rect"
+        android:alpha="0.35"
+        android:layout_marginStart="6dp"
+        app:layout_constraintStart_toEndOf="@id/view_plate_target_zone"
+        app:layout_constraintTop_toTopOf="@id/view_plate_target_zone"
+        app:layout_constraintBottom_toBottomOf="@id/view_plate_target_zone" />
+
+    <TextView
+        android:id="@+id/tv_coach_pill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/scan_coach_too_dark"
+        android:textColor="@color/text_on_primary"
+        android:textSize="13sp"
+        android:background="@drawable/bg_status_pill"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:visibility="gone"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/camera_preview"
+        app:layout_constraintStart_toStartOf="@id/camera_preview"
+        app:layout_constraintEnd_toEndOf="@id/camera_preview" />
+
     <ImageView
         android:id="@+id/iv_captured_image"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="@dimen/spacing_medium"
-        android:layout_marginEnd="@dimen/spacing_medium"
-        android:layout_marginTop="@dimen/spacing_medium"
         android:scaleType="centerCrop"
         android:visibility="gone"
         android:background="@android:color/black"
-        app:layout_constraintTop_toBottomOf="@id/tv_scan_subtitle"
+        app:layout_constraintTop_toBottomOf="@id/layout_step_indicator"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/buttons_container" />
 
-    <LinearLayout
-        android:id="@+id/layout_quality_row"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="@dimen/spacing_small"
-        android:paddingEnd="@dimen/spacing_small"
-        android:layout_marginStart="@dimen/spacing_medium"
-        android:layout_marginEnd="@dimen/spacing_medium"
-        android:layout_marginTop="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_medium"
-        android:elevation="4dp"
-        app:layout_constraintBottom_toTopOf="@id/buttons_container"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:id="@+id/tv_quality_status"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/scan_validating_preview"
-            android:textAlignment="center"
-            android:background="@drawable/bg_status_pill"
-            android:textSize="@dimen/text_body1"
-            android:textColor="@color/text_on_primary"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="6dp"
-            android:visibility="gone"
-            android:paddingBottom="6dp"
-            android:layout_marginStart="@dimen/padding_input_horizontal"
-            android:layout_marginEnd="0dp" />
-
-    </LinearLayout>
-
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/buttons_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginStart="@dimen/spacing_medium"
-        android:layout_marginEnd="@dimen/spacing_medium"
-        android:layout_marginBottom="@dimen/spacing_small"
+        android:background="@color/background"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent">
 
-        <!-- Row 1: Capture + Gallery -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="@dimen/spacing_small">
-
-            <Button
-                android:id="@+id/btn_capture"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="85"
-                android:text="Capture"
-                android:textSize="@dimen/text_button"
-                android:textColor="@color/text_on_primary"
-                android:background="@drawable/button_primary"
-                android:layout_marginEnd="2dp" />
-
-            <ImageButton
-                android:id="@+id/btn_gallery"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="15"
-                android:src="@android:drawable/ic_menu_gallery"
-                android:scaleType="centerInside"
-                android:background="@drawable/button_secondary"
-                android:contentDescription="Gallery" />
-        </LinearLayout>
-
-        <!-- Row 2: Glucose input + Reference Object -->
         <LinearLayout
             android:id="@+id/row_glucose_ref"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="end"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <!-- Glucose input moved to loading screen -->
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+            android:paddingStart="@dimen/spacing_large"
+            android:paddingEnd="@dimen/spacing_large"
+            app:layout_constraintTop_toTopOf="parent">
 
             <Button
                 android:id="@+id/btn_reference_object"
+                style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
-                android:layout_height="44dp"
-                android:text="No ref. object"
-                android:textSize="@dimen/text_caption"
-                android:textAllCaps="false"
+                android:layout_height="36dp"
                 android:minWidth="130dp"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
+                android:text="No ref. object"
+                android:textAllCaps="false"
+                android:textSize="@dimen/text_caption" />
+
         </LinearLayout>
 
-    </LinearLayout>
+        <ImageButton
+            android:id="@+id/btn_gallery"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="@dimen/spacing_xl"
+            android:layout_marginBottom="8dp"
+            android:alpha="0.65"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/action_gallery"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_gallery"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_capture" />
+
+        <Button
+            android:id="@+id/btn_capture"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/bg_capture_button_ring"
+            android:elevation="12dp"
+            android:text=""
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/row_glucose_ref" />
+
+        <ImageButton
+            android:id="@+id/btn_manual_entry"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="@dimen/spacing_xl"
+            android:layout_marginBottom="8dp"
+            android:alpha="0.65"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Manual entry"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_edit"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btn_capture" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <include
         android:id="@+id/ar_guidance_overlay"
@@ -396,12 +378,12 @@
             android:layout_width="220dp"
             android:layout_height="220dp"
             android:background="@drawable/bg_rounded_blue_light"
+            android:layout_marginBottom="32dp"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toTopOf="@id/tv_loading_title"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintVertical_chainStyle="packed"
-            android:layout_marginBottom="32dp">
+            app:layout_constraintVertical_chainStyle="packed">
 
             <ImageView
                 android:id="@+id/iv_loading_animation"
@@ -409,6 +391,7 @@
                 android:layout_height="200dp"
                 android:layout_gravity="center"
                 android:src="@drawable/duck_camera" />
+
         </FrameLayout>
 
         <TextView
@@ -419,10 +402,10 @@
             android:textSize="26sp"
             android:textStyle="bold"
             android:textColor="#0D1B2A"
+            android:layout_marginBottom="8dp"
             app:layout_constraintTop_toBottomOf="@id/loading_image_container"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="8dp"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <TextView
             android:id="@+id/tv_loading_subtitle"
@@ -431,113 +414,51 @@
             android:text="This usually takes 5–8 seconds."
             android:textSize="16sp"
             android:textColor="#6C757D"
+            android:layout_marginBottom="48dp"
             app:layout_constraintTop_toBottomOf="@id/tv_loading_title"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginBottom="48dp"/>
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <!-- Steps List -->
         <LinearLayout
             android:id="@+id/loading_steps_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginTop="32dp"
             app:layout_constraintTop_toBottomOf="@id/tv_loading_subtitle"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="32dp">
+            app:layout_constraintEnd_toEndOf="parent">
 
-            <!-- Step 1 -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-                <ImageView
-                    android:id="@+id/step1_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_step_inactive" />
-                <TextView
-                    android:id="@+id/step1_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Processing image"
-                    android:textSize="16sp"
-                    android:textColor="#6C757D"
-                    android:layout_marginStart="16dp"/>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
+                <ImageView android:id="@+id/step1_icon" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_step_inactive" />
+                <TextView android:id="@+id/step1_text" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Processing image" android:textSize="16sp" android:textColor="#6C757D" android:layout_marginStart="16dp" />
             </LinearLayout>
 
-            <!-- Step 2 -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-                <ImageView
-                    android:id="@+id/step2_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_step_inactive" />
-                <TextView
-                    android:id="@+id/step2_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Detecting food"
-                    android:textSize="16sp"
-                    android:textColor="#6C757D"
-                    android:layout_marginStart="16dp"/>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
+                <ImageView android:id="@+id/step2_icon" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_step_inactive" />
+                <TextView android:id="@+id/step2_text" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Detecting food" android:textSize="16sp" android:textColor="#6C757D" android:layout_marginStart="16dp" />
             </LinearLayout>
 
-            <!-- Step 3 -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-                <ImageView
-                    android:id="@+id/step3_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_step_inactive" />
-                <TextView
-                    android:id="@+id/step3_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Measuring portion"
-                    android:textSize="16sp"
-                    android:textColor="#6C757D"
-                    android:layout_marginStart="16dp"/>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
+                <ImageView android:id="@+id/step3_icon" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_step_inactive" />
+                <TextView android:id="@+id/step3_text" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Measuring portion" android:textSize="16sp" android:textColor="#6C757D" android:layout_marginStart="16dp" />
             </LinearLayout>
 
-            <!-- Step 4 -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-                <ImageView
-                    android:id="@+id/step4_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_step_inactive" />
-                <TextView
-                    android:id="@+id/step4_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Calculating dose"
-                    android:textSize="16sp"
-                    android:textColor="#6C757D"
-                    android:layout_marginStart="16dp"/>
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="16dp">
+                <ImageView android:id="@+id/step4_icon" android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_step_inactive" />
+                <TextView android:id="@+id/step4_text" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Calculating dose" android:textSize="16sp" android:textColor="#6C757D" android:layout_marginStart="16dp" />
             </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Reference object notice (shown after server response if calibration fell back or used alternative) -->
         <androidx.cardview.widget.CardView
             android:id="@+id/layout_loading_reference_notice"
             android:layout_width="0dp"
@@ -582,7 +503,6 @@
 
         </androidx.cardview.widget.CardView>
 
-        <!-- Glucose Submit Container -->
         <LinearLayout
             android:id="@+id/layout_glucose_submit"
             android:layout_width="match_parent"
@@ -618,6 +538,7 @@
                 android:paddingEnd="16dp"
                 android:textColor="@color/text_on_primary"
                 android:background="@drawable/button_primary" />
+
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -635,6 +556,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center" />
+
     </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

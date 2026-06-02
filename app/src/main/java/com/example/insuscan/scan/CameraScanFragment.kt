@@ -15,6 +15,8 @@ import com.example.insuscan.scan.helper.ScanHardwareController
 import com.example.insuscan.scan.ui.ScanDialogHelper
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ToastHelper
+import android.content.res.ColorStateList
+import androidx.navigation.fragment.findNavController
 
 class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateManager.Listener, ScanDialogHelper.Listener {
 
@@ -26,6 +28,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
     private lateinit var hardwareController: ScanHardwareController
     private lateinit var flowController: ScanFlowController
     private val coachEvaluator = CameraCoachEvaluator()
+
+    private var isFlashOn = false
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -175,6 +179,21 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
 
             flowController.onCaptureClicked()
         }
+
+        uiState.btnFlash.setOnClickListener {
+            isFlashOn = !isFlashOn
+            hardwareController.setTorchEnabled(isFlashOn)
+            uiState.btnFlash.imageTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(),
+                    if (isFlashOn) R.color.status_warning else R.color.white)
+            )
+        }
+
+        uiState.btnManualEntry.setOnClickListener {
+            requireParentFragment().findNavController()
+                .navigate(R.id.action_scanFragment_to_manualEntryFragment)
+        }
+
 
         uiState.galleryButton.setOnClickListener {
             hardwareController.resetForGallery()
