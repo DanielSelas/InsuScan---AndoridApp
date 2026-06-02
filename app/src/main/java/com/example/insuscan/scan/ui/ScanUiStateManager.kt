@@ -304,13 +304,7 @@ class ScanUiStateManager(
         captureButton.isEnabled = state.canCapture
         captureButton.alpha = if (state.canCapture) 1.0f else 0.4f
 
-        val captureColor = when (state.severity) {
-            CoachSeverity.ACCEPTABLE -> R.color.status_warning
-            else -> R.color.white
-        }
-        captureButton.backgroundTintList = ColorStateList.valueOf(
-            ContextCompat.getColor(context, captureColor)
-        )
+
     }
 
     fun updateArIndicator(arReady: Boolean, arSupported: Boolean) {
