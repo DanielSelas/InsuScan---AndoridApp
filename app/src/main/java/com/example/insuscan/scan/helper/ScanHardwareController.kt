@@ -59,9 +59,7 @@ class ScanHardwareController(
         refChipsController = ReferenceChipsController(
             context = context,
             chipGroup = uiState.chipGroupRefObject,
-            toggleButton = uiState.btnRefToggle,
-            targetZone = uiState.viewTargetZone,
-            dismissAnchor = uiState.cameraPreview
+            targetZone = uiState.viewTargetZone
         )
         refChipsController.onSelectionChanged = { type ->
             val serverValue = type.serverValue

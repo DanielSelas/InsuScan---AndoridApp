@@ -83,14 +83,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun observeDestination() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            val isAuthScreen = destination.id == R.id.loginFragment ||
+            val hideBottomNav = destination.id == R.id.loginFragment ||
                     destination.id == R.id.splashAnimationFragment ||
                     destination.id == R.id.registrationStep1Fragment ||
                     destination.id == R.id.registrationStep2Fragment ||
-                    destination.id == R.id.registrationStep3Fragment
+                    destination.id == R.id.registrationStep3Fragment ||
+                    destination.id == R.id.scanFragment
 
             val bottomNavView = findViewById<View>(R.id.bottom_nav)
-            bottomNavView.visibility = if (isAuthScreen) View.GONE else View.VISIBLE
+            bottomNavView.visibility = if (hideBottomNav) View.GONE else View.VISIBLE
 
             val activeNav = destinationToNav[destination.id]
             updateNavSelection(activeNav)

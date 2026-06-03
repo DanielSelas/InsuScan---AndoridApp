@@ -14,11 +14,6 @@ class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        TopBarHelper.setupTopBar(
-            rootView = view,
-            title = "Scan your meal",
-            onBack = { findNavController().navigate(R.id.homeFragment) }
-        )
         if (savedInstanceState == null) {
             if (MealSessionManager.currentMeal != null) {
                 showResumeOrNewScanDialog()

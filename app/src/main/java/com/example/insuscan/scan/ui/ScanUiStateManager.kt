@@ -33,8 +33,6 @@ class ScanUiStateManager(
     val captureButton: Button = view.findViewById(R.id.btn_capture)
     val galleryButton: View = view.findViewById(R.id.btn_gallery)
     val glucoseInput: android.widget.EditText = view.findViewById(R.id.et_glucose_level)
-    val referenceButton: Button = view.findViewById(R.id.btn_reference_object)
-    val btnRefToggle: TextView = view.findViewById(R.id.btn_ref_toggle)
     val viewTargetZone: View = view.findViewById(R.id.view_target_zone)
     val hiddenArSurfaceView: android.opengl.GLSurfaceView = view.findViewById(R.id.hidden_ar_surface_view)
     val chipGroupRefObject: LinearLayout = view.findViewById(R.id.chip_group_ref_object)
@@ -73,9 +71,6 @@ class ScanUiStateManager(
     val btnManualEntry: ImageButton = view.findViewById(R.id.btn_manual_entry)
 
     init {
-        chipGroupRefObject.visibility = View.GONE
-        btnRefToggle.visibility = View.GONE
-
         layoutArIndicator.setOnClickListener {
             tvArExplanation.visibility = if (tvArExplanation.visibility == View.VISIBLE) View.GONE else View.VISIBLE
             listener.onArIndicatorClicked()
@@ -209,8 +204,6 @@ class ScanUiStateManager(
 
         tvCoachPill.visibility = View.GONE
 
-        chipGroupRefObject.visibility = View.GONE
-        btnRefToggle.visibility = View.GONE
         layoutArIndicator.visibility = View.GONE
         viewPlateTargetZone.visibility = View.GONE
         cardSidePhotoPrompt.visibility = View.GONE
@@ -222,9 +215,6 @@ class ScanUiStateManager(
         captureButton.text = "Capture"
         captureButton.setBackgroundResource(R.drawable.button_primary)
 
-
-        btnRefToggle.visibility = View.GONE
-        chipGroupRefObject.visibility = View.GONE
         cardSidePhotoPrompt.visibility = View.GONE
         layoutStepIndicator.visibility = View.GONE
         layoutArIndicator.visibility = View.VISIBLE
@@ -332,7 +322,7 @@ class ScanUiStateManager(
         }
 
         btnFlash.imageTintList = ColorStateList.valueOf(
-            ContextCompat.getColor(view.context, R.color.white)
+            ContextCompat.getColor(view.context, R.color.black)
         )
     }
 
