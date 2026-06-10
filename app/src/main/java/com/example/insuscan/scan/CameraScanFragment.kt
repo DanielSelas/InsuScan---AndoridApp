@@ -15,6 +15,8 @@ import com.example.insuscan.scan.helper.ScanHardwareController
 import com.example.insuscan.scan.ui.ScanDialogHelper
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ToastHelper
+import android.content.res.ColorStateList
+import androidx.navigation.fragment.findNavController
 
 class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateManager.Listener, ScanDialogHelper.Listener {
 
@@ -26,6 +28,8 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
     private lateinit var hardwareController: ScanHardwareController
     private lateinit var flowController: ScanFlowController
     private val coachEvaluator = CameraCoachEvaluator()
+
+    private var isFlashOn = false
 
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -155,7 +159,6 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
 
     private fun initializeListeners() {
         flowController.isSidePhotoMode = false
-        setupGlucoseAndReference()
         uiState.captureButton.setOnClickListener {
             if (flowController.isShowingCapturedImage) {
                 if (flowController.isSidePhotoMode) dialogHelper.showRetakeOptionsDialog() else flowController.switchToCameraMode()
@@ -176,40 +179,29 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
             flowController.onCaptureClicked()
         }
 
+        uiState.btnFlash.setOnClickListener {
+            isFlashOn = !isFlashOn
+            hardwareController.setTorchEnabled(isFlashOn)
+            uiState.btnFlash.imageTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(),
+                    if (isFlashOn) R.color.status_warning else R.color.white)
+            )
+        }
+
+        uiState.btnManualEntry.setOnClickListener {
+            requireParentFragment().findNavController()
+                .navigate(R.id.action_scanFragment_to_manualEntryFragment)
+        }
+
+        view?.findViewById<android.widget.ImageButton>(R.id.btn_scan_close)?.setOnClickListener {
+            findNavController().navigate(R.id.homeFragment)
+        }
+
         uiState.galleryButton.setOnClickListener {
             hardwareController.resetForGallery()
             galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
     }
-
-    private fun setupGlucoseAndReference() {
-        val refOptions = arrayOf("No ref. object", "💉 Insulin Pen", "💳 Card")
-        val refTypes = arrayOf(
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.NONE,
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE,
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.CARD
-        )
-
-        uiState.referenceButton.setOnClickListener { anchor ->
-            val popup = android.widget.PopupMenu(requireContext(), anchor)
-            refOptions.forEachIndexed { index, label ->
-                popup.menu.add(0, index, index, label)
-            }
-            popup.setOnMenuItemClickListener { item ->
-                val index = item.itemId
-                uiState.referenceButton.text = refOptions[index]
-                hardwareController.refChipsController.setType(refTypes[index])
-                true
-            }
-            popup.show()
-        }
-
-        hardwareController.refChipsController.setType(
-            com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE
-        )
-        uiState.referenceButton.text = refOptions[1]
-    }
-
 
 
     // --- UI/Dialog Listeners ---

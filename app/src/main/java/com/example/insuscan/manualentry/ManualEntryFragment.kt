@@ -148,8 +148,13 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
         view?.findViewById<Button>(R.id.btn_save)?.setOnClickListener { saveMeal() }
         view?.findViewById<Button>(R.id.btn_rescan)?.setOnClickListener {
-            requireActivity().findViewById<BottomNavigationView>(R.id.bottom_nav)
-                .selectedItemId = R.id.scanFragment
+            findNavController().navigate(
+                R.id.scanFragment,
+                null,
+                androidx.navigation.NavOptions.Builder()
+                    .setPopUpTo(R.id.nav_graph, false)
+                    .build()
+            )
         }
     }
 

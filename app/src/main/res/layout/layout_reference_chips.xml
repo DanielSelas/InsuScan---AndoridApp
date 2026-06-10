@@ -2,33 +2,34 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
     <LinearLayout
-        android:id="@+id/chip_ref_syringe"
+        android:id="@+id/chip_ref_none"
         android:layout_width="wrap_content"
         android:layout_height="36dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="6dp"
-        android:paddingEnd="10dp"
-        android:layout_marginEnd="4dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/ref_chip_unselected_bg"
         android:clickable="true"
         android:focusable="true">
 
         <TextView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:text="💉"
-            android:textSize="14sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="❌"
+            android:textSize="13sp"
             android:gravity="center"
-            android:background="@drawable/chip_icon_bg"
             android:layout_marginEnd="6dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Syringe"
-            android:textSize="12sp"
-            android:textColor="@color/primary" />
+            android:text="No ref"
+            android:textSize="13sp"
+            android:fontFamily="@font/inter"
+            android:textFontWeight="500"
+            android:textColor="@color/text_primary" />
     </LinearLayout>
 
     <LinearLayout
@@ -37,57 +38,59 @@
         android:layout_height="36dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="6dp"
-        android:paddingEnd="10dp"
-        android:layout_marginEnd="4dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="16dp"
+        android:layout_marginEnd="8dp"
         android:background="@drawable/ref_chip_unselected_bg"
         android:clickable="true"
         android:focusable="true">
 
         <TextView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:text="💳"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:gravity="center"
-            android:background="@drawable/chip_icon_bg"
             android:layout_marginEnd="6dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Card"
-            android:textSize="12sp"
-            android:textColor="@color/primary" />
+            android:textSize="13sp"
+            android:fontFamily="@font/inter"
+            android:textFontWeight="500"
+            android:textColor="@color/text_primary" />
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/chip_ref_none"
+        android:id="@+id/chip_ref_syringe"
         android:layout_width="wrap_content"
         android:layout_height="36dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="6dp"
-        android:paddingEnd="10dp"
+        android:paddingStart="14dp"
+        android:paddingEnd="16dp"
         android:background="@drawable/ref_chip_unselected_bg"
         android:clickable="true"
         android:focusable="true">
 
         <TextView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:text="❌"
-            android:textSize="14sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💉"
+            android:textSize="13sp"
             android:gravity="center"
-            android:background="@drawable/chip_icon_bg"
             android:layout_marginEnd="6dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="None"
-            android:textSize="12sp"
-            android:textColor="@color/primary" />
+            android:text="Insulin Pen"
+            android:textSize="13sp"
+            android:fontFamily="@font/inter"
+            android:textFontWeight="500"
+            android:textColor="@color/text_primary" />
     </LinearLayout>
 
 </merge>

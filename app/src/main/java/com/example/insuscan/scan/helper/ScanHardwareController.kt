@@ -59,9 +59,7 @@ class ScanHardwareController(
         refChipsController = ReferenceChipsController(
             context = context,
             chipGroup = uiState.chipGroupRefObject,
-            toggleButton = uiState.btnRefToggle,
-            targetZone = uiState.viewTargetZone,
-            dismissAnchor = uiState.cameraPreview
+            targetZone = uiState.viewTargetZone
         )
         refChipsController.onSelectionChanged = { type ->
             val serverValue = type.serverValue
@@ -117,6 +115,10 @@ class ScanHardwareController(
         if (::cameraManager.isInitialized) cameraManager.shutdown()
         arCoreManager?.release()
         arCoreManager = null
+    }
+
+    fun setTorchEnabled(enabled: Boolean) {
+        if (::cameraManager.isInitialized) cameraManager.setTorchEnabled(enabled)
     }
 
     fun resetForGallery() {

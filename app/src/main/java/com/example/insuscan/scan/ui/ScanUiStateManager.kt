@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.view.View
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -32,14 +33,11 @@ class ScanUiStateManager(
     val captureButton: Button = view.findViewById(R.id.btn_capture)
     val galleryButton: View = view.findViewById(R.id.btn_gallery)
     val glucoseInput: android.widget.EditText = view.findViewById(R.id.et_glucose_level)
-    val referenceButton: Button = view.findViewById(R.id.btn_reference_object)
-    val btnRefToggle: TextView = view.findViewById(R.id.btn_ref_toggle)
     val viewTargetZone: View = view.findViewById(R.id.view_target_zone)
     val hiddenArSurfaceView: android.opengl.GLSurfaceView = view.findViewById(R.id.hidden_ar_surface_view)
     val chipGroupRefObject: LinearLayout = view.findViewById(R.id.chip_group_ref_object)
 
     // Internal views for state management
-    private val qualityStatusText: TextView = view.findViewById(R.id.tv_quality_status)
     private val simpleLoadingOverlay: FrameLayout = view.findViewById(R.id.loading_overlay)
     private val fullLoadingOverlay: View = view.findViewById(R.id.layout_analyzing_meal)
     private val step1Icon: ImageView = view.findViewById(R.id.step1_icon)
@@ -57,7 +55,6 @@ class ScanUiStateManager(
     private val loadingReferenceNoticeText: TextView = view.findViewById(R.id.tv_loading_reference_notice)
     private var loadingAnimationRunnable: Runnable? = null
     private var duckAnimator: android.animation.ObjectAnimator? = null
-    private val subtitleText: TextView = view.findViewById(R.id.tv_scan_subtitle)
     private val tvCoachPill: TextView = view.findViewById(R.id.tv_coach_pill)
     private val arIndicatorDot: View = view.findViewById(R.id.view_ar_indicator)
     private val layoutArIndicator: View = view.findViewById(R.id.layout_ar_indicator)
@@ -70,10 +67,10 @@ class ScanUiStateManager(
     private val btnSidePhotoReady: Button = view.findViewById(R.id.btn_side_photo_ready)
     private val tvSideCardSkip: TextView = view.findViewById(R.id.tv_side_card_skip)
 
-    init {
-        chipGroupRefObject.visibility = View.GONE
-        btnRefToggle.visibility = View.GONE
+    val btnFlash: ImageButton = view.findViewById(R.id.btn_flash)
+    val btnManualEntry: ImageButton = view.findViewById(R.id.btn_manual_entry)
 
+    init {
         layoutArIndicator.setOnClickListener {
             tvArExplanation.visibility = if (tvArExplanation.visibility == View.VISIBLE) View.GONE else View.VISIBLE
             listener.onArIndicatorClicked()
@@ -204,12 +201,9 @@ class ScanUiStateManager(
         captureButton.isEnabled = true
         captureButton.alpha = 1f
         captureButton.clearAnimation()
-        subtitleText.text = "Analyzing your meal..."
-        qualityStatusText.visibility = View.GONE
+
         tvCoachPill.visibility = View.GONE
 
-        chipGroupRefObject.visibility = View.GONE
-        btnRefToggle.visibility = View.GONE
         layoutArIndicator.visibility = View.GONE
         viewPlateTargetZone.visibility = View.GONE
         cardSidePhotoPrompt.visibility = View.GONE
@@ -220,11 +214,7 @@ class ScanUiStateManager(
         cameraPreview.visibility = View.VISIBLE
         captureButton.text = "Capture"
         captureButton.setBackgroundResource(R.drawable.button_primary)
-        qualityStatusText.visibility = View.GONE
-        subtitleText.text = "First: enter your current glucose below, then capture your meal"
 
-        btnRefToggle.visibility = View.GONE
-        chipGroupRefObject.visibility = View.GONE
         cardSidePhotoPrompt.visibility = View.GONE
         layoutStepIndicator.visibility = View.GONE
         layoutArIndicator.visibility = View.VISIBLE
@@ -237,7 +227,6 @@ class ScanUiStateManager(
         updateStepIndicator(2, true)
         viewPlateTargetZone.visibility = View.GONE
         viewTargetZone.visibility = View.GONE
-        subtitleText.text = "Hold phone at table level, capture the side of the plate"
     }
 
     fun showSidePhotoCard() {
@@ -277,10 +266,8 @@ class ScanUiStateManager(
 
     fun updateTwoPhotoHint(requiresSidePhoto: Boolean, isShowingCapturedImage: Boolean, isSidePhotoMode: Boolean) {
         if (requiresSidePhoto && !isShowingCapturedImage && !isSidePhotoMode) {
-            subtitleText.text = "\uD83D\uDCF8 2-photo scan: top view + side view"
             updateStepIndicator(1, true)
         } else if (!isShowingCapturedImage && !isSidePhotoMode) {
-            subtitleText.text = "First: enter your current glucose below, then capture your meal"
             updateStepIndicator(1, false)
         }
     }
@@ -288,11 +275,11 @@ class ScanUiStateManager(
     fun applyCoachState(state: CameraCoachState) {
         val context = view.context
         val coachColor = when (state.severity) {
-            CoachSeverity.BLOCKING -> R.color.status_critical
-            CoachSeverity.WARNING -> R.color.status_critical
-            CoachSeverity.TIP -> R.color.status_warning
+            CoachSeverity.BLOCKING   -> R.color.status_critical
+            CoachSeverity.WARNING    -> R.color.status_warning
+            CoachSeverity.TIP        -> R.color.status_info
             CoachSeverity.ACCEPTABLE -> R.color.status_warning
-            CoachSeverity.GOOD -> R.color.status_normal
+            CoachSeverity.GOOD       -> R.color.status_normal
         }
 
         tvCoachPill.apply {
@@ -300,12 +287,14 @@ class ScanUiStateManager(
             visibility = View.VISIBLE
             background = ContextCompat.getDrawable(context, R.drawable.bg_status_pill)?.mutate()
             val color = ContextCompat.getColor(context, coachColor)
-            background?.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0x99))
+            background?.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0xCC))
             setTextColor(ContextCompat.getColor(context, R.color.text_on_primary))
         }
 
         captureButton.isEnabled = state.canCapture
-        captureButton.alpha = if (state.canCapture) 1.0f else 0.5f
+        captureButton.alpha = if (state.canCapture) 1.0f else 0.4f
+
+
     }
 
     fun updateArIndicator(arReady: Boolean, arSupported: Boolean) {
@@ -331,6 +320,10 @@ class ScanUiStateManager(
             arSupported -> "AR: calibrating"
             else -> "AR: basic mode"
         }
+
+        btnFlash.imageTintList = ColorStateList.valueOf(
+            ContextCompat.getColor(view.context, R.color.black)
+        )
     }
 
     fun showConfidenceBanner(strategy: MeasurementStrategy) {
@@ -346,25 +339,10 @@ class ScanUiStateManager(
             MeasurementStrategy.Accuracy.MODERATE -> "\uD83D\uDFE0"
         }
 
-        qualityStatusText.apply {
-            text = "$icon ${strategy.label}"
-            visibility = View.VISIBLE
-            background = ContextCompat.getDrawable(context, R.drawable.bg_status_pill)?.mutate()
-            val color = ContextCompat.getColor(context, bannerColor)
-            background?.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0xCC))
-            setTextColor(ContextCompat.getColor(context, R.color.text_on_primary))
-        }
     }
 
     fun showSkipAccuracyBanner() {
         val context = view.context
-        qualityStatusText.apply {
-            text = "\uD83D\uDFE0 Lower accuracy — no side photo"
-            visibility = View.VISIBLE
-            background = ContextCompat.getDrawable(context, R.drawable.bg_status_pill)?.mutate()
-            val color = ContextCompat.getColor(context, R.color.status_warning)
-            background?.setTint(androidx.core.graphics.ColorUtils.setAlphaComponent(color, 0xCC))
-            setTextColor(ContextCompat.getColor(context, R.color.text_on_primary))
-        }
+
     }
 }
