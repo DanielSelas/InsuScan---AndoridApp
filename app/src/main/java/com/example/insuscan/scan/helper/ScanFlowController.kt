@@ -180,7 +180,7 @@ class ScanFlowController(
             return
         }
 
-        hardware.pipelineManager.snapshotArcoreData()
+        hardware.pipelineManager.snapshotArcoreData(bitmap)
         uiState.showLoading(true, "Processing top image...", isFullAnalysis = false)
         hardware.pipelineManager.isRefObjectExpectedInFrame = ReferenceObjectHelper.fromServerValue(selectedReferenceType) != ReferenceObjectHelper.ReferenceObjectType.NONE
         hardware.pipelineManager.wasRefFoundInLivePreview = hardware.cameraManager.lastQualityResult?.isReferenceObjectFound ?: false
@@ -258,7 +258,6 @@ class ScanFlowController(
                 onImageCaptured = { sideFile ->
                     val sideBitmap = BitmapFactory.decodeFile(sideFile.absolutePath)
                     uiState.showLoading(true, "Analyzing your meal...", isFullAnalysis = true)
-                    hardware.pipelineManager.snapshotArcoreData()
                     proceedWithPortionAnalysis(sideImage = sideBitmap)
                     initializeListeners()
                 },
