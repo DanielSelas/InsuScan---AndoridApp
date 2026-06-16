@@ -196,8 +196,8 @@ class ScanUiStateManager(
         Glide.with(fragment).load(imageFile).into(capturedImageView)
         cameraPreview.visibility = View.GONE
         capturedImageView.visibility = View.VISIBLE
-        captureButton.text = if (isSidePhotoMode) "Retake Side" else "Retake"
-        captureButton.setBackgroundResource(R.drawable.button_primary)
+        captureButton.text = if (isSidePhotoMode) "Retake Side" else ""
+        captureButton.setBackgroundResource(R.drawable.bg_capture_button_ring)
         captureButton.isEnabled = true
         captureButton.alpha = 1f
         captureButton.clearAnimation()
@@ -212,8 +212,8 @@ class ScanUiStateManager(
     fun switchToCameraMode() {
         capturedImageView.visibility = View.GONE
         cameraPreview.visibility = View.VISIBLE
-        captureButton.text = "Capture"
-        captureButton.setBackgroundResource(R.drawable.button_primary)
+        captureButton.text = ""
+        captureButton.setBackgroundResource(R.drawable.bg_capture_button_ring)
 
         cardSidePhotoPrompt.visibility = View.GONE
         layoutStepIndicator.visibility = View.GONE

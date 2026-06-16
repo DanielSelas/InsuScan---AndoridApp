@@ -14,6 +14,7 @@ import com.example.insuscan.utils.ReferenceObjectHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import com.example.insuscan.analysis.detection.PlateDetector
 import com.example.insuscan.ar.ArCoreManager
 import com.example.insuscan.ar.model.ArMeasurement
 import com.google.gson.Gson
@@ -49,6 +50,7 @@ class ScanPipelineManager(private val context: Context) {
 
     var arCoreManager: ArCoreManager? = null
 
+    private val plateDetector = PlateDetector()
     private val scanRepository: ScanRepository = ScanRepositoryImpl()
     private var sidePhotoOffered = false
 
@@ -132,18 +134,26 @@ class ScanPipelineManager(private val context: Context) {
         }
     }
 
-    private fun collectArcoreData(): String? {
+    private fun collectArcoreData(bitmap: Bitmap): String? {
         val manager = arCoreManager ?: return null
         if (!manager.isReady) return null
 
+        val plate = plateDetector.detectPlate(bitmap)
+        val bounds = plate.bounds
+        if (!plate.isFound || bounds == null) {
+            Log.w(TAG, "Plate not detected for ARCore measurement, skipping")
+            return null
+        }
+
         val measurement = manager.measurePlate(
-            plateBoundsPixels = android.graphics.Rect(0, 0, 1000, 1000),
-            imageWidth = 1000,
-            imageHeight = 1000
+            plateBoundsPixels = bounds,
+            imageWidth = bitmap.width,
+            imageHeight = bitmap.height
         ) ?: return null
 
         val data = mapOf(
             "plateDepthM" to (measurement.depthCm / 100f),
+            "plateDiameterCm" to measurement.plateDiameterCm,
             "arConfidence" to measurement.confidence,
             "itemDepthsM" to emptyMap<String, Float>()
         )
@@ -176,8 +186,8 @@ class ScanPipelineManager(private val context: Context) {
         return PipelineResult.Success(meal, warning)
     }
 
-    fun snapshotArcoreData() {
-        collectedArcoreDataJson = collectArcoreData()
+    fun snapshotArcoreData(bitmap: Bitmap) {
+        collectedArcoreDataJson = collectArcoreData(bitmap)
         Log.d(TAG, "arcoreData snapshot: ${if (collectedArcoreDataJson != null) "present" else "null"}")
     }
 }
