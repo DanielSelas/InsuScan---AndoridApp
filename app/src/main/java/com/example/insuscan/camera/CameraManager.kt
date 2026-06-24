@@ -50,10 +50,13 @@ class CameraManager(private val context: Context) {
     // Store last result for UI actions
     var lastQualityResult: ImageQualityResult? = null
 
+    var luxProvider: (() -> Float)? = null
+
     private val liveFrameAnalyzer = LiveFrameAnalyzer(
         context = context,
         plateDetector = plateDetector,
-        referenceObjectDetector = referenceObjectDetector
+        referenceObjectDetector = referenceObjectDetector,
+        luxProvider = { luxProvider?.invoke() ?: -1f }
     ) { result ->
         lastQualityResult = result
         onImageQualityUpdate?.invoke(result)

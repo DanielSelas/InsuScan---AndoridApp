@@ -13,6 +13,7 @@ import com.example.insuscan.scan.ReferenceChipsController
 import com.example.insuscan.scan.ScanPipelineManager
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ReferenceObjectHelper
+import com.example.insuscan.camera.sensor.LightSensorHelper
 
 class ScanHardwareController(
     private val fragment: Fragment,
@@ -28,6 +29,10 @@ class ScanHardwareController(
     lateinit var cameraManager: CameraManager
     var arCoreManager: ArCoreManager? = null
     lateinit var orientationHelper: OrientationHelper
+    lateinit var lightSensorHelper: LightSensorHelper
+
+    val currentLux: Float
+        get() = if (::lightSensorHelper.isInitialized) lightSensorHelper.currentLux else -1f
 
     lateinit var pipelineManager: ScanPipelineManager
     lateinit var refChipsController: ReferenceChipsController
@@ -76,6 +81,12 @@ class ScanHardwareController(
         orientationHelper.onOrientationChanged = { _, _, isLevel, isSideAngle ->
             onOrientationChanged(isLevel, isSideAngle)
         }
+
+        // 6. Light Sensor
+        lightSensorHelper = LightSensorHelper(context)
+        Log.d(TAG, "LightSensor available: ${lightSensorHelper.isAvailable}")
+        cameraManager.luxProvider = { lightSensorHelper.currentLux }
+
     }
 
     fun startCamera(lifecycleOwner: LifecycleOwner, onReady: () -> Unit = {}, onError: (String) -> Unit = {}) {
@@ -94,6 +105,7 @@ class ScanHardwareController(
             initializeAll()
             if (fragment.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
                 if (::orientationHelper.isInitialized) orientationHelper.start()
+                if (::lightSensorHelper.isInitialized) lightSensorHelper.start()
             }
         }
         startCamera(lifecycleOwner, onReady, onError)
@@ -101,12 +113,14 @@ class ScanHardwareController(
 
     fun onResume() {
         if (::orientationHelper.isInitialized) orientationHelper.start()
+        if (::lightSensorHelper.isInitialized) lightSensorHelper.start()
         uiState.hiddenArSurfaceView.onResume()
         arCoreManager?.resume()
     }
 
     fun onPause() {
         if (::orientationHelper.isInitialized) orientationHelper.stop()
+        if (::lightSensorHelper.isInitialized) lightSensorHelper.stop()
         arCoreManager?.pause()
         uiState.hiddenArSurfaceView.onPause()
     }

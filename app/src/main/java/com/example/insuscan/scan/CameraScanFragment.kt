@@ -160,6 +160,11 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
     private fun initializeListeners() {
         flowController.isSidePhotoMode = false
         uiState.captureButton.setOnClickListener {
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                return@setOnClickListener
+            }
+
             if (flowController.isShowingCapturedImage) {
                 if (flowController.isSidePhotoMode) dialogHelper.showRetakeOptionsDialog() else flowController.switchToCameraMode()
                 return@setOnClickListener
@@ -178,6 +183,30 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
 
             flowController.onCaptureClicked()
         }
+
+        uiState.btnFlash.setOnClickListener {
+            isFlashOn = !isFlashOn
+            hardwareController.setTorchEnabled(isFlashOn)
+            uiState.btnFlash.imageTintList = ColorStateList.valueOf(
+                ContextCompat.getColor(requireContext(),
+                    if (isFlashOn) R.color.status_warning else R.color.white)
+            )
+        }
+
+        uiState.btnManualEntry.setOnClickListener {
+            requireParentFragment().findNavController()
+                .navigate(R.id.action_scanFragment_to_manualEntryFragment)
+        }
+
+        view?.findViewById<android.widget.ImageButton>(R.id.btn_scan_close)?.setOnClickListener {
+            findNavController().navigate(R.id.homeFragment)
+        }
+
+        uiState.galleryButton.setOnClickListener {
+            hardwareController.resetForGallery()
+            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+        }
+
 
         uiState.btnFlash.setOnClickListener {
             isFlashOn = !isFlashOn

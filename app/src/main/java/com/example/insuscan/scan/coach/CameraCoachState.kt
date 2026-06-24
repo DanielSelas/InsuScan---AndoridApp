@@ -26,7 +26,9 @@ sealed class CameraCoachState(
     class ForceCapture : CameraCoachState(
         3, 3, "Quality is OK - tap to capture ⚠️", CoachSeverity.ACCEPTABLE, true
     )
-
+    class CaptureWithWarning(message: String) : CameraCoachState(
+        3, 3, message, CoachSeverity.ACCEPTABLE, true
+    )
     class Ready : CameraCoachState(
         3, 3, "Perfect! Tap to capture ✅", CoachSeverity.GOOD, true
     )

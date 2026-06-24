@@ -25,6 +25,7 @@ import com.example.insuscan.utils.ToastHelper
 import kotlinx.coroutines.launch
 import java.io.File
 import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
+import com.example.insuscan.camera.model.QualityLevel
 
 class ScanFlowController(
     private val fragment: Fragment,
@@ -129,16 +130,27 @@ class ScanFlowController(
                 }
 
                 Log.d(TAG, "Image captured, running validation...")
-                val validationResult = ImageValidator.validateCapturedImage(file)
+                val capturedLux = hardware.currentLux
+                val validationResult = ImageValidator.validateCapturedImage(file, capturedLux)
                 when (validationResult) {
-                    is ValidationResult.Valid -> {
-                        Log.d(TAG, "Image passed validation, proceeding to analysis")
-                        analyzePortionAndContinue(file)
-                    }
-                    is ValidationResult.Invalid -> {
-                        Log.w(TAG, "Image failed validation: ${validationResult.getFormattedMessage()}")
-                        uiState.showLoading(false)
-                        ToastHelper.showLong(context, "Image quality issues:\n${validationResult.getFormattedMessage()}")
+                    is ValidationResult.Evaluated -> {
+                        when (validationResult.report.overall) {
+                            QualityLevel.FAILED -> {
+                                Log.w(TAG, "Image failed validation: ${validationResult.report.message}")
+                                uiState.showLoading(false)
+                                ToastHelper.showLong(context, "Image quality issue:\n${validationResult.report.message}\nPlease retake.")
+                                switchToCameraMode()
+                            }
+                            QualityLevel.BORDERLINE -> {
+                                Log.w(TAG, "Image borderline quality: ${validationResult.report.message}")
+                                ToastHelper.showLong(context, "Heads up: ${validationResult.report.message}")
+                                analyzePortionAndContinue(file)
+                            }
+                            QualityLevel.OK -> {
+                                Log.d(TAG, "Image passed validation, proceeding to analysis")
+                                analyzePortionAndContinue(file)
+                            }
+                        }
                     }
                     is ValidationResult.Error -> {
                         Log.e(TAG, "Validation error: ${validationResult.message}")

@@ -1,6 +1,7 @@
 package com.example.insuscan.scan.coach
 
 import com.example.insuscan.camera.model.ImageQualityResult
+import com.example.insuscan.camera.model.QualityLevel
 import com.example.insuscan.utils.ReferenceObjectHelper
 
 class CameraCoachEvaluator {
@@ -15,27 +16,28 @@ class CameraCoachEvaluator {
     ): CameraCoachState {
         if (quality == null) return CameraCoachState.FindPlate()
 
-        updateForceCapture(quality.isPlateFound)
+        val report = quality.report
+        updateForceCapture(report.isPlateFound)
 
         if (!isDeviceLevel) return CameraCoachState.LevelPhone()
 
-        if (!quality.isPlateFound) return CameraCoachState.FindPlate()
+        if (!report.isPlateFound) return CameraCoachState.FindPlate()
 
         val refExpected = isRefExpected(selectedRefType)
-        if (refExpected && !quality.isReferenceObjectFound) {
-            val refName = getRefDisplayName(selectedRefType)
-            return CameraCoachState.PlaceRefObject(refName)
+        val reference = report.referenceObject
+        if (refExpected && reference != null && reference.level == QualityLevel.FAILED) {
+            return CameraCoachState.PlaceRefObject(getRefDisplayName(selectedRefType))
         }
 
-        if (!quality.isValid) {
+        val failed = report.checks.firstOrNull { it.level == QualityLevel.FAILED }
+        if (failed != null) {
             if (isForceCaptureAllowed) return CameraCoachState.ForceCapture()
-            val issue = when {
-                !quality.isBrightnessOk && quality.brightness < 50f -> "Too dark — add more light 🌑"
-                !quality.isBrightnessOk && quality.brightness > 200f -> "Too bright — reduce light ☀️"
-                !quality.isSharpnessOk -> "Hold steady — image is blurry 📷"
-                else -> "Improving quality..."
-            }
-            return CameraCoachState.ImproveQuality(issue)
+            return CameraCoachState.ImproveQuality(failed.message)
+        }
+
+        val borderline = report.checks.firstOrNull { it.level == QualityLevel.BORDERLINE }
+        if (borderline != null) {
+            return CameraCoachState.CaptureWithWarning(borderline.message)
         }
 
         return CameraCoachState.Ready()
@@ -48,6 +50,7 @@ class CameraCoachEvaluator {
 
     fun evaluateSidePhoto(isSideAngle: Boolean): CameraCoachState =
         if (isSideAngle) CameraCoachState.SidePhotoReady() else CameraCoachState.SidePhotoNeedTilt()
+
     private fun updateForceCapture(isPlateFound: Boolean) {
         if (isPlateFound) {
             if (plateInFrameStartTime == 0L) {
@@ -74,6 +77,4 @@ class CameraCoachEvaluator {
             else -> "reference object"
         }
     }
-
-
 }
