@@ -17,6 +17,47 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Low-confidence disclaimer (shown only when arriving from a low-confidence scan) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_low_confidence_disclaimer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:layout_marginHorizontal="@dimen/spacing_medium"
+        app:cardCornerRadius="@dimen/corner_radius_card"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#FFF8E1"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/top_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/padding_card"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️"
+                android:textSize="20sp"
+                android:layout_marginEnd="@dimen/spacing_small" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/manual_low_confidence_disclaimer"
+                android:textSize="@dimen/text_caption"
+                android:textColor="#5D4037"
+                android:lineSpacingExtra="2dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <!-- Search card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_search"
@@ -27,7 +68,7 @@
         app:cardCornerRadius="@dimen/corner_radius_card"
         app:cardElevation="@dimen/elevation_card"
         app:cardBackgroundColor="@color/surface"
-        app:layout_constraintTop_toBottomOf="@id/top_bar"
+        app:layout_constraintTop_toBottomOf="@id/card_low_confidence_disclaimer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -143,7 +184,6 @@
     </androidx.cardview.widget.CardView>
 
     <!-- Food items header -->
-    <!-- Food items header -->
     <TextView
         android:id="@+id/tv_items_header"
         android:layout_width="wrap_content"
@@ -190,7 +230,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Total carbs card -->
     <!-- Total carbs card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_total"
@@ -262,7 +301,6 @@
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <!-- Bottom buttons -->
     <!-- Bottom buttons -->
     <LinearLayout
         android:id="@+id/layout_buttons"

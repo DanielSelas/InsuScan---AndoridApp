@@ -40,18 +40,30 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     private lateinit var foodDialogHelper: FoodDialogHelper
     private val mealPersistenceHelper = MealPersistenceHelper()
 
+    private var isLowConfidenceScan = false
+
     private val editableItems = mutableListOf<EditableFoodItem>()
     private val ctx get() = requireContext()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        isLowConfidenceScan = arguments?.getBoolean(
+            com.example.insuscan.scan.ScanFragment.ARG_LOW_CONFIDENCE_SCAN, false
+        ) ?: false
+
         TopBarHelper.setupTopBar(view, "Edit Meal", onBack = { findNavController().popBackStack() })
         findViews(view)
+        setupDisclaimer(view)
         setupAdapters()
         setupHelpers(view)
         setupListeners()
         loadExistingMeal()
+    }
+
+    private fun setupDisclaimer(view: View) {
+        val disclaimer = view.findViewById<View>(R.id.card_low_confidence_disclaimer)
+        disclaimer?.visibility = if (isLowConfidenceScan) View.VISIBLE else View.GONE
     }
 
     private fun findViews(view: View) {
@@ -199,7 +211,12 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
         val updatedMeal = mealPersistenceHelper.buildUpdatedMeal(editableItems, totalCarbs)
         MealSessionManager.setCurrentMeal(updatedMeal)
         ToastHelper.showShort(ctx, "Meal updated: ${totalCarbs.toInt()}g carbs")
-        findNavController().popBackStack()
+
+        if (isLowConfidenceScan) {
+            findNavController().navigate(R.id.summaryFragment)
+        } else {
+            findNavController().popBackStack()
+        }
     }
 
     private fun updateTotalCarbs() {

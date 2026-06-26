@@ -203,7 +203,7 @@
     <string name="error_food_detection">Could not detect food. Try again.</string>
     <string name="error_no_syringe">Syringe not detected. Please include in photo.</string>
     <string name="error_invalid_input">Invalid input. Please check and try again.</string>
-
+    <string name="manual_low_confidence_disclaimer">The system has low confidence in identifying these items. These are the items it detected, please review, edit, and add as needed. This is a recommendation only.</string>
     <!-- ==================== Success Messages ==================== -->
     <string name="success_meal_saved">Meal saved successfully</string>
     <string name="success_profile_updated">Profile updated</string>

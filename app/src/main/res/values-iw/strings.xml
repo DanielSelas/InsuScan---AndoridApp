@@ -231,6 +231,7 @@
     <string name="warning_low_glucose">רמת הגלוקוז נמוכה</string>
     <string name="warning_high_dose">מינון אינסולין גבוה - אנא ודא</string>
     <string name="warning_consult_doctor">תמיד התייעץ עם הרופא שלך</string>
+    <string name="manual_low_confidence_disclaimer">רמת הביטחון של המערכת בזיהוי הפריטים נמוכה. אלו הפריטים שזוהו — אנא בדוק, ערוך והוסף לפי הצורך. הנתונים הם בגדר המלצה בלבד.</string>
 
     <!-- ==================== Accessibility ==================== -->
     <string name="content_desc_profile_image">תמונת פרופיל</string>

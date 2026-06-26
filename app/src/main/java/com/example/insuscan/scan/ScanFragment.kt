@@ -48,13 +48,25 @@ class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
         val glucoseInput = childFragmentManager.findFragmentById(R.id.camera_scan_container)
             ?.view?.findViewById<android.widget.EditText>(R.id.et_glucose_level)
         val glucoseValue = glucoseInput?.text?.toString()?.toIntOrNull()
-//        val glucoseUnits = com.example.insuscan.profile.UserProfileManager.getGlucoseUnits(requireContext())
 
         val mealWithGlucose = meal.copy(
             glucoseLevel = glucoseValue,
-//            glucoseUnits = glucoseUnits
         )
         MealSessionManager.setCurrentMeal(mealWithGlucose)
-        findNavController().navigate(R.id.summaryFragment)
+
+        val confidence = meal.analysisConfidence
+        if (confidence != null && confidence < LOW_CONFIDENCE_THRESHOLD) {
+            val args = Bundle().apply { putBoolean(ARG_LOW_CONFIDENCE_SCAN, true) }
+            findNavController().navigate(R.id.manualEntryFragment, args)
+        } else {
+            findNavController().navigate(R.id.summaryFragment)
+        }
     }
+
+    companion object {
+        private const val LOW_CONFIDENCE_THRESHOLD = 0.7f
+        const val ARG_LOW_CONFIDENCE_SCAN = "isLowConfidenceScan"
+    }
+
+
 }
