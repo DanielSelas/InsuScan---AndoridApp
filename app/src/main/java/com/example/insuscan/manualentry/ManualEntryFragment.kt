@@ -212,11 +212,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
         MealSessionManager.setCurrentMeal(updatedMeal)
         ToastHelper.showShort(ctx, "Meal updated: ${totalCarbs.toInt()}g carbs")
 
-        if (isLowConfidenceScan) {
-            findNavController().navigate(R.id.summaryFragment)
-        } else {
-            findNavController().popBackStack()
-        }
+        findNavController().navigate(R.id.summaryFragment)
     }
 
     private fun updateTotalCarbs() {

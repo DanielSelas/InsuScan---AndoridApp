@@ -55,6 +55,11 @@ class ScanFlowController(
     private val context get() = fragment.requireContext()
 
     init {
+        uiState.glucoseInput.setOnEditorActionListener { _, _, _ ->
+            uiState.btnSubmitScan.performClick()
+            true
+        }
+
         uiState.btnSubmitScan.setOnClickListener {
             val text = uiState.glucoseInput.text.toString().trim()
             if (text.isEmpty()) {

@@ -193,6 +193,10 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
             )
         }
 
+        view?.findViewById<android.widget.Button>(R.id.btn_side_card_rescan)?.setOnClickListener {
+            flowController.switchToCameraMode()
+        }
+
         uiState.btnManualEntry.setOnClickListener {
             requireParentFragment().findNavController()
                 .navigate(R.id.action_scanFragment_to_manualEntryFragment)

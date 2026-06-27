@@ -135,4 +135,9 @@ interface InsuScanApi {
     suspend fun parseChatText(
         @Body request: ChatParseRequestDto
     ): Response<ChatParseResponseDto>
+
+    @POST("insulin/calculate")
+    suspend fun calculateInsulin(
+        @Body request: InsulinCalcRequestDto
+    ): Response<InsulinCalcResponseDto>
 }

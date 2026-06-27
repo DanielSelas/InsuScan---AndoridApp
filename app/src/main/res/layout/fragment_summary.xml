@@ -528,7 +528,9 @@
                                 android:textColor="@color/text_primary"
                                 android:gravity="center"
                                 android:paddingTop="10dp"
-                                android:paddingBottom="10dp" />
+                                android:paddingBottom="10dp"
+                                android:imeOptions="actionDone"
+                                android:maxLines="1"/>
 
                         </com.google.android.material.textfield.TextInputLayout>
 

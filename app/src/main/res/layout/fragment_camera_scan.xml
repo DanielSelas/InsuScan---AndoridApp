@@ -362,18 +362,46 @@
                 android:text="I'm Ready — Take Side Photo"
                 android:textColor="@color/text_on_primary"
                 android:background="@drawable/button_primary"
-                android:layout_marginBottom="@dimen/spacing_small" />
+                android:layout_marginBottom="18dp" />
 
-            <TextView
+            <Button
                 android:id="@+id/tv_side_card_skip"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="44dp"
+                android:layout_gravity="center_horizontal"
                 android:text="Skip — continue with lower accuracy"
                 android:textSize="13sp"
                 android:textColor="@color/text_secondary"
-                android:textAlignment="center"
-                android:paddingTop="8dp"
-                android:paddingBottom="4dp" />
+                android:paddingHorizontal="24dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:layout_marginBottom="12dp" />
+
+            <View
+                android:layout_width="64dp"
+                android:layout_height="1dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@color/text_secondary"
+                android:alpha="0.16"
+                android:layout_marginBottom="12dp" />
+
+            <Button
+                android:id="@+id/btn_side_card_rescan"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_gravity="center_horizontal"
+                android:text="Rescan"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:background="@android:color/transparent"
+                android:paddingHorizontal="12dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:stateListAnimator="@null"
+                android:layout_marginBottom="4dp" />
 
         </LinearLayout>
 
@@ -613,7 +641,9 @@
                 android:textSize="15sp"
                 android:textAlignment="center"
                 android:background="@drawable/edit_text_background"
-                android:layout_marginEnd="12dp" />
+                android:layout_marginEnd="12dp"
+                android:imeOptions="actionDone"
+                android:maxLines="1"/>
 
             <Button
                 android:id="@+id/btn_submit_scan"
