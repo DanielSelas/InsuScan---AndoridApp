@@ -35,6 +35,13 @@ class SummaryDoseDisplayHandler(
         return result
     }
 
+    fun displayServerResult(carbDose: Float, correctionDose: Float, total: Float): DoseResult {
+        val rounded = SummaryCalculationHelper.roundForPen(context, total)
+        val result = DoseResult(carbDose, correctionDose, carbDose + correctionDose, total, rounded)
+        displayDoseResults(result)
+        return result
+    }
+
     private fun displayDoseResults(result: DoseResult) {
         ui.carbDoseText.text = String.format("%.1f u", result.carbDose)
         val planName = MealSessionManager.activePlanName ?: "Default"

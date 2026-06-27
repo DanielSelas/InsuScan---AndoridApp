@@ -62,4 +62,13 @@ object SummaryCalculationHelper {
 
         return DoseResult(carbDose, correctionDose, baseDose, finalDose, roundedDose)
     }
+
+    fun roundForPen(context: Context, dose: Float): Float {
+        val step = UserProfileManager.getDoseRounding(context) ?: 0.5f
+        return if (step > 0) {
+            (Math.round(dose / step) * step * 100).toInt() / 100f
+        } else {
+            (Math.round(dose * 100) / 100f)
+        }
+    }
 }

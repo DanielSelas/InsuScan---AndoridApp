@@ -120,14 +120,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private fun recalculateDose() {
         persistenceHandler.highDoseAcknowledged = false
-        Log.d("CALC_COMPARE", "recalculateDose called")
         val localResult = doseDisplayHandler.calculateAndDisplayDose()
         lastCalculatedResult = localResult
-        compareWithServer(localResult)
+        fetchServerDose(localResult)
     }
 
-    private fun compareWithServer(localResult: DoseResult?) {
-        Log.d("CALC_COMPARE", "compareWithServer called")
+    private fun fetchServerDose(localResult: DoseResult?) {
         if (localResult == null) return
         val meal = MealSessionManager.currentMeal ?: return
         val email = UserProfileManager.getUserEmail(ctx) ?: return
@@ -142,12 +140,14 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
                 planIsf = MealSessionManager.activePlanIsf,
                 planTargetGlucose = MealSessionManager.activePlanTargetGlucose
             ).onSuccess { server ->
-                Log.d(
-                    "CALC_COMPARE",
-                    "LOCAL carb=${localResult.carbDose} corr=${localResult.correctionDose} final=${localResult.finalDose} | SERVER carb=${server.carbDose} corr=${server.correctionDose} total=${server.totalRecommendedDose} | plan=${MealSessionManager.activePlanName ?: "Default"}"
+                val total = server.totalRecommendedDose ?: return@onSuccess
+                lastCalculatedResult = doseDisplayHandler.displayServerResult(
+                    carbDose = server.carbDose ?: 0f,
+                    correctionDose = server.correctionDose ?: 0f,
+                    total = total
                 )
             }.onFailure { e ->
-                Log.e("CALC_COMPARE", "Server call failed: ${e.message}")
+                android.util.Log.d("CALC_COMPARE", "Server call failed: ${e.message}")
             }
         }
     }
