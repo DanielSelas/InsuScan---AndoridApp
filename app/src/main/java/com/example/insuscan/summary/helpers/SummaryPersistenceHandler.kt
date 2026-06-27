@@ -97,10 +97,7 @@ class SummaryPersistenceHandler(
     private fun buildUpdatedMeal(meal: Meal, result: DoseResult?): Meal {
         val glucoseValue = ui.glucoseEditText.text.toString().toIntOrNull()
 
-        val finalResult = result ?: SummaryCalculationHelper.performCalculation(
-            context, meal.carbs, glucoseValue,
-            MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context) ?: 0f
-        )
+        val finalResult = result ?: DoseResult(0f, 0f, 0f, 0f, 0f)
 
         return meal.copy(
             insulinDose = finalResult.roundedDose,

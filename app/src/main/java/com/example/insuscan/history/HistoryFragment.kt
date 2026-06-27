@@ -136,6 +136,12 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         Log.d("HistoryFilter", "Filter cleared")
     }
 
+    override fun onResume() {
+        super.onResume()
+        adapter.refresh()
+        viewModel.refreshLatestMeal()
+    }
+
     private fun observeData() {
         val tvAvgCarbs = view?.findViewById<TextView>(R.id.tv_avg_carbs)
         val tvAvgDose = view?.findViewById<TextView>(R.id.tv_avg_dose)
@@ -144,6 +150,16 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.historyFlow.collectLatest { pagingData ->
                 adapter.submitData(pagingData)
+            }
+        }
+
+        // Refresh history when a new meal is saved
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                AppDataStore.mealAddedSignal.collect {
+                    adapter.refresh()
+                    viewModel.refreshLatestMeal()
+                }
             }
         }
 

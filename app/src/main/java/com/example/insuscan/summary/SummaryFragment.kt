@@ -120,16 +120,18 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private fun recalculateDose() {
         persistenceHandler.highDoseAcknowledged = false
-        val localResult = doseDisplayHandler.calculateAndDisplayDose()
-        lastCalculatedResult = localResult
-        fetchServerDose(localResult)
+        val ready = doseDisplayHandler.calculateAndDisplayDose()
+        if (ready) fetchServerDose()
     }
 
-    private fun fetchServerDose(localResult: DoseResult?) {
-        if (localResult == null) return
+    private fun fetchServerDose() {
         val meal = MealSessionManager.currentMeal ?: return
         val email = UserProfileManager.getUserEmail(ctx) ?: return
         val glucose = ui.glucoseEditText.text.toString().toIntOrNull()
+
+        val wasEnabled = ui.logButton.isEnabled
+        ui.recommendedDoseText.alpha = 0.4f
+        ui.setLogButtonEnabled(false)
 
         viewLifecycleOwner.lifecycleScope.launch {
             insulinCalcRepository.calculate(
@@ -140,18 +142,24 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
                 planIsf = MealSessionManager.activePlanIsf,
                 planTargetGlucose = MealSessionManager.activePlanTargetGlucose
             ).onSuccess { server ->
-                val total = server.totalRecommendedDose ?: return@onSuccess
-                lastCalculatedResult = doseDisplayHandler.displayServerResult(
-                    carbDose = server.carbDose ?: 0f,
-                    correctionDose = server.correctionDose ?: 0f,
-                    total = total
-                )
+                val total = server.totalRecommendedDose
+                if (total != null) {
+                    lastCalculatedResult = doseDisplayHandler.displayServerResult(
+                        carbDose = server.carbDose ?: 0f,
+                        correctionDose = server.correctionDose ?: 0f,
+                        total = total
+                    )
+                }
+                ui.recommendedDoseText.alpha = 1f
+                val dose = lastCalculatedResult?.roundedDose ?: 0f
+                ui.setLogButtonEnabled(wasEnabled && dose <= SummaryCalculationHelper.DOSE_HARD_CAP)
             }.onFailure { e ->
+                ui.recommendedDoseText.alpha = 1f
+                ui.setLogButtonEnabled(wasEnabled)
                 android.util.Log.d("CALC_COMPARE", "Server call failed: ${e.message}")
             }
         }
     }
-
     private fun checkAndRefreshProfileStatus() {
         val meal = MealSessionManager.currentMeal ?: return
         if (meal.profileComplete) return

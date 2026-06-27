@@ -52,6 +52,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onResume()
         renderGreeting()
         profileImageHelper.loadImage()
+        AppDataStore.refreshMeals()
     }
 
     private fun findViews(view: View) {

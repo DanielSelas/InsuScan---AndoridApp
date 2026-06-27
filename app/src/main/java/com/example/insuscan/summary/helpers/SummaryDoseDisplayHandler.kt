@@ -15,24 +15,36 @@ class SummaryDoseDisplayHandler(
     private val onProfileIncompleteRequested: () -> Unit,
     private val onPlanChanged: () -> Unit = {}
 ) {
-    fun calculateAndDisplayDose(): DoseResult? {
-        val meal = MealSessionManager.currentMeal ?: return null
+
+//    fun calculateAndDisplayDose(): DoseResult? {
+//        val meal = MealSessionManager.currentMeal ?: return null
+//        val gramsPerUnit = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context)
+//
+//        if (!meal.profileComplete || gramsPerUnit == null) {
+//            showProfileIncompleteState()
+//            return null
+//        }
+//
+//        val result = SummaryCalculationHelper.performCalculation(
+//            context = context,
+//            carbs = meal.carbs,
+//            glucose = ui.glucoseEditText.text.toString().toIntOrNull(),
+//            gramsPerUnit = gramsPerUnit
+//        )
+//
+//        displayDoseResults(result)
+//        return result
+//    }
+
+    fun calculateAndDisplayDose(): Boolean {
+        val meal = MealSessionManager.currentMeal ?: return false
         val gramsPerUnit = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context)
 
         if (!meal.profileComplete || gramsPerUnit == null) {
             showProfileIncompleteState()
-            return null
+            return false
         }
-
-        val result = SummaryCalculationHelper.performCalculation(
-            context = context,
-            carbs = meal.carbs,
-            glucose = ui.glucoseEditText.text.toString().toIntOrNull(),
-            gramsPerUnit = gramsPerUnit
-        )
-
-        displayDoseResults(result)
-        return result
+        return true
     }
 
     fun displayServerResult(carbDose: Float, correctionDose: Float, total: Float): DoseResult {
