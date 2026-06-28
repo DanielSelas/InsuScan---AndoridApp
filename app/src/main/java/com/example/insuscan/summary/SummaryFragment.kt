@@ -62,13 +62,12 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         initializeTopBar(view)
         initializeListeners()
+        setupUseLastGlucose()
+
 
         ui.updateEmptyStateVisibility()
         if (MealSessionManager.currentMeal != null) {
-            val scannedGlucose = MealSessionManager.currentMeal?.glucoseLevel
-            if (scannedGlucose != null && ui.glucoseEditText.text.isNullOrEmpty()) {
-                ui.glucoseEditText.setText(scannedGlucose.toString())
-            }
+            restoreGlucoseField()
             recalculateDose()
         }
     }
@@ -104,6 +103,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
+                MealSessionManager.setEnteredGlucose(s?.toString()?.toIntOrNull())
                 ui.updateGlucoseStatus()
                 recalculateDose()
             }
@@ -118,10 +118,36 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         ui.setupScrollListener()
     }
 
+
+    private fun setupUseLastGlucose() {
+        ui.useLastGlucoseButton.isEnabled = false
+        val email = UserProfileManager.getUserEmail(ctx) ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            com.example.insuscan.network.repository.MealRepositoryImpl()
+                .getLatestMeal(email)
+                .onSuccess { last ->
+                    val glucose = last?.currentGlucose ?: last?.insulinCalculation?.currentGlucose
+                    if (glucose != null) {
+                        ui.useLastGlucoseButton.isEnabled = true
+                        ui.useLastGlucoseButton.setOnClickListener {
+                            ui.glucoseEditText.setText(glucose.toString())
+                        }
+                    }
+                }
+        }
+    }
     private fun recalculateDose() {
         persistenceHandler.highDoseAcknowledged = false
         val ready = doseDisplayHandler.calculateAndDisplayDose()
         if (ready) fetchServerDose()
+    }
+
+    private fun restoreGlucoseField() {
+        if (!ui.glucoseEditText.text.isNullOrEmpty()) return
+        val glucose = MealSessionManager.enteredGlucose ?: MealSessionManager.currentMeal?.glucoseLevel
+        if (glucose != null) {
+            ui.glucoseEditText.setText(glucose.toString())
+        }
     }
 
     private fun fetchServerDose() {
@@ -195,10 +221,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         imageHandler.displayMealImage()
         }
 
-        val scannedGlucose = MealSessionManager.currentMeal?.glucoseLevel
-        if (scannedGlucose != null && ui.glucoseEditText.text.isNullOrEmpty()) {
-            ui.glucoseEditText.setText(scannedGlucose.toString())
-        }
+        restoreGlucoseField()
 
         recalculateDose()
     }

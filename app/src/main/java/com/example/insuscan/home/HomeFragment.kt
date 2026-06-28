@@ -52,7 +52,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onResume()
         renderGreeting()
         profileImageHelper.loadImage()
-        AppDataStore.refreshMeals()
+        AppDataStore.refreshAll()
     }
 
     private fun findViews(view: View) {
@@ -84,11 +84,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun setupNavigationListeners(view: View) {
         view.findViewById<Button>(R.id.btn_start_scan).setOnClickListener {
-            applySelectedPlan()
             (activity as? MainActivity)?.selectScanTab()
         }
         view.findViewById<Button>(R.id.btn_open_chat).setOnClickListener {
-            applySelectedPlan()
             findNavController().navigate(R.id.action_home_to_chat)
         }
         view.findViewById<TextView>(R.id.tv_manage_plans).setOnClickListener {
@@ -162,8 +160,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 val todayMeals = state.data.filter { DateUtils.isToday(it.timestamp) }
                 dailySummaryHelper.displaySummary(todayMeals)
             }
-            is DataState.Error -> dailySummaryHelper.showError(state.cause.message ?: "Failed to load data")
+            is DataState.Error -> dailySummaryHelper.showError(
+                com.example.insuscan.network.NetworkErrorPresenter.message(state.cause)
+            )
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        applySelectedPlan()
     }
 
     companion object {

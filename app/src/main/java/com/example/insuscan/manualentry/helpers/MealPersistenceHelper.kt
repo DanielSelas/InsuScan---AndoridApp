@@ -56,16 +56,14 @@ class MealPersistenceHelper {
 
         val existingMeal = MealSessionManager.currentMeal
 
-        return Meal(
+        return existingMeal?.copy(
             title = title,
             carbs = totalCarbs,
-            foodItems = foodItems,
-            portionWeightGrams = existingMeal?.portionWeightGrams,
-            plateDiameterCm = existingMeal?.plateDiameterCm,
-            plateDepthCm = existingMeal?.plateDepthCm,
-            analysisConfidence = existingMeal?.analysisConfidence,
-            referenceObjectDetected = existingMeal?.referenceObjectDetected,
-            imagePath = existingMeal?.imagePath
+            foodItems = foodItems
+        ) ?: Meal(
+            title = title,
+            carbs = totalCarbs,
+            foodItems = foodItems
         )
     }
 

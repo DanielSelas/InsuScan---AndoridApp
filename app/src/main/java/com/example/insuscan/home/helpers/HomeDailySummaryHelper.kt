@@ -54,7 +54,7 @@ class HomeDailySummaryHelper(
     }
 
     fun showError(message: String) {
-        tvMealsLogged.text = "Could not refresh"
+        tvMealsLogged.text = message
         tvTotalCarbs.text = "--"
         tvTotalInsulin.text = "--"
         tvGlucoseValue.text = "--"

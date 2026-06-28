@@ -84,14 +84,7 @@ class SummaryPersistenceHandler(
     private fun performSave(meal: Meal, lastCalculatedResult: DoseResult?) {
         val updatedMeal = buildUpdatedMeal(meal, lastCalculatedResult)
         MealSessionManager.setCurrentMeal(updatedMeal)
-
-        val mealId = updatedMeal.serverId
-        if (mealId != null) {
-            saveToServer(mealId, updatedMeal.insulinDose)
-        } else {
-            showError("Meal logged (Local Mode)")
-            onMealSavedSuccessfully()
-        }
+        saveToServer()
     }
 
     private fun buildUpdatedMeal(meal: Meal, result: DoseResult?): Meal {
@@ -112,7 +105,7 @@ class SummaryPersistenceHandler(
         )
     }
 
-    private fun saveToServer(mealId: String, dose: Float?) {
+    private fun saveToServer() {
         ui.logButton.isEnabled = false
 
         scope.launch {
@@ -136,11 +129,12 @@ class SummaryPersistenceHandler(
                     onMealSavedSuccessfully()
                 } else {
                     val errorMsg = when (val e = result.exceptionOrNull()) {
-                        is ApiException.NoConnection -> "No internet connection. Meal saved locally."
-                        is ApiException.Timeout -> "Request timed out. Please try again."
-                        is ApiException.ServerError -> "Server error (${e.code}). Please try again later."
+                        is ApiException.NoConnection -> "No internet connection. The meal was NOT saved. Please try again."
+                        is ApiException.Timeout -> "Request timed out. The meal was NOT saved. Please try again."
+                        is ApiException.ServerError -> "Server error (${e.code}). The meal was NOT saved."
+                        is ApiException.ClientError -> "Save rejected (${e.code}). The meal was NOT saved."
                         is ApiException.Unauthorized -> "Session expired. Please log in again."
-                        else -> "Failed to save. Please try again."
+                        else -> "Failed to save. The meal was NOT saved. Please try again."
                     }
                     showError(errorMsg)
                     ui.logButton.isEnabled = true

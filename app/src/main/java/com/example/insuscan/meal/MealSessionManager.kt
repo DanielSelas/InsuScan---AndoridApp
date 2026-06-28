@@ -17,6 +17,13 @@ object MealSessionManager {
     var activePlanTargetGlucose: Int? = null
         private set
 
+    var enteredGlucose: Int? = null
+        private set
+
+    fun setEnteredGlucose(value: Int?) {
+        enteredGlucose = value
+    }
+
     var availablePlans: List<InsulinPlan> = emptyList()
 
     fun setActivePlan(name: String?, icr: Float?, isf: Float?, targetGlucose: Int?) {
@@ -48,6 +55,7 @@ object MealSessionManager {
 
     fun clearSession() {
         currentMeal = null
+        enteredGlucose = null
         clearActivePlan()
     }
 }

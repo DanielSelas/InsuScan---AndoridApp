@@ -71,18 +71,19 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
 
     private fun setupListeners() {
         adapter.addLoadStateListener { loadState ->
-            val isListEmpty = loadState.refresh is LoadState.NotLoading && adapter.itemCount == 0
-            val isLoading = loadState.refresh is LoadState.Loading
+            val refresh = loadState.refresh
+            val isLoading = refresh is LoadState.Loading
+            val isError = refresh is LoadState.Error
+            val isListEmpty = refresh is LoadState.NotLoading && adapter.itemCount == 0
 
-            emptyState.isVisible = isListEmpty && !isLoading
-            recyclerView.isVisible = !isListEmpty || isLoading
+            emptyState.isVisible = (isListEmpty || isError) && !isLoading
+            recyclerView.isVisible = !(isListEmpty || isError) || isLoading
 
-            if (isListEmpty) {
-                if (btnClearFilter.isVisible) {
-                    emptyStateText.text = "No meals found for this date."
-                } else {
-                    emptyStateText.text = "No meals yet.\nScan your first meal to get started!"
-                }
+            when {
+                isError -> emptyStateText.text =
+                    com.example.insuscan.network.NetworkErrorPresenter.message((refresh as LoadState.Error).error)
+                isListEmpty && btnClearFilter.isVisible -> emptyStateText.text = "No meals found for this date."
+                isListEmpty -> emptyStateText.text = "No meals yet.\nScan your first meal to get started!"
             }
         }
 

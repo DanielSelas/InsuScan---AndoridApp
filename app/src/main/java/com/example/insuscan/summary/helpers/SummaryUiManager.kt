@@ -20,6 +20,8 @@ class SummaryUiManager(val view: View, val context: Context) {
     val glucoseEditText: EditText = view.findViewById(R.id.et_current_glucose)
     val glucoseUnitText: TextView = view.findViewById(R.id.tv_glucose_unit)
     val glucoseStatusText: TextView = view.findViewById(R.id.tv_glucose_status)
+    val useLastGlucoseButton: Button = view.findViewById(R.id.btn_use_last_glucose)
+
     val carbDoseText: TextView = view.findViewById(R.id.tv_carb_dose)
     val activePlanText: TextView? = view.findViewById(R.id.tv_active_plan)
     val activePlanLayout: View? = view.findViewById(R.id.layout_active_plan)

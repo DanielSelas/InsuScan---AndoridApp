@@ -31,6 +31,8 @@ abstract class BaseRepository {
             Result.failure(ApiException.Timeout(e))
         } catch (e: UnknownHostException) {
             Result.failure(ApiException.NoConnection(e))
+        } catch (e: java.net.ConnectException) {
+            Result.failure(ApiException.NoConnection(e))
         } catch (e: Exception) {
             Result.failure(ApiException.Unknown(e))
         }
@@ -54,6 +56,8 @@ abstract class BaseRepository {
         } catch (e: SocketTimeoutException) {
             Result.failure(ApiException.Timeout(e))
         } catch (e: UnknownHostException) {
+            Result.failure(ApiException.NoConnection(e))
+        } catch (e: java.net.ConnectException) {
             Result.failure(ApiException.NoConnection(e))
         } catch (e: Exception) {
             Result.failure(ApiException.Unknown(e))

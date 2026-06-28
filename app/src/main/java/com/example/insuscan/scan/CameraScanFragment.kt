@@ -222,8 +222,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
         }
 
         uiState.btnManualEntry.setOnClickListener {
-            requireParentFragment().findNavController()
-                .navigate(R.id.action_scanFragment_to_manualEntryFragment)
+            showGlucoseEntryDialog()
         }
 
         view?.findViewById<android.widget.ImageButton>(R.id.btn_scan_close)?.setOnClickListener {
@@ -234,6 +233,25 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
             hardwareController.resetForGallery()
             galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
+    }
+
+    private fun showGlucoseEntryDialog() {
+        val input = android.widget.EditText(requireContext()).apply {
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            hint = "Blood glucose (mg/dL)"
+            uiState.glucoseInput.text?.toString()?.takeIf { it.isNotBlank() }?.let { setText(it) }
+        }
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Enter Glucose")
+            .setMessage("Enter your current blood glucose, then continue to manual entry.")
+            .setView(input)
+            .setPositiveButton("Continue") { _, _ ->
+                com.example.insuscan.meal.MealSessionManager.setEnteredGlucose(input.text.toString().toIntOrNull())
+                requireParentFragment().findNavController()
+                    .navigate(R.id.action_scanFragment_to_manualEntryFragment)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
 
