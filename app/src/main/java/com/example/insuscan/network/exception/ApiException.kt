@@ -11,8 +11,8 @@ sealed class ApiException(message: String, cause: Throwable? = null) : Exception
 
     class ClientError(
         val code: Int,
-        message: String = "Client error"
-    ) : ApiException("HTTP $code: $message")
+        val body: String? = null
+    ) : ApiException("HTTP $code")
 
     object Unauthorized : ApiException(
         "Session expired. Please sign in again."
@@ -26,8 +26,8 @@ sealed class ApiException(message: String, cause: Throwable? = null) : Exception
 
     class ServerError(
         val code: Int,
-        message: String = "Server error"
-    ) : ApiException("Server error ($code): $message")
+        val body: String? = null
+    ) : ApiException("Server error ($code)")
 
     // ── Empty Body ────────────────────────────────────────────────────────────
 

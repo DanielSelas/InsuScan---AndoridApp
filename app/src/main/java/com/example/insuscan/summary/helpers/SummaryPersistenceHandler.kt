@@ -19,6 +19,8 @@ sealed class SaveValidation {
     object NoMealData : SaveValidation()
     object NoFoodDetected : SaveValidation()
     object ProfileIncomplete : SaveValidation()
+
+    data class PlanInvalid(val message: String) : SaveValidation()
 }
 
 class SummaryPersistenceHandler(
@@ -34,7 +36,7 @@ class SummaryPersistenceHandler(
     fun saveMeal(lastCalculatedResult: DoseResult?) {
         val meal = MealSessionManager.currentMeal
 
-        when (validateBeforeSave(meal)) {
+        when (val validation = validateBeforeSave(meal)) {
             is SaveValidation.Valid -> {
                 val dose = lastCalculatedResult?.roundedDose ?: 0f
 
@@ -56,7 +58,9 @@ class SummaryPersistenceHandler(
             }
             is SaveValidation.NoMealData -> showError("No meal data to save")
             is SaveValidation.NoFoodDetected -> showError("No food detected. Use 'Edit' to add items manually.")
-            is SaveValidation.ProfileIncomplete -> showIncompleteProfileDialog(meal!!)
+            is SaveValidation.ProfileIncomplete -> showIncompleteProfileDialog()
+            is SaveValidation.PlanInvalid -> showPlanInvalidDialog(validation.message)
+
         }
     }
 
@@ -78,7 +82,30 @@ class SummaryPersistenceHandler(
         meal == null -> SaveValidation.NoMealData
         meal.carbs <= 0f && meal.foodItems.isNullOrEmpty() -> SaveValidation.NoFoodDetected
         !meal.profileComplete -> SaveValidation.ProfileIncomplete
-        else -> SaveValidation.Valid
+        else -> {
+            val planError = validateActivePlan()
+            if (planError != null) SaveValidation.PlanInvalid(planError) else SaveValidation.Valid
+        }
+    }
+
+    private fun validateActivePlan(): String? = PlanValidator.validate(
+        planActive = MealSessionManager.activePlanName != null &&
+                MealSessionManager.activePlanName != "Default",
+        planIcr = MealSessionManager.activePlanIcr,
+        planIsf = MealSessionManager.activePlanIsf,
+        planTarget = MealSessionManager.activePlanTargetGlucose,
+        effectiveIcr = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context),
+        effectiveIsf = MealSessionManager.activePlanIsf ?: UserProfileManager.getCorrectionFactor(context),
+        effectiveTarget = MealSessionManager.activePlanTargetGlucose ?: UserProfileManager.getTargetGlucose(context)
+    )
+
+    private fun showPlanInvalidDialog(message: String) {
+        AlertDialog.Builder(context)
+            .setTitle("Plan Incomplete")
+            .setMessage(message)
+            .setPositiveButton("Complete Profile") { _, _ -> onIncompleteProfileRequested() }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun performSave(meal: Meal, lastCalculatedResult: DoseResult?) {
@@ -149,13 +176,12 @@ class SummaryPersistenceHandler(
         }
     }
 
-    private fun showIncompleteProfileDialog(meal: Meal) {
+    private fun showIncompleteProfileDialog() {
         AlertDialog.Builder(context)
-            .setTitle("Insulin Not Calculated")
-            .setMessage("Your medical profile is incomplete, so no insulin dose was calculated.\n\nDo you want to complete your profile now, or save the meal without insulin data?")
+            .setTitle("Profile Incomplete")
+            .setMessage("Your medical profile is missing required values (ICR, ISF or target glucose), so the meal can't be saved yet.\n\nComplete your profile to continue.")
             .setPositiveButton("Complete Profile") { _, _ -> onIncompleteProfileRequested() }
-            .setNegativeButton("Save Anyway") { _, _ -> performSave(meal, null) }
-            .setNeutralButton("Cancel", null)
+            .setNegativeButton("Cancel", null)
             .show()
     }
 

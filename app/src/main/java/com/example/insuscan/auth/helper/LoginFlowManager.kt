@@ -39,6 +39,11 @@ class LoginFlowManager(
 
     fun handleLoginSuccess(email: String, displayName: String, photoUrl: String?) {
         Log.e("LoginFlow", "Login Success! PhotoURL: $photoUrl")
+        val storedEmail = UserProfileManager.getUserEmail(context)
+        if (!storedEmail.isNullOrBlank() && !storedEmail.equals(email, ignoreCase = true)) {
+            UserProfileManager.clearAllData(context)
+        }
+
         UserProfileManager.saveUserEmail(context, email)
         UserProfileManager.saveUserName(context, displayName)
         if (photoUrl != null) {

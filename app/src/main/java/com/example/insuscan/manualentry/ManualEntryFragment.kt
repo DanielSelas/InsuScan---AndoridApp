@@ -21,6 +21,7 @@ import com.example.insuscan.manualentry.helpers.SearchOutcome
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.network.RetrofitClient
 import com.example.insuscan.network.dto.ScoredFoodResultDto
+import com.example.insuscan.utils.MealInputValidator
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -144,13 +145,19 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
     private fun setupListeners() {
         btnAddFood.setOnClickListener {
             val foodName = etFoodName.text.toString().trim()
-            val weightGrams = etWeight.text.toString().toFloatOrNull() ?: 100f
-            if (foodName.isNotEmpty()) {
-                hideKeyboard()
-                foodSearchHelper.searchFood(foodName, weightGrams)
-            } else {
+            if (foodName.isEmpty()) {
                 ToastHelper.showShort(ctx, "Please enter food name")
+                return@setOnClickListener
             }
+            val weightText = etWeight.text.toString().trim()
+            val weightGrams = if (weightText.isEmpty()) 100f
+            else MealInputValidator.parsePositiveWeight(weightText) ?: 0f
+            if (weightGrams <= 0f) {
+                ToastHelper.showShort(ctx, MealInputValidator.INVALID_WEIGHT_MESSAGE)
+                return@setOnClickListener
+            }
+            hideKeyboard()
+            foodSearchHelper.searchFood(foodName, weightGrams)
         }
 
         etFoodName.setOnEditorActionListener { _, _, _ ->

@@ -102,8 +102,14 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         ui.rowIcr.setOnClickListener {
             val current = UserProfileManager.getInsulinCarbRatioRaw(ctx)?.split(":")?.lastOrNull()?.trim() ?: ""
             showEditSheet("ICR — grams per unit", current, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL, "g/u") { value ->
-                UserProfileManager.saveInsulinCarbRatio(ctx, "1:$value")
-                ui.setRowValue(ui.rowIcr, "1u : ${value}g")
+                val trimmed = value.trim()
+                val grams = trimmed.toFloatOrNull()
+                if (grams == null || grams <= 0f) {
+                    com.example.insuscan.utils.ToastHelper.showShort(ctx, "ICR must be a positive number")
+                    return@showEditSheet
+                }
+                UserProfileManager.saveInsulinCarbRatio(ctx, "1:$trimmed")
+                ui.setRowValue(ui.rowIcr, "1u : ${trimmed}g")
                 saveToServer()
             }
         }

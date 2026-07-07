@@ -142,19 +142,54 @@ class SummaryDoseDisplayHandler(
     private fun updateHighDoseWarning(dose: Float) {
         if (dose > SummaryCalculationHelper.DOSE_WARNING_THRESHOLD) {
             ui.highDoseWarningLayout.visibility = View.VISIBLE
+
             when {
                 dose > SummaryCalculationHelper.DOSE_HARD_CAP -> {
-                    ui.highDoseWarningText.text = String.format("BLOCKED: %.1f units exceeds the maximum safe dose (%d units). Please check your meal data for errors.", dose, SummaryCalculationHelper.DOSE_HARD_CAP.toInt())
-                    ui.highDoseWarningLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.status_critical))
+                    ui.highDoseWarningText.text = String.format(
+                        "BLOCKED: %.1f units exceeds the maximum safe dose (%d units). Please check your meal data for errors.",
+                        dose,
+                        SummaryCalculationHelper.DOSE_HARD_CAP.toInt()
+                    )
+
+                    ui.highDoseWarningLayout.setBackgroundColor(
+                        ContextCompat.getColor(context, R.color.error)
+                    )
+
+                    ui.highDoseWarningText.setTextColor(
+                        ContextCompat.getColor(context, R.color.white)
+                    )
+
                     ui.setLogButtonEnabled(false)
                 }
+
                 dose > SummaryCalculationHelper.DOSE_BLOCKING_THRESHOLD -> {
-                    ui.highDoseWarningText.text = String.format("Very high dose: %.1f units. You will need to confirm before saving.", dose)
-                    ui.highDoseWarningLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.status_warning))
+                    ui.highDoseWarningText.text = String.format(
+                        "Very high dose: %.1f units. You will need to confirm before saving.",
+                        dose
+                    )
+
+                    ui.highDoseWarningLayout.setBackgroundColor(
+                        ContextCompat.getColor(context, R.color.error)
+                    )
+
+                    ui.highDoseWarningText.setTextColor(
+                        ContextCompat.getColor(context, R.color.white)
+                    )
                 }
+
                 else -> {
-                    ui.highDoseWarningText.text = String.format("High dose: %.1f units. Please verify your meal data is correct.", dose)
-                    ui.highDoseWarningLayout.setBackgroundColor(ContextCompat.getColor(context, R.color.status_warning))
+                    ui.highDoseWarningText.text = String.format(
+                        "High dose: %.1f units. Please verify your meal data is correct.",
+                        dose
+                    )
+
+                    ui.highDoseWarningLayout.setBackgroundColor(
+                        ContextCompat.getColor(context, R.color.warning_bg)
+                    )
+
+                    ui.highDoseWarningText.setTextColor(
+                        ContextCompat.getColor(context, R.color.warning)
+                    )
                 }
             }
         } else {

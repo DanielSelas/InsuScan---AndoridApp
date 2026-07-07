@@ -118,8 +118,7 @@ object AppDataStore {
                         .onSuccess { lastSaveFailed = false }
                         .onFailure {
                             lastSaveFailed = true
-                            val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
-                            val msg = "[$timestamp] Failed to save: ${it.message ?: "Network error"}"
+                            val msg = com.example.insuscan.network.NetworkErrorPresenter.userMessage(it)
                             android.util.Log.e("AppDataStore", msg, it)
                             _saveErrors.emit(msg)
                         }

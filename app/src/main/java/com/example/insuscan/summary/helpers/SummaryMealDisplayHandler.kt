@@ -192,8 +192,10 @@ class SummaryMealDisplayHandler(
             .setMessage("Enter new weight for ${item.nameHebrew ?: item.name}:")
             .setView(input)
             .setPositiveButton("Update") { _, _ ->
-                val newWeight = input.text.toString().toFloatOrNull()
-                if (newWeight != null && newWeight > 0) {
+                val newWeight = com.example.insuscan.utils.MealInputValidator.parsePositiveWeight(input.text.toString())
+                if (newWeight == null) {
+                    com.example.insuscan.utils.ToastHelper.showShort(context, com.example.insuscan.utils.MealInputValidator.INVALID_WEIGHT_MESSAGE)
+                } else {
                     updateMealItemWeight(index, item, newWeight)
                 }
             }
