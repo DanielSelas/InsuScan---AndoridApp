@@ -315,5 +315,31 @@
     <string name="tailored_dietary_recommendations">Tailored dietary recommendations</string>
     <string name="ai_assistant">AI ASSISTANT</string>
 
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="plan_details_format">ICR %1$s · ISF %2$s · TG %3$s</string>
+    <string name="default_greeting_name">New Friend</string>
+
+    <string name="home_summary_refreshing">Refreshing...</string>
+    <string name="glucose_status_low">Low</string>
+    <string name="glucose_status_high">High</string>
+    <string name="glucose_status_in_range">In range</string>
+    <plurals name="meals_logged">
+        <item quantity="one">%d meal logged</item>
+        <item quantity="other">%d meals logged</item>
+    </plurals>
+    <string name="value_placeholder">--</string>
+
+    <string name="plan_name_unnamed">Unnamed</string>
+    <string name="plan_subtitle_sick">Sick day values</string>
+    <string name="plan_subtitle_workout">Reduced carb ratio</string>
+    <string name="plan_subtitle_stress">Higher correction</string>
+    <string name="plan_subtitle_custom">Custom values</string>
+
+    <string name="home_scan_meal_button">Scan a meal</string>
+    <string name="home_ask_assistant_button">Ask the assistant instead</string>
+    <string name="home_insulin_plan_section">Insulin plan</string>
+    <string name="home_manage_plans">Manage</string>
 
 </resources>

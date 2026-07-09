@@ -9,6 +9,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
 import com.example.insuscan.network.dto.InsulinPlanDto
 
+/**
+ * RecyclerView adapter for the custom insulin plans on the home screen.
+ * Renders each plan's name, a subtitle derived from its name, and its ICR/ISF/TG values.
+ */
 class InsulinPlanAdapter(
     private val onPlanSelected: (String) -> Unit
 ) : RecyclerView.Adapter<InsulinPlanAdapter.PlanViewHolder>() {
@@ -45,7 +49,7 @@ class InsulinPlanAdapter(
         private val details: TextView = view.findViewById(R.id.tv_plan_details)
 
         fun bind(plan: InsulinPlanDto) {
-            name.text = plan.name ?: "Unnamed"
+            name.text = plan.name ?: itemView.context.getString(R.string.plan_name_unnamed)
             subtitle.text = formatSubtitle(plan)
             details.text = formatDetails(plan)
             radio.isChecked = selectedId != null && plan.id == selectedId
@@ -56,19 +60,28 @@ class InsulinPlanAdapter(
         }
 
         private fun formatSubtitle(plan: InsulinPlanDto): String {
+            val context = itemView.context
+            val name = plan.name?.lowercase()
             return when {
-                plan.name?.lowercase()?.contains("sick") == true -> "Sick day values"
-                plan.name?.lowercase()?.contains("workout") == true -> "Reduced carb ratio"
-                plan.name?.lowercase()?.contains("stress") == true -> "Higher correction"
-                else -> "Custom values"
+                name?.contains(PLAN_NAME_SICK) == true -> context.getString(R.string.plan_subtitle_sick)
+                name?.contains(PLAN_NAME_WORKOUT) == true -> context.getString(R.string.plan_subtitle_workout)
+                name?.contains(PLAN_NAME_STRESS) == true -> context.getString(R.string.plan_subtitle_stress)
+                else -> context.getString(R.string.plan_subtitle_custom)
             }
         }
 
         private fun formatDetails(plan: InsulinPlanDto): String {
-            val icr = plan.icr?.let { "${it.toInt()}" } ?: "--"
-            val isf = plan.isf?.let { "${it.toInt()}" } ?: "--"
-            val tg = plan.targetGlucose?.toString() ?: "--"
-            return "ICR $icr · ISF $isf · TG $tg"
+            val context = itemView.context
+            val placeholder = context.getString(R.string.value_placeholder)
+            val icr = plan.icr?.let { "${it.toInt()}" } ?: placeholder
+            val isf = plan.isf?.let { "${it.toInt()}" } ?: placeholder
+            val tg = plan.targetGlucose?.toString() ?: placeholder
+            return context.getString(R.string.plan_details_format, icr, isf, tg)
         }
+    }
+    companion object {
+        private const val PLAN_NAME_SICK = "sick"
+        private const val PLAN_NAME_WORKOUT = "workout"
+        private const val PLAN_NAME_STRESS = "stress"
     }
 }

@@ -7,6 +7,10 @@ import com.example.insuscan.R
 import com.example.insuscan.profile.UserProfileManager
 import com.google.firebase.auth.FirebaseAuth
 
+/**
+ * Loads the home-screen avatar: local photo first, then the Google account photo,
+ * falling back to a placeholder. Renders the image circular via Glide.
+ */
 class ProfileImageHelper(
     private val fragment: Fragment,
     private val profileImage: ImageView
@@ -20,7 +24,7 @@ class ProfileImageHelper(
         when {
             !localPhotoUrl.isNullOrEmpty() -> loadWithGlide(localPhotoUrl)
             googlePhotoUrl != null -> loadWithGlide(googlePhotoUrl)
-            else -> loadWithGlide(R.drawable.duck)
+            else -> loadWithGlide(PLACEHOLDER_RES)
         }
     }
 
@@ -28,8 +32,12 @@ class ProfileImageHelper(
         Glide.with(fragment)
             .load(source)
             .circleCrop()
-            .placeholder(R.drawable.duck)
-            .error(R.drawable.duck)
+            .placeholder(PLACEHOLDER_RES)
+            .error(PLACEHOLDER_RES)
             .into(profileImage)
+    }
+
+    companion object {
+        private val PLACEHOLDER_RES = R.drawable.duck
     }
 }

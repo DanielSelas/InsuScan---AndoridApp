@@ -6,8 +6,11 @@ import androidx.core.content.ContextCompat
 import com.example.insuscan.R
 import com.example.insuscan.home.GlucoseGaugeView
 import com.example.insuscan.meal.Meal
-import com.example.insuscan.profile.UserProfileManager
 
+/**
+ * Renders the home daily summary card: meal count, total carbs, total insulin,
+ * and the latest glucose value with its status color on the gauge.
+ */
 class HomeDailySummaryHelper(
     private val context: Context,
     private val tvMealsLogged: TextView,
@@ -24,7 +27,7 @@ class HomeDailySummaryHelper(
         val totalInsulin = meals.sumOf { (it.insulinDose ?: it.recommendedDose ?: 0f).toDouble() }.toFloat()
         val latestGlucose = meals.maxByOrNull { it.timestamp }?.glucoseLevel
 
-        tvMealsLogged.text = "$count meal${if (count == 1) "" else "s"} logged"
+        tvMealsLogged.text = context.resources.getQuantityString(R.plurals.meals_logged, count, count)
         tvTotalCarbs.text = "${totalCarbs.toInt()}"
         tvTotalInsulin.text = String.format("%.1f", totalInsulin)
 
@@ -39,26 +42,31 @@ class HomeDailySummaryHelper(
 
     private fun resolveGlucoseStatus(glucose: Int): Pair<String, Int> {
         return when {
-            glucose < 70 -> Pair("Low", R.color.status_critical)
-            glucose > 180 -> Pair("High", R.color.status_warning)
-            else -> Pair("In range", R.color.secondary)
+            glucose < GLUCOSE_LOW_THRESHOLD -> Pair(context.getString(R.string.glucose_status_low), R.color.status_critical)
+            glucose > GLUCOSE_HIGH_THRESHOLD -> Pair(context.getString(R.string.glucose_status_high), R.color.status_warning)
+            else -> Pair(context.getString(R.string.glucose_status_in_range), R.color.secondary)
         }
     }
 
     fun showLoading() {
-        tvMealsLogged.text = "Refreshing..."
-        tvTotalCarbs.text = "--"
-        tvTotalInsulin.text = "--"
-        tvGlucoseValue.text = "--"
+        val placeholder = context.getString(R.string.value_placeholder)
+        tvMealsLogged.text = context.getString(R.string.home_summary_refreshing)
+        tvTotalCarbs.text = placeholder
+        tvTotalInsulin.text = placeholder
+        tvGlucoseValue.text = placeholder
         tvGlucoseStatus.text = ""
     }
 
     fun showError(message: String) {
+        val placeholder = context.getString(R.string.value_placeholder)
         tvMealsLogged.text = message
-        tvTotalCarbs.text = "--"
-        tvTotalInsulin.text = "--"
-        tvGlucoseValue.text = "--"
+        tvTotalCarbs.text = placeholder
+        tvTotalInsulin.text = placeholder
+        tvGlucoseValue.text = placeholder
         tvGlucoseStatus.text = ""
     }
-
+    companion object {
+        private const val GLUCOSE_LOW_THRESHOLD = 70
+        private const val GLUCOSE_HIGH_THRESHOLD = 180
+    }
 }

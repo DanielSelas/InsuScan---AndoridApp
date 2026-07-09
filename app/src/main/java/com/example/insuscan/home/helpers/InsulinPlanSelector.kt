@@ -6,6 +6,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.network.dto.InsulinPlanDto
 
+/**
+ * Manages insulin plan selection on the home screen: the default row plus the
+ * list of custom plans. Exposes the currently selected plan, or null for default.
+ */
 class InsulinPlanSelector(
     private val defaultRow: LinearLayout,
     private val defaultRadio: RadioButton,
@@ -13,7 +17,7 @@ class InsulinPlanSelector(
 ) {
 
     private var plans = listOf<InsulinPlanDto>()
-    private var selectedPlanId: String? = "default"
+    private var selectedPlanId: String? = DEFAULT_PLAN_ID
 
     private val adapter = InsulinPlanAdapter { planId ->
         selectPlan(planId)
@@ -23,11 +27,11 @@ class InsulinPlanSelector(
         recyclerView.layoutManager = LinearLayoutManager(recyclerView.context)
         recyclerView.adapter = adapter
 
-        defaultRow.setOnClickListener { selectPlan("default") }
+        defaultRow.setOnClickListener { selectPlan(DEFAULT_PLAN_ID) }
     }
 
     fun loadPlans(serverPlans: List<InsulinPlanDto>?) {
-        selectedPlanId = "default"
+        selectedPlanId = DEFAULT_PLAN_ID
         defaultRadio.isChecked = true
 
         if (!serverPlans.isNullOrEmpty()) {
@@ -40,17 +44,17 @@ class InsulinPlanSelector(
     }
 
     fun getSelectedPlan(): InsulinPlanDto? {
-        if (selectedPlanId == null || selectedPlanId == "default") return null
+        if (selectedPlanId == null || selectedPlanId == DEFAULT_PLAN_ID) return null
         return plans.find { it.id == selectedPlanId }
-    }
-
-    fun resetToDefault() {
-        selectPlan("default")
     }
 
     private fun selectPlan(planId: String) {
         selectedPlanId = planId
-        defaultRadio.isChecked = (planId == "default")
-        adapter.setSelectedId(if (planId == "default") null else planId)
+        defaultRadio.isChecked = (planId == DEFAULT_PLAN_ID)
+        adapter.setSelectedId(if (planId == DEFAULT_PLAN_ID) null else planId)
+    }
+
+    companion object {
+        private const val DEFAULT_PLAN_ID = "default"
     }
 }

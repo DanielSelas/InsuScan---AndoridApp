@@ -13,6 +13,7 @@ import com.example.insuscan.R
 import com.example.insuscan.appdata.AppDataStore
 import com.example.insuscan.appdata.DataState
 import com.example.insuscan.auth.AuthManager
+import com.example.insuscan.mapping.InsulinPlanMapper
 import com.example.insuscan.profile.helpers.ProfileDataHelper
 import com.example.insuscan.profile.helpers.ProfileImageHandler
 import com.example.insuscan.profile.helpers.ProfileUiManager
@@ -37,16 +38,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         dataHelper.planViewManager.onPlansEdited = {
             UserProfileManager.saveInsulinPlans(
                 ctx,
-                dataHelper.planViewManager.getPlans().map { plan ->
-                    com.example.insuscan.network.dto.InsulinPlanDto(
-                        id = plan.id,
-                        name = plan.name,
-                        isDefault = plan.isDefault,
-                        icr = plan.icr,
-                        isf = plan.isf,
-                        targetGlucose = plan.targetGlucose
-                    )
-                }
+                InsulinPlanMapper.toDtoList(dataHelper.planViewManager.getPlans())
             )
             saveToServer()
         }
@@ -193,16 +185,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
                     UserProfileManager.saveInsulinPlans(
                         ctx,
-                        dataHelper.planViewManager.getPlans().map { plan ->
-                            com.example.insuscan.network.dto.InsulinPlanDto(
-                                id = plan.id,
-                                name = plan.name,
-                                isDefault = plan.isDefault,
-                                icr = plan.icr,
-                                isf = plan.isf,
-                                targetGlucose = plan.targetGlucose
-                            )
-                        }
+                        InsulinPlanMapper.toDtoList(dataHelper.planViewManager.getPlans())
                     )
 
                     saveToServer()
