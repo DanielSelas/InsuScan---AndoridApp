@@ -6,6 +6,7 @@ import androidx.core.content.ContextCompat
 import com.example.insuscan.R
 import com.example.insuscan.home.GlucoseGaugeView
 import com.example.insuscan.meal.Meal
+import com.example.insuscan.utils.GlucoseThresholds
 
 /**
  * Renders the home daily summary card: meal count, total carbs, total insulin,
@@ -42,8 +43,8 @@ class HomeDailySummaryHelper(
 
     private fun resolveGlucoseStatus(glucose: Int): Pair<String, Int> {
         return when {
-            glucose < GLUCOSE_LOW_THRESHOLD -> Pair(context.getString(R.string.glucose_status_low), R.color.status_critical)
-            glucose > GLUCOSE_HIGH_THRESHOLD -> Pair(context.getString(R.string.glucose_status_high), R.color.status_warning)
+            glucose < GlucoseThresholds.LOW -> Pair(context.getString(R.string.glucose_status_low), R.color.status_critical)
+            glucose > GlucoseThresholds.HIGH -> Pair(context.getString(R.string.glucose_status_high), R.color.status_warning)
             else -> Pair(context.getString(R.string.glucose_status_in_range), R.color.secondary)
         }
     }
@@ -64,9 +65,5 @@ class HomeDailySummaryHelper(
         tvTotalInsulin.text = placeholder
         tvGlucoseValue.text = placeholder
         tvGlucoseStatus.text = ""
-    }
-    companion object {
-        private const val GLUCOSE_LOW_THRESHOLD = 70
-        private const val GLUCOSE_HIGH_THRESHOLD = 180
     }
 }

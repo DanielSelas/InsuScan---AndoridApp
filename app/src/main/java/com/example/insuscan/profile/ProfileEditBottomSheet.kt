@@ -10,6 +10,10 @@ import android.widget.TextView
 import com.example.insuscan.R
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
+/**
+ * Bottom sheet for editing a single profile field, with an optional unit suffix.
+ * Reports the trimmed value via onSave.
+ */
 class ProfileEditBottomSheet(
     private val label: String,
     private val currentValue: String,

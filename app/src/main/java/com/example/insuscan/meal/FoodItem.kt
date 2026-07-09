@@ -13,4 +13,9 @@ data class FoodItem(
     val bboxYPct: Float? = null,
     val bboxWPct: Float? = null,
     val bboxHPct: Float? = null
-)
+) {
+    companion object {
+        const val DEFAULT_WEIGHT_GRAMS = 100f
+    }
+}
+

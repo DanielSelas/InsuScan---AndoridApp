@@ -426,5 +426,69 @@
     <string name="plan_hint_isf">ISF (mg/dL per unit)</string>
     <string name="plan_dialog_title">New insulin plan</string>
     <string name="dialog_add">Add</string>
+    <!-- ==================== Refactored Extraction ==================== -->
+    <string name="profile_photo_dialog_title">Profile Photo</string>
+    <string name="profile_photo_take">Take Photo</string>
+    <string name="profile_photo_choose">Choose from Gallery</string>
+    <string name="profile_photo_remove">Remove Photo</string>
+    <string name="error_camera_permission">Camera permission denied</string>
+    <string name="msg_uploading_photo">Uploading photo...</string>
+    <string name="msg_photo_updated">Photo updated and saved!</string>
+    <string name="msg_photo_removed">Photo removed</string>
+
+    <string name="error_plan_missing_values">The selected plan is missing values (ICR, ISF or target glucose). Complete it in your profile.</string>
+    <string name="error_icr_positive">ICR must be a positive value. Update it in your profile.</string>
+    <string name="error_isf_positive">ISF must be greater than zero. Update it in your profile.</string>
+    <string name="error_target_positive">Target glucose must be set. Update it in your profile.</string>
+
+    <string name="msg_round_pen_hint">Round to %1$s on your pen</string>
+    <string name="dialog_select_plan_title">Select Insulin Plan</string>
+    <string name="warning_dose_blocked">BLOCKED: %1$s units exceeds the maximum safe dose (%2$d units). Please check your meal data for errors.</string>
+    <string name="warning_dose_very_high">Very high dose: %1$s units. You will need to confirm before saving.</string>
+    <string name="warning_dose_high">High dose: %1$s units. Please verify your meal data is correct.</string>
+    <string name="state_setup_required">Setup Required</string>
+    <string name="state_tap_to_complete">Tap here to complete profile</string>
+
+    <string name="msg_no_meal_data">No meal data</string>
+    <string name="msg_detected_items_count">DETECTED ITEMS · %1$d</string>
+    <string name="msg_no_food_detected">No food detected in image</string>
+    <string name="msg_missing_data_warning">⚠️ %1$s</string>
+    <string name="msg_carbs_count"> · %1$d g carbs</string>
+    <string name="dialog_edit_weight_title">Edit Weight (grams)</string>
+    <string name="dialog_edit_weight_msg">Enter new weight for %1$s:</string>
+    <string name="action_update">Update</string>
+    <string name="msg_weight_updated">Weight updated: %1$d g</string>
+
+    <string name="dialog_dose_rejected_title">Dose Rejected</string>
+    <string name="dialog_dose_rejected_msg">The calculated dose of %1$s units exceeds the maximum safe limit of %2$d units.\n\nThis is likely a scan error. Please review and correct your meal data before saving.</string>
+    <string name="dialog_high_dose_title">Very High Dose Warning</string>
+    <string name="dialog_high_dose_msg">The recommended dose is %1$s units, which is unusually high.\n\nPlease verify:\n  • The scanned food items are correct\n  • The portion sizes look right\n  • Your glucose reading is accurate\n\nAre you sure this dose is correct?</string>
+    <string name="action_confirm_dose">I Confirm This Dose</string>
+    <string name="error_no_meal_save">No meal data to save</string>
+    <string name="error_no_food_detected_save">No food detected. Use \'Edit\' to add items manually.</string>
+    <string name="dialog_plan_incomplete_title">Plan Incomplete</string>
+    <string name="dialog_profile_incomplete_title">Profile Incomplete</string>
+    <string name="dialog_profile_incomplete_msg">Your medical profile is missing required values (ICR, ISF or target glucose), so the meal can\'t be saved yet.\n\nComplete your profile to continue.</string>
+    <string name="action_complete_profile">Complete Profile</string>
+    <string name="error_save_no_connection">No internet connection. The meal was NOT saved. Please try again.</string>
+    <string name="error_save_timeout">Request timed out. The meal was NOT saved. Please try again.</string>
+    <string name="error_save_server">Server error (%1$d). The meal was NOT saved.</string>
+    <string name="error_save_client">Save rejected (%1$d). The meal was NOT saved.</string>
+    <string name="error_session_expired">Session expired. Please log in again.</string>
+    <string name="error_save_failed">Failed to save. The meal was NOT saved. Please try again.</string>
+
+    <string name="error_storage_upload_failed">Image upload failed: %1$s</string>
+    <string name="error_storage_file_too_large">File is too large (%1$d KB). Maximum allowed: %2$d KB.</string>
+    <string name="error_storage_invalid_type">File type \'%1$s\' is not supported. Please use JPG or PNG.</string>
+    <string name="error_storage_download_failed">Could not retrieve image URL from storage.</string>
+    <string name="error_storage_unauthorized">You are not authorized to access this file.</string>
+    <string name="error_storage_unknown">An unknown storage error occurred.</string>
+
+    <string name="plan_name_sick_day">Sick Day</string>
+    <string name="plan_name_workout">Workout</string>
+    <string name="plan_name_stress">Stress</string>
+    <string name="plan_summary_icr">ICR 1:%1$d</string>
+    <string name="plan_summary_isf"> · ISF %1$d</string>
+    <string name="plan_summary_tg"> · TG %1$d</string>
     <string name="dialog_cancel">Cancel</string>
 </resources>

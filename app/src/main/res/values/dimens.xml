@@ -153,4 +153,13 @@
     <dimen name="scan_step_line_width">20dp</dimen>
     <dimen name="scan_step_line_height">2dp</dimen>
 
+    <!-- ==================== Refactored Extraction ==================== -->
+    <dimen name="text_size_meal_item_name">14.5sp</dimen>
+    <dimen name="text_size_meal_item_sub">11sp</dimen>
+    <dimen name="text_size_meal_item_conf">12sp</dimen>
+    <dimen name="text_size_meal_item_chevron">18sp</dimen>
+    <dimen name="text_size_meal_item_msg">15sp</dimen>
+    <dimen name="padding_meal_item_vertical">14dp</dimen>
+    <dimen name="padding_meal_item_conf">10dp</dimen>
+
 </resources>

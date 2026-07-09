@@ -3,7 +3,14 @@ package com.example.insuscan.profile
 import android.content.Context
 import com.example.insuscan.network.dto.UserDto
 
+/**
+ * Writes a server UserDto into local SharedPreferences and marks registration complete.
+ */
 object UserProfileSyncManager {
+
+    /**
+     * Copies each present field from the server user into local storage.
+     */
     fun syncFromServer(context: Context, user: UserDto) {
         user.userId?.email?.let { UserProfileManager.saveUserEmail(context, it) }
         user.username?.let { UserProfileManager.saveUserName(context, it) }

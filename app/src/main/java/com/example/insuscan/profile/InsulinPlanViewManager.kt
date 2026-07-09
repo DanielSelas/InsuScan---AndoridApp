@@ -45,17 +45,17 @@ class InsulinPlanViewManager(
         return listOf(
             InsulinPlan(
                 id = UUID.randomUUID().toString(),
-                name = "Sick Day",
+                name = context.getString(R.string.plan_name_sick_day),
                 isDefault = false
             ),
             InsulinPlan(
                 id = UUID.randomUUID().toString(),
-                name = "Workout",
+                name = context.getString(R.string.plan_name_workout),
                 isDefault = false
             ),
             InsulinPlan(
                 id = UUID.randomUUID().toString(),
-                name = "Stress",
+                name = context.getString(R.string.plan_name_stress),
                 isDefault = false
             )
         )
@@ -109,9 +109,9 @@ class InsulinPlanViewManager(
             val tg = targetField.text.toString().toIntOrNull()
             if (icr != null || isf != null || tg != null) {
                 summaryText.text = buildString {
-                    if (icr != null) append("ICR 1:$icr")
-                    if (isf != null) append(" · ISF $isf")
-                    if (tg != null) append(" · TG $tg")
+                    if (icr != null) append(context.getString(R.string.plan_summary_icr, icr))
+                    if (isf != null) append(context.getString(R.string.plan_summary_isf, isf))
+                    if (tg != null) append(context.getString(R.string.plan_summary_tg, tg))
                 }
                 summaryText.visibility = View.VISIBLE
             }
@@ -163,7 +163,7 @@ class InsulinPlanViewManager(
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1).apply {
                     marginStart = 16
                 }
-                setBackgroundColor(Color.parseColor("#E5E7EB"))
+                setBackgroundColor(androidx.core.content.ContextCompat.getColor(context, R.color.divider))
             }
             container.addView(divider)
         }

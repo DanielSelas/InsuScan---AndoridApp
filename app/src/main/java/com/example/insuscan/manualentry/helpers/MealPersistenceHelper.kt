@@ -15,7 +15,7 @@ class MealPersistenceHelper {
         currentMeal.foodItems?.forEach { item ->
             items.add(EditableFoodItem(
                 name = item.name,
-                weightGrams = item.weightGrams ?: 100f,
+                weightGrams = item.weightGrams ?: FoodItem.DEFAULT_WEIGHT_GRAMS,
                 carbsPer100g = calculateCarbsPer100g(item),
                 usdaFdcId = null,
                 isLoading = false
@@ -25,7 +25,7 @@ class MealPersistenceHelper {
         if (items.isEmpty() && currentMeal.carbs > 0) {
             items.add(EditableFoodItem(
                 name = currentMeal.title,
-                weightGrams = 100f,
+                weightGrams = FoodItem.DEFAULT_WEIGHT_GRAMS,
                 carbsPer100g = currentMeal.carbs,
                 usdaFdcId = null,
                 isLoading = false
@@ -68,7 +68,7 @@ class MealPersistenceHelper {
     }
 
     private fun calculateCarbsPer100g(item: FoodItem): Float {
-        val weight = item.weightGrams ?: 100f
+        val weight = item.weightGrams ?: FoodItem.DEFAULT_WEIGHT_GRAMS
         val carbs = item.carbsGrams ?: 0f
         return if (weight > 0) (carbs * 100f) / weight else 0f
     }

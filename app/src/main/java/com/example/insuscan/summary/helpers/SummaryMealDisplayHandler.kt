@@ -11,7 +11,12 @@ import com.example.insuscan.R
 import com.example.insuscan.meal.FoodItem
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.utils.ToastHelper
+import android.view.Gravity
+import android.util.TypedValue
 
+/**
+ * Renders the meal's food items in the summary screen and handles inline weight edits.
+ */
 class SummaryMealDisplayHandler(
     private val context: Context,
     private val ui: SummaryUiManager,
@@ -24,7 +29,7 @@ class SummaryMealDisplayHandler(
         ui.mealItemsContainer.removeAllViews()
 
         if (meal == null) {
-            addSingleMessageRow("No meal data")
+            addSingleMessageRow(context.getString(R.string.msg_no_meal_data))
             ui.totalCarbsText.text = "--"
             return
         }
@@ -33,7 +38,7 @@ class SummaryMealDisplayHandler(
         if (!items.isNullOrEmpty()) {
             var calculatedTotalCarbs = 0f
 
-            ui.detectedItemsLabel.text = "DETECTED ITEMS · ${items.size}"
+            ui.detectedItemsLabel.text = context.getString(R.string.msg_detected_items_count, items.size)
 
             items.forEachIndexed { index, item ->
                 calculatedTotalCarbs += (item.carbsGrams ?: 0f)
@@ -42,7 +47,7 @@ class SummaryMealDisplayHandler(
 
             ui.totalCarbsText.text = String.format("%.1f", calculatedTotalCarbs)
         } else {
-            addSingleMessageRow("No food detected in image")
+            addSingleMessageRow(context.getString(R.string.msg_no_food_detected))
             ui.totalCarbsText.text = "0"
         }
     }
@@ -54,11 +59,12 @@ class SummaryMealDisplayHandler(
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 14, 0, 14)
-            gravity = android.view.Gravity.CENTER_VERTICAL
+            val paddingVertical = context.resources.getDimensionPixelSize(R.dimen.padding_meal_item_vertical)
+            setPadding(0, paddingVertical, 0, paddingVertical)
+            gravity = Gravity.CENTER_VERTICAL
             isClickable = true
             isFocusable = true
-            val outValue = android.util.TypedValue()
+            val outValue = TypedValue()
             context.theme.resolveAttribute(android.R.attr.selectableItemBackground, outValue, true)
             setBackgroundResource(outValue.resourceId)
         }
@@ -68,19 +74,6 @@ class SummaryMealDisplayHandler(
         val weight = item.weightGrams?.toInt()
         val confidence = item.confidence
         val hasMissingData = carbs == 0f
-
-//        val numberText = TextView(context).apply {
-//            layoutParams = LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.WRAP_CONTENT,
-//                LinearLayout.LayoutParams.WRAP_CONTENT
-//            )
-//            text = String.format("%02d", index + 1)
-//            textSize = 10f
-//            typeface = android.graphics.Typeface.MONOSPACE
-//            setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
-//            setPadding(0, 0, 12, 0)
-//        }
-//        row.addView(numberText)
 
         val infoLayout = LinearLayout(context).apply {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -92,8 +85,8 @@ class SummaryMealDisplayHandler(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
-            text = if (hasMissingData) "⚠️ $name" else name
-            textSize = 14.5f
+            text = if (hasMissingData) context.getString(R.string.msg_missing_data_warning, name) else name
+            textSize = context.resources.getDimension(R.dimen.text_size_meal_item_name) / context.resources.displayMetrics.scaledDensity
             setTextColor(ContextCompat.getColor(context, if (hasMissingData) R.color.error else R.color.text_primary))
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
@@ -105,27 +98,14 @@ class SummaryMealDisplayHandler(
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             val weightStr = if (weight != null && weight > 0) "${weight}g" else ""
-            val carbStr = if (!hasMissingData) " · ${carbs.toInt()}g carbs" else ""
+            val carbStr = if (!hasMissingData) context.getString(R.string.msg_carbs_count, carbs.toInt()) else ""
             text = weightStr + carbStr
-            textSize = 11f
+            textSize = context.resources.getDimension(R.dimen.text_size_meal_item_sub) / context.resources.displayMetrics.scaledDensity
             typeface = android.graphics.Typeface.MONOSPACE
             setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
         }
         infoLayout.addView(subText)
         row.addView(infoLayout)
-
-//        val carbsText = TextView(context).apply {
-//            layoutParams = LinearLayout.LayoutParams(
-//                LinearLayout.LayoutParams.WRAP_CONTENT,
-//                LinearLayout.LayoutParams.WRAP_CONTENT
-//            )
-//            text = if (hasMissingData) "Fix >" else String.format("%.0fg", carbs)
-//            textSize = 12f
-//            typeface = android.graphics.Typeface.MONOSPACE
-//            setTextColor(ContextCompat.getColor(context, if (hasMissingData) R.color.error else R.color.text_secondary))
-//            setPadding(0, 0, 12, 0)
-//        }
-//        row.addView(carbsText)
 
         val conf = item.confidence
         if (conf != null && conf > 0f) {
@@ -140,10 +120,11 @@ class SummaryMealDisplayHandler(
                     LinearLayout.LayoutParams.WRAP_CONTENT
                 )
                 text = "${(conf * 100f).toInt()}%"
-                textSize = 12f
+                textSize = context.resources.getDimension(R.dimen.text_size_meal_item_conf) / context.resources.displayMetrics.scaledDensity
                 setTextColor(confColor)
                 setTypeface(null, android.graphics.Typeface.BOLD)
-                setPadding(0, 0, 10, 0)
+                val paddingConf = context.resources.getDimensionPixelSize(R.dimen.padding_meal_item_conf)
+                setPadding(0, 0, paddingConf, 0)
             }
             row.addView(confText)
         }
@@ -154,7 +135,7 @@ class SummaryMealDisplayHandler(
                 LinearLayout.LayoutParams.WRAP_CONTENT
             )
             text = "›"
-            textSize = 18f
+            textSize = context.resources.getDimension(R.dimen.text_size_meal_item_chevron) / context.resources.displayMetrics.scaledDensity
             setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
         }
         row.addView(chevron)
@@ -188,18 +169,18 @@ class SummaryMealDisplayHandler(
         }
 
         AlertDialog.Builder(context)
-            .setTitle("Edit Weight (grams)")
-            .setMessage("Enter new weight for ${item.nameHebrew ?: item.name}:")
+            .setTitle(R.string.dialog_edit_weight_title)
+            .setMessage(context.getString(R.string.dialog_edit_weight_msg, item.nameHebrew ?: item.name))
             .setView(input)
-            .setPositiveButton("Update") { _, _ ->
+            .setPositiveButton(R.string.action_update) { _, _ ->
                 val newWeight = com.example.insuscan.utils.MealInputValidator.parsePositiveWeight(input.text.toString())
                 if (newWeight == null) {
-                    com.example.insuscan.utils.ToastHelper.showShort(context, com.example.insuscan.utils.MealInputValidator.INVALID_WEIGHT_MESSAGE)
+                    ToastHelper.showShort(context, com.example.insuscan.utils.MealInputValidator.INVALID_WEIGHT_MESSAGE)
                 } else {
                     updateMealItemWeight(index, item, newWeight)
                 }
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 
@@ -207,8 +188,8 @@ class SummaryMealDisplayHandler(
         val currentMeal = MealSessionManager.currentMeal ?: return
         val currentItems = currentMeal.foodItems?.toMutableList() ?: return
         
-        val oldWeight = item.weightGrams ?: 100f 
-        val safeOldWeight = if (oldWeight == 0f) 100f else oldWeight
+        val oldWeight = item.weightGrams ?: FoodItem.DEFAULT_WEIGHT_GRAMS
+        val safeOldWeight = if (oldWeight == 0f) FoodItem.DEFAULT_WEIGHT_GRAMS else oldWeight
         
         val currentCarbs = item.carbsGrams ?: 0f
         val carbsPerGram = currentCarbs / safeOldWeight
@@ -223,14 +204,14 @@ class SummaryMealDisplayHandler(
         
         updateFoodDisplay()
         onMealEdited()
-        ToastHelper.showShort(context, "Weight updated: ${newWeight.toInt()}g")
+        ToastHelper.showShort(context, context.getString(R.string.msg_weight_updated, newWeight.toInt()))
     }
 
     private fun addSingleMessageRow(message: String) {
         val textView = TextView(context).apply {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             text = message
-            textSize = 15f
+            textSize = context.resources.getDimension(R.dimen.text_size_meal_item_msg) / context.resources.displayMetrics.scaledDensity
             setTextColor(ContextCompat.getColor(context, R.color.text_secondary))
             setPadding(0, 8, 0, 8)
         }

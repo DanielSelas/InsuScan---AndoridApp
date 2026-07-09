@@ -39,7 +39,7 @@ class ProfileImageHandler(private val fragment: Fragment) {
     }
 
     private val cameraPermissionLauncher = fragment.registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) openCamera() else ToastHelper.showShort(fragment.requireContext(), "Camera permission denied")
+        if (granted) openCamera() else ToastHelper.showShort(fragment.requireContext(), fragment.getString(R.string.error_camera_permission))
     }
 
     private var onUploadError: ((StorageException) -> Unit)? = null
@@ -51,9 +51,13 @@ class ProfileImageHandler(private val fragment: Fragment) {
     }
 
     fun showPhotoOptionsDialog() {
-        val options = arrayOf("Take Photo", "Choose from Gallery", "Remove Photo")
+        val options = arrayOf(
+            fragment.getString(R.string.profile_photo_take),
+            fragment.getString(R.string.profile_photo_choose),
+            fragment.getString(R.string.profile_photo_remove)
+        )
         AlertDialog.Builder(fragment.requireContext())
-            .setTitle("Profile Photo")
+            .setTitle(R.string.profile_photo_dialog_title)
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> checkCameraPermissionAndOpen()
@@ -89,7 +93,7 @@ class ProfileImageHandler(private val fragment: Fragment) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val storageRef = FirebaseStorage.getInstance().reference.child("profile_photos/$userId.jpg")
         val ctx = fragment.requireContext()
-        ToastHelper.showShort(ctx, "Uploading photo...")
+        ToastHelper.showShort(ctx, ctx.getString(R.string.msg_uploading_photo))
 
         storageRef.putFile(uri).addOnSuccessListener {
             storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
@@ -97,7 +101,7 @@ class ProfileImageHandler(private val fragment: Fragment) {
                 UserProfileManager.saveProfilePhotoUrl(ctx, url)
                 loadProfilePhoto(url)
                 onPhotoUpdated?.invoke()
-                ToastHelper.showShort(ctx, "Photo updated and saved!")
+                ToastHelper.showShort(ctx, ctx.getString(R.string.msg_photo_updated))
             }.addOnFailureListener { e ->
                 Log.e(TAG, "Failed to get download URL: ${e.message}")
                 val error = StorageException.DownloadUrlFailed
@@ -133,7 +137,7 @@ class ProfileImageHandler(private val fragment: Fragment) {
         val ctx = fragment.requireContext()
         UserProfileManager.saveProfilePhotoUrl(ctx, "")
         showPlaceholderPhoto()
-        ToastHelper.showShort(ctx, "Photo removed")
+        ToastHelper.showShort(ctx, ctx.getString(R.string.msg_photo_removed))
     }
 
     companion object {

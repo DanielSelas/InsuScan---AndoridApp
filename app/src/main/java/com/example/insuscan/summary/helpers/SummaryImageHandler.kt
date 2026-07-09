@@ -11,6 +11,9 @@ import com.example.insuscan.R
 import com.example.insuscan.meal.MealSessionManager
 import java.io.File
 
+/**
+ * Shows the meal image in the summary card and opens a fullscreen viewer on tap.
+ */
 class SummaryImageHandler(private val context: Context, private val ui: SummaryUiManager) {
 
     fun displayMealImage() {
