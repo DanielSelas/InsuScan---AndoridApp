@@ -7,6 +7,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.example.insuscan.R
 
+/**
+ * Holds references to the profile screen's views and sets the static row labels.
+ */
 class ProfileUiManager(val view: View) {
 
     val profilePhoto: ImageView = view.findViewById(R.id.iv_profile_photo)
@@ -17,7 +20,6 @@ class ProfileUiManager(val view: View) {
     val plansContainer: LinearLayout = view.findViewById(R.id.plans_container)
     val rowNameEmail: View = view.findViewById(R.id.row_name_email)
     val addPlanButton: TextView = view.findViewById(R.id.btn_add_plan)
-
 
     val rowAge: View = view.findViewById(R.id.row_age)
     val rowGender: View = view.findViewById(R.id.row_gender)
