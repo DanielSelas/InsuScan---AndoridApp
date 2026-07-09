@@ -2,9 +2,8 @@ package com.example.insuscan.auth.exception
 
 /**
  * Sealed exception hierarchy for authentication and Firebase Auth failures.
- *
- * Replaces the string-based approach in [com.example.insuscan.auth.util.AuthErrorHandler]
- * with typed, catchable exceptions.
+ * Used together with [com.example.insuscan.auth.util.AuthErrorHandler], which maps
+ * raw Firebase error strings into these typed exceptions.
  */
 sealed class AuthException(message: String, cause: Throwable? = null) : Exception(message, cause) {
 
@@ -24,7 +23,7 @@ sealed class AuthException(message: String, cause: Throwable? = null) : Exceptio
 
     object InvalidEmailFormat : AuthException("Invalid email format.")
 
-    object WeakPassword : AuthException("Password is too weak. Use at least 6 characters.")
+    object WeakPassword : AuthException("Password is too weak. Use at least 8 characters.")
 
     // ── Google Sign-In ────────────────────────────────────────────────────────
 

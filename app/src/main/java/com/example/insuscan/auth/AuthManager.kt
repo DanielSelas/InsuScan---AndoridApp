@@ -11,19 +11,18 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 
-// Handles all Firebase Auth operations
+/**
+ * Central wrapper for all Firebase Auth and Google Sign-In operations.
+ */
 object AuthManager {
 
     private val auth: FirebaseAuth by lazy { FirebaseAuth.getInstance() }
     private var googleSignInClient: GoogleSignInClient? = null
 
-    // Check if user is logged in
     fun isLoggedIn(): Boolean = auth.currentUser != null
 
-    // Get current user
     fun currentUser(): FirebaseUser? = auth.currentUser
 
-    // Get current user email
     fun getUserEmail(): String? = auth.currentUser?.email
 
     // Setup Google Sign-In (call once from Activity)
@@ -35,10 +34,8 @@ object AuthManager {
         googleSignInClient = GoogleSignIn.getClient(context, gso)
     }
 
-    // Get Google Sign-In intent
     fun getGoogleSignInIntent(): Intent? = googleSignInClient?.signInIntent
 
-    // Sign in with Google credential
     fun signInWithGoogle(idToken: String, onComplete: (Boolean, AuthException?) -> Unit) {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
@@ -51,7 +48,6 @@ object AuthManager {
             }
     }
 
-    // Sign in with email/password
     fun signInWithEmail(email: String, password: String, onComplete: (Boolean, AuthException?) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -63,7 +59,6 @@ object AuthManager {
             }
     }
 
-    // Register with email/password
     fun registerWithEmail(email: String, password: String, onComplete: (Boolean, AuthException?) -> Unit) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -75,7 +70,6 @@ object AuthManager {
             }
     }
 
-    // Sign out
     fun signOut() {
         auth.signOut()
         googleSignInClient?.signOut()

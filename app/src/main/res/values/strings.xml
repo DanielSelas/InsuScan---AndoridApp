@@ -307,4 +307,13 @@
     <string name="ref_option_none">No Reference Object</string>
     <string name="history_label_reference">Reference Object</string>
 
+    <string name="chat_coming_title">AI Assistant is Coming Soon</string>
+    <string name="chat_coming_subtitle">We are developing an intelligent assistant to help you gain deeper insights from your meals and scan results. Soon, you will be able to identify personal patterns and receive tailored guidance for nutrition, glucose, and insulin management.</string>
+    <string name="chat_feature_scan_insights">Advanced insights from scan data</string>
+    <string name="chat_feature_smart_assistance">Smart assistance for your nutrition and health</string>
+    <string name="chat_coming_soon_button">Coming soon</string>
+    <string name="tailored_dietary_recommendations">Tailored dietary recommendations</string>
+    <string name="ai_assistant">AI ASSISTANT</string>
+
+
 </resources>

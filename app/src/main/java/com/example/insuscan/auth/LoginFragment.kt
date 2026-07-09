@@ -5,13 +5,12 @@ import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.view.isVisible
+import com.example.insuscan.utils.ToastHelper
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
-import com.example.insuscan.auth.exception.AuthException
 import com.example.insuscan.auth.helper.GoogleSignInHelper
 import com.example.insuscan.auth.helper.LoginFlowManager
 import com.example.insuscan.auth.util.AuthErrorHandler
@@ -204,7 +203,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             .addOnCompleteListener { task ->
                 showLoading(false)
                 if (task.isSuccessful) {
-                    Toast.makeText(requireContext(), "Password reset email sent to $email", Toast.LENGTH_LONG).show()
+                    ToastHelper.showLong(requireContext(), "Password reset email sent to $email")
                 } else {
                     showError(AuthErrorHandler.toAuthException(task.exception?.message).message ?: "Failed to send reset email")
                 }
@@ -231,6 +230,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     }
 
     private fun showError(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        ToastHelper.showShort(requireContext(), message)
     }
 }
