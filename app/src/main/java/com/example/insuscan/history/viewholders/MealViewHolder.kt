@@ -71,7 +71,7 @@ class MealViewHolder(
 
             tvPlan.text = item.planDisplayText
 
-            tvStatus.text = "Normal"
+            tvStatus.text = itemView.context.getString(R.string.history_status_normal)
             tvStatus.setTextColor(ContextCompat.getColor(itemView.context, R.color.secondary))
 
             val foodLines = item.meal.foodItems?.joinToString("\n") { food ->

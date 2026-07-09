@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.example.insuscan.R
 import com.example.insuscan.network.InsuScanApi
 import com.example.insuscan.network.dto.AiSearchRequestDto
 import com.example.insuscan.network.dto.ScoredFoodResultDto
@@ -120,7 +121,7 @@ class FoodSearchHelper(
             searchingIndicator.visibility = View.GONE
             searchingText.visibility = View.GONE
             btnAddFood.isEnabled = true
-            btnAddFood.text = "Add"
+            btnAddFood.text = btnAddFood.context.getString(R.string.action_add_food)
             etFoodName.isEnabled = true
             etWeight.isEnabled = true
         }

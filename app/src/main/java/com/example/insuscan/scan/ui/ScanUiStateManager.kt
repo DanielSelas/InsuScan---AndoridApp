@@ -86,7 +86,7 @@ class ScanUiStateManager(
                 fullLoadingOverlay.visibility = View.VISIBLE
                 loadingReferenceNoticeLayout.visibility = View.GONE
                 btnSubmitScan.isEnabled = true
-                btnSubmitScan.text = "Show Results"
+                btnSubmitScan.text = view.context.getString(R.string.action_show_results)
                 glucoseInput.isEnabled = true
                 startLoadingAnimation()
             } else {
@@ -127,7 +127,7 @@ class ScanUiStateManager(
         // Reset all steps to inactive
         steps.forEach { (icon, text) ->
             icon.setImageResource(R.drawable.ic_step_inactive)
-            text.setTextColor(android.graphics.Color.parseColor("#6C757D"))
+            text.setTextColor(androidx.core.content.ContextCompat.getColor(view.context, R.color.step_text_inactive))
         }
 
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
@@ -139,14 +139,14 @@ class ScanUiStateManager(
                     // Mark previous step as completed (green check)
                     val prevStep = steps[currentStep - 1]
                     prevStep.first.setImageResource(R.drawable.ic_step_check)
-                    prevStep.second.setTextColor(android.graphics.Color.parseColor("#0D1B2A"))
+                    prevStep.second.setTextColor(androidx.core.content.ContextCompat.getColor(view.context, R.color.step_text_active))
                 }
 
                 if (currentStep < steps.size) {
                     // Mark current step as active (blue dot)
                     val activeStep = steps[currentStep]
                     activeStep.first.setImageResource(R.drawable.ic_step_active)
-                    activeStep.second.setTextColor(android.graphics.Color.parseColor("#0D1B2A"))
+                    activeStep.second.setTextColor(androidx.core.content.ContextCompat.getColor(view.context, R.color.step_text_active))
                     
                     currentStep++
                     // Schedule next step in 2.0 seconds to simulate progress

@@ -99,7 +99,7 @@ class SummaryUiManager(val view: View, val context: Context) {
             }
 
             glucose < target - BELOW_TARGET_MARGIN -> {
-                glucoseStatusText.text = "Below target"
+                glucoseStatusText.text = context.getString(R.string.summary_glucose_below)
                 glucoseStatusText.setTextColor(
                     ContextCompat.getColor(
                         context,
@@ -119,7 +119,7 @@ class SummaryUiManager(val view: View, val context: Context) {
             }
 
             glucose <= GlucoseThresholds.HIGH -> {
-                glucoseStatusText.text = "Above target"
+                glucoseStatusText.text = context.getString(R.string.summary_glucose_above)
                 glucoseStatusText.setTextColor(
                     ContextCompat.getColor(
                         context,

@@ -25,7 +25,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
 
     private fun showResumeOrNewScanDialog() {
         android.app.AlertDialog.Builder(requireContext())
-            .setTitle("Resume scan?")
+            .setTitle(R.string.dialog_resume_scan_title)
             .setMessage("You have an unsaved scan from earlier.")
             .setCancelable(false)
             .setPositiveButton("View Summary") { _, _ ->

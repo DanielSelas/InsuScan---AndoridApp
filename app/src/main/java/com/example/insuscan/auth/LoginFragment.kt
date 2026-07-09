@@ -130,19 +130,19 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private fun updateUI() {
         if (isLoginMode) {
-            tvScreenTitle.text = "Sign In"
-            btnAction.text = "Sign In"
-            tvTogglePrompt.text = "Don't have an account? "
-            tvToggleAction.text = "Sign Up"
-            tvForgotPassword.isVisible = true
+            tvScreenTitle.text = getString(R.string.auth_sign_in)
+            btnAction.text = getString(R.string.auth_sign_in)
+            tvTogglePrompt.text = getString(R.string.auth_prompt_no_account)
+            tvToggleAction.text = getString(R.string.auth_sign_up)
+            tvForgotPassword.visibility = android.view.View.VISIBLE
             tilConfirmPassword.isVisible = false
             tvPasswordHint.isVisible = false
         } else {
-            tvScreenTitle.text = "Create Account"
-            btnAction.text = "Create Account"
-            tvTogglePrompt.text = "Already have an account? "
-            tvToggleAction.text = "Sign In"
-            tvForgotPassword.isVisible = false
+            tvScreenTitle.text = getString(R.string.auth_create_account)
+            btnAction.text = getString(R.string.auth_create_account)
+            tvTogglePrompt.text = getString(R.string.auth_prompt_has_account)
+            tvToggleAction.text = getString(R.string.auth_sign_in)
+            tvForgotPassword.visibility = android.view.View.GONE
             tilConfirmPassword.isVisible = true
             tvPasswordHint.isVisible = true
         }
@@ -203,7 +203,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             .addOnCompleteListener { task ->
                 showLoading(false)
                 if (task.isSuccessful) {
-                    ToastHelper.showLong(requireContext(), "Password reset email sent to $email")
+                    ToastHelper.showLong(requireContext(), getString(R.string.msg_password_reset_sent, email))
                 } else {
                     showError(AuthErrorHandler.toAuthException(task.exception?.message).message ?: "Failed to send reset email")
                 }

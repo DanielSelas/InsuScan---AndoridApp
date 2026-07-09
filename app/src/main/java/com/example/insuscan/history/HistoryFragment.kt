@@ -82,8 +82,8 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             when {
                 isError -> emptyStateText.text =
                     com.example.insuscan.network.NetworkErrorPresenter.message((refresh as LoadState.Error).error)
-                isListEmpty && btnClearFilter.isVisible -> emptyStateText.text = "No meals found for this date."
-                isListEmpty -> emptyStateText.text = "No meals yet.\nScan your first meal to get started!"
+                isListEmpty && btnClearFilter.isVisible -> emptyStateText.text = getString(R.string.history_no_meals_date)
+                isListEmpty -> emptyStateText.text = getString(R.string.history_no_meals_yet)
             }
         }
 

@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.fragment.app.Fragment
+import com.example.insuscan.R
 import androidx.lifecycle.lifecycleScope
 import com.example.insuscan.camera.model.ImageQualityResult
 import com.example.insuscan.camera.validator.ImageValidator
@@ -63,12 +64,12 @@ class ScanFlowController(
         uiState.btnSubmitScan.setOnClickListener {
             val text = uiState.glucoseInput.text.toString().trim()
             if (text.isEmpty()) {
-                ToastHelper.showShort(context, "Please enter your blood glucose level.")
+                ToastHelper.showShort(context, context.getString(R.string.scan_enter_glucose))
                 return@setOnClickListener
             }
             val value = text.toIntOrNull()
             if (value == null || value < 30 || value > 600) {
-                ToastHelper.showShort(context, "Blood glucose must be between 30 and 600 mg/dL.")
+                ToastHelper.showShort(context, context.getString(R.string.scan_glucose_range_error))
                 return@setOnClickListener
             }
 
@@ -78,7 +79,7 @@ class ScanFlowController(
             } else {
                 isWaitingForResults = true
                 uiState.btnSubmitScan.isEnabled = false
-                uiState.btnSubmitScan.text = "Waiting..."
+                uiState.btnSubmitScan.text = context.getString(R.string.scan_waiting)
                 uiState.glucoseInput.isEnabled = false
             }
         }
@@ -143,12 +144,12 @@ class ScanFlowController(
                             QualityLevel.FAILED -> {
                                 Log.w(TAG, "Image failed validation: ${validationResult.report.message}")
                                 uiState.showLoading(false)
-                                ToastHelper.showLong(context, "Image quality issue:\n${validationResult.report.message}\nPlease retake.")
+                                ToastHelper.showLong(context, context.getString(R.string.scan_quality_issue, validationResult.report.message))
                                 switchToCameraMode()
                             }
                             QualityLevel.BORDERLINE -> {
                                 Log.w(TAG, "Image borderline quality: ${validationResult.report.message}")
-                                ToastHelper.showLong(context, "Heads up: ${validationResult.report.message}")
+                                ToastHelper.showLong(context, context.getString(R.string.scan_quality_warning, validationResult.report.message))
                                 analyzePortionAndContinue(file)
                             }
                             QualityLevel.OK -> {
@@ -193,7 +194,7 @@ class ScanFlowController(
         val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
         if (bitmap == null) {
             uiState.showLoading(false)
-            ToastHelper.showShort(context, "Failed to process image")
+            ToastHelper.showShort(context, context.getString(R.string.scan_process_failed))
             return
         }
 
@@ -328,7 +329,7 @@ class ScanFlowController(
             dialogHelper.handleScanError(e)
         } catch (e: Exception) {
             uiState.showLoading(false)
-            ToastHelper.showShort(context, "Failed to process image. Please try again.")
+            ToastHelper.showShort(context, context.getString(R.string.scan_process_failed_retry))
         }
     }
 

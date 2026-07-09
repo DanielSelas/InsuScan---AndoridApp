@@ -146,7 +146,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
         btnAddFood.setOnClickListener {
             val foodName = etFoodName.text.toString().trim()
             if (foodName.isEmpty()) {
-                ToastHelper.showShort(ctx, "Please enter food name")
+                ToastHelper.showShort(ctx, getString(R.string.msg_enter_food_name))
                 return@setOnClickListener
             }
             val weightText = etWeight.text.toString().trim()
@@ -183,7 +183,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
             name = name, weightGrams = weightGrams,
             carbsPer100g = result.carbsPer100g, usdaFdcId = result.fdcId, isLoading = false
         ))
-        ToastHelper.showShort(ctx, "✅ Added: $name")
+        ToastHelper.showShort(ctx, getString(R.string.msg_added_food, name))
     }
 
     private fun addCustomItem(name: String, weight: Float, carbsPer100g: Float) {
@@ -191,7 +191,7 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
             name = name, weightGrams = weight,
             carbsPer100g = carbsPer100g, usdaFdcId = null, isLoading = false
         ))
-        ToastHelper.showShort(ctx, "✅ Added: $name")
+        ToastHelper.showShort(ctx, getString(R.string.msg_added_food, name))
     }
 
     private fun addItem(item: EditableFoodItem) {
@@ -211,13 +211,13 @@ class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
     private fun saveMeal() {
         if (editableItems.isEmpty()) {
-            ToastHelper.showShort(ctx, "Add at least one food item")
+            ToastHelper.showShort(ctx, getString(R.string.msg_add_at_least_one_food))
             return
         }
         val totalCarbs = foodItemAdapter.getTotalCarbs()
         val updatedMeal = mealPersistenceHelper.buildUpdatedMeal(editableItems, totalCarbs)
         MealSessionManager.setCurrentMeal(updatedMeal)
-        ToastHelper.showShort(ctx, "Meal updated: ${totalCarbs.toInt()}g carbs")
+        ToastHelper.showShort(ctx, getString(R.string.msg_meal_updated_carbs, totalCarbs.toInt()))
 
         findNavController().navigate(R.id.summaryFragment)
     }

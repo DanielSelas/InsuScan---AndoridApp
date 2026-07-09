@@ -80,4 +80,7 @@
     <color name="scan_loading_text_dark">#0D1B2A</color>
     <color name="scan_loading_text_mid">#6C757D</color>
 
+    <!-- Step Indicator Colors -->
+    <color name="step_text_inactive">#6C757D</color>
+    <color name="step_text_active">#0D1B2A</color>
 </resources>
