@@ -3,6 +3,12 @@ package com.example.insuscan.network.repository
 import com.example.insuscan.network.dto.FoodItemDto
 import com.example.insuscan.network.dto.MealDto
 
+/**
+ * Defines meal-related data operations used by the app.
+ *
+ * Handles scanned meals, manual meal updates, history retrieval,
+ * confirmation flow, and meal deletion.
+ */
 interface MealRepository {
     suspend fun createMeal(userEmail: String, imageUrl: String): Result<MealDto>
     suspend fun saveScannedMeal(email: String, meal: MealDto): Result<MealDto>

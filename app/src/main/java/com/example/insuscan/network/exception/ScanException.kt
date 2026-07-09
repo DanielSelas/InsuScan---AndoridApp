@@ -1,6 +1,8 @@
 package com.example.insuscan.network.exception
 
-// Sealed class for scan-related errors - clean OOP hierarchy
+/**
+ * Typed errors for the meal scan flow, mapped from HTTP and network failures.
+ */
 sealed class ScanException(message: String) : Exception(message) {
 
     // No food was detected in the image (server returned 422)

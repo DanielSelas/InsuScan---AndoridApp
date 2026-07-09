@@ -6,7 +6,7 @@ import com.example.insuscan.R
 
 /**
  * Shared utility for reference object selection.
- * Used by both ScanFragment and ChatFragment to avoid code duplication.
+ * Used by ScanFragment to avoid code duplication.
  */
 object ReferenceObjectHelper {
 

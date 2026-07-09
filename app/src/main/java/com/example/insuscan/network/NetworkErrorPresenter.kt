@@ -3,6 +3,12 @@ package com.example.insuscan.network
 import com.example.insuscan.network.exception.ApiException
 import org.json.JSONObject
 
+/**
+ * Translates network and API failures into short, user-facing messages.
+ *
+ * [message] gives a coarse reason for list and screen states, while [userMessage]
+ * returns the most specific text available, preferring the server-supplied error.
+ */
 object NetworkErrorPresenter {
     fun isServerUnreachable(error: Throwable?): Boolean =
         error is ApiException.NoConnection ||
@@ -23,9 +29,11 @@ object NetworkErrorPresenter {
     private fun extractServerError(body: String?): String? {
         if (body.isNullOrBlank()) return null
         return try {
-            JSONObject(body).optString("error").takeIf { it.isNotBlank() }
+            JSONObject(body).optString(SERVER_ERROR_FIELD).takeIf { it.isNotBlank() }
         } catch (e: Exception) {
             null
         }
     }
+
+    private const val SERVER_ERROR_FIELD = "error"
 }

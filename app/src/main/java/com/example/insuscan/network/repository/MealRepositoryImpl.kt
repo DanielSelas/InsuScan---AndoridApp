@@ -20,7 +20,6 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
     }
 
     override suspend fun saveScannedMeal(email: String, meal: MealDto): Result<MealDto> = safeApiCall {
-        val jsonDebug = "Carbs: ${meal.totalCarbs}, Dose: ${meal.recommendedDose}"
         FileLogger.log("NET", "📤 UPLOADING MEAL to $email")
         FileLogger.log("NET", "   Total Carbs: ${meal.totalCarbs}")
         FileLogger.log("NET", "   Calc Dose  : ${meal.recommendedDose}")

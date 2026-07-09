@@ -6,6 +6,11 @@ import com.example.insuscan.network.dto.NewUserDto
 import com.example.insuscan.network.dto.UserDto
 import com.example.insuscan.network.repository.base.BaseRepository
 
+/**
+ * Repository implementation for user authentication and profile operations.
+ *
+ * Wraps backend user requests with the shared safe API handling from [BaseRepository].
+ */
 class UserRepositoryImpl : BaseRepository(), UserRepository {
 
     private val api = RetrofitClient.api
