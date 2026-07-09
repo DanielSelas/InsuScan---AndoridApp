@@ -5,18 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:padding="@dimen/spacing_large"
     android:background="@color/surface">
 
     <TextView
         android:id="@+id/tv_edit_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="16sp"
+        android:textSize="@dimen/text_body1"
         android:fontFamily="@font/inter"
         android:textFontWeight="600"
         android:textColor="@color/text_primary"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="@dimen/spacing_medium" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -30,9 +30,9 @@
             android:layout_height="48dp"
             android:layout_weight="1"
             android:background="@drawable/edit_text_background"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:textSize="15sp"
+            android:paddingStart="@dimen/padding_input_horizontal"
+            android:paddingEnd="@dimen/padding_input_horizontal"
+            android:textSize="@dimen/text_body1"
             android:fontFamily="@font/inter"
             android:textColor="@color/text_primary"
             android:singleLine="true" />
@@ -41,10 +41,10 @@
             android:id="@+id/tv_edit_suffix"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="13sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:textColor="@color/text_secondary"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="@dimen/spacing_small"
             android:visibility="gone" />
 
     </LinearLayout>
@@ -53,7 +53,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="20dp">
+        android:layout_marginTop="@dimen/summary_padding_horizontal">
 
         <Button
             android:id="@+id/btn_edit_cancel"
@@ -65,8 +65,8 @@
             android:fontFamily="@font/inter"
             android:textColor="@color/text_secondary"
             android:backgroundTint="@color/background"
-            android:layout_marginEnd="8dp"
-            app:cornerRadius="12dp"
+            android:layout_marginEnd="@dimen/spacing_small"
+            app:cornerRadius="@dimen/corner_radius_button"
             style="@style/Widget.Material3.Button" />
 
         <Button
@@ -79,8 +79,8 @@
             android:fontFamily="@font/inter"
             android:textColor="@color/text_on_primary"
             android:backgroundTint="@color/primary"
-            android:layout_marginStart="8dp"
-            app:cornerRadius="12dp"
+            android:layout_marginStart="@dimen/spacing_small"
+            app:cornerRadius="@dimen/corner_radius_button"
             style="@style/Widget.Material3.Button" />
 
     </LinearLayout>

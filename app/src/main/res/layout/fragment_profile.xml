@@ -27,17 +27,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="16dp"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium"
+            android:paddingTop="@dimen/spacing_medium"
             android:paddingBottom="120dp">
 
             <!-- HEADER -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
+                android:layout_marginBottom="@dimen/spacing_large"
+                app:cardCornerRadius="@dimen/corner_radius_card"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
@@ -45,7 +45,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="16dp"
+                    android:padding="@dimen/spacing_medium"
                     android:gravity="center_vertical">
 
                     <FrameLayout
@@ -90,7 +90,7 @@
                                 android:id="@+id/tv_user_name_display"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textSize="16sp"
+                                android:textSize="@dimen/text_body1"
                                 android:fontFamily="@font/inter"
                                 android:textFontWeight="600"
                                 android:textColor="@color/text_primary" />
@@ -99,7 +99,7 @@
                                 android:id="@+id/tv_user_email"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textSize="12.5sp"
+                                android:textSize="@dimen/text_caption"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginTop="2dp" />
@@ -110,7 +110,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="›"
-                            android:textSize="20sp"
+                            android:textSize="@dimen/text_h2"
                             android:textColor="@color/text_disabled"
                             android:fontFamily="@font/inter" />
 
@@ -124,19 +124,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="PERSONAL INFO"
-                android:textSize="11sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="600"
                 android:letterSpacing="0.08"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="6dp"
-                android:layout_marginStart="4dp" />
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
+                android:layout_marginBottom="@dimen/spacing_large"
+                app:cardCornerRadius="@dimen/corner_radius_card"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
@@ -144,13 +144,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp">
+                    android:paddingTop="@dimen/spacing_xs"
+                    android:paddingBottom="@dimen/spacing_xs">
 
                     <include layout="@layout/item_profile_row" android:id="@+id/row_age" />
 
                     <View android:layout_width="match_parent" android:layout_height="0.5dp"
-                        android:background="@color/divider" android:layout_marginStart="16dp" />
+                        android:background="@color/divider" android:layout_marginStart="@dimen/spacing_medium" />
 
                     <include layout="@layout/item_profile_row" android:id="@+id/row_gender" />
 
@@ -162,19 +162,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="INSULIN PARAMETERS"
-                android:textSize="11sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="600"
                 android:letterSpacing="0.08"
                 android:textColor="@color/text_secondary"
                 android:layout_marginBottom="6dp"
-                android:layout_marginStart="4dp" />
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
+                android:layout_marginBottom="@dimen/spacing_large"
+                app:cardCornerRadius="@dimen/corner_radius_card"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
@@ -182,23 +182,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp">
+                    android:paddingTop="@dimen/spacing_xs"
+                    android:paddingBottom="@dimen/spacing_xs">
 
                     <include layout="@layout/item_profile_row" android:id="@+id/row_icr" />
 
                     <View android:layout_width="match_parent" android:layout_height="0.5dp"
-                        android:background="@color/divider" android:layout_marginStart="16dp" />
+                        android:background="@color/divider" android:layout_marginStart="@dimen/spacing_medium" />
 
                     <include layout="@layout/item_profile_row" android:id="@+id/row_isf" />
 
                     <View android:layout_width="match_parent" android:layout_height="0.5dp"
-                        android:background="@color/divider" android:layout_marginStart="16dp" />
+                        android:background="@color/divider" android:layout_marginStart="@dimen/spacing_medium" />
 
                     <include layout="@layout/item_profile_row" android:id="@+id/row_target_glucose" />
 
                     <View android:layout_width="match_parent" android:layout_height="0.5dp"
-                        android:background="@color/divider" android:layout_marginStart="16dp" />
+                        android:background="@color/divider" android:layout_marginStart="@dimen/spacing_medium" />
 
                     <include layout="@layout/item_profile_row" android:id="@+id/row_dose_rounding" />
 
@@ -212,14 +212,14 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="6dp"
-                android:layout_marginStart="4dp">
+                android:layout_marginStart="@dimen/spacing_xs">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="INSULIN PLANS"
-                    android:textSize="11sp"
+                    android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="600"
                     android:letterSpacing="0.08"
@@ -230,19 +230,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="+ Add"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="500"
                     android:textColor="@color/primary"
-                    android:paddingEnd="4dp" />
+                    android:paddingEnd="@dimen/spacing_xs" />
 
             </LinearLayout>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
+                android:layout_marginBottom="@dimen/spacing_large"
+                app:cardCornerRadius="@dimen/corner_radius_card"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
@@ -251,8 +251,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp" />
+                    android:paddingTop="@dimen/spacing_xs"
+                    android:paddingBottom="@dimen/spacing_xs" />
 
             </androidx.cardview.widget.CardView>
 
@@ -262,7 +262,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:text="Log out"
-                android:textSize="14.5sp"
+                android:textSize="@dimen/text_body2"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:textAllCaps="false"

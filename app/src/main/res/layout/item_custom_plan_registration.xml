@@ -4,8 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="12dp"
-    app:cardCornerRadius="12dp"
+    android:layout_marginBottom="@dimen/padding_input_horizontal"
+    app:cardCornerRadius="@dimen/corner_radius_button"
     app:cardElevation="2dp"
     app:cardBackgroundColor="@color/surface">
 
@@ -13,14 +13,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/spacing_medium">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="@dimen/spacing_small">
 
             <EditText
                 android:id="@+id/et_custom_plan_name"
@@ -28,7 +28,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="Plan name"
-                android:textSize="16sp"
+                android:textSize="@dimen/text_body1"
                 android:textStyle="bold"
                 android:background="@android:color/transparent" />
 
@@ -37,7 +37,7 @@
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:src="@android:drawable/ic_delete"
-                android:padding="4dp"
+                android:padding="@dimen/spacing_xs"
                 android:contentDescription="Remove plan" />
 
         </LinearLayout>
@@ -60,7 +60,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ICR (1:X)"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <EditText
                     android:id="@+id/et_custom_plan_icr"
@@ -69,7 +69,7 @@
                     android:inputType="numberDecimal"
                     android:textAlignment="center"
                     android:background="@drawable/edit_text_background"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="@dimen/spacing_xs" />
 
             </LinearLayout>
 
@@ -84,7 +84,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ISF"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <EditText
                     android:id="@+id/et_custom_plan_isf"
@@ -93,7 +93,7 @@
                     android:inputType="numberDecimal"
                     android:textAlignment="center"
                     android:background="@drawable/edit_text_background"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="@dimen/spacing_xs" />
 
             </LinearLayout>
 
@@ -108,7 +108,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Target"
-                    android:textSize="12sp" />
+                    android:textSize="@dimen/text_caption" />
 
                 <EditText
                     android:id="@+id/et_custom_plan_target"
@@ -117,7 +117,7 @@
                     android:inputType="number"
                     android:textAlignment="center"
                     android:background="@drawable/edit_text_background"
-                    android:layout_marginTop="4dp" />
+                    android:layout_marginTop="@dimen/spacing_xs" />
 
             </LinearLayout>
 

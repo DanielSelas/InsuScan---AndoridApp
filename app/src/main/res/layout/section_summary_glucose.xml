@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Current glucose section — extracted from fragment_summary.xml.
+     Wrapper LinearLayout groups the section label + glucose input card. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Glucose section -->
+    <TextView
+        style="@style/TextStyle.SectionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/summary_current_glucose"
+        android:layout_marginTop="@dimen/summary_section_margin_top"
+        android:layout_marginBottom="@dimen/spacing_small" />
+
+    <androidx.cardview.widget.CardView
+        style="@style/CardStyle.Standard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/til_glucose"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:boxBackgroundColor="@color/background"
+                    app:boxStrokeColor="@color/border"
+                    app:boxStrokeWidth="0.5dp"
+                    app:boxCornerRadiusTopStart="@dimen/corner_radius_input"
+                    app:boxCornerRadiusTopEnd="@dimen/corner_radius_input"
+                    app:boxCornerRadiusBottomStart="@dimen/corner_radius_input"
+                    app:boxCornerRadiusBottomEnd="@dimen/corner_radius_input"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/et_current_glucose"
+                        android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:textSize="@dimen/text_h3"
+                        android:fontFamily="@font/inter"
+                        android:textFontWeight="600"
+                        android:textColor="@color/text_primary"
+                        android:gravity="center"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp"
+                        android:imeOptions="actionDone"
+                        android:maxLines="1" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/tv_glucose_unit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/unit_mgdl"
+                    android:textSize="@dimen/text_caption"
+                    android:fontFamily="@font/inter"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginStart="@dimen/padding_input_horizontal" />
+
+                <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tv_glucose_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_caption"
+                    android:fontFamily="@font/inter"
+                    android:textFontWeight="500"
+                    android:textColor="@color/status_warning"
+                    android:background="@color/warning_bg"
+                    android:paddingStart="@dimen/spacing_small"
+                    android:paddingEnd="@dimen/spacing_small"
+                    android:paddingTop="@dimen/spacing_xs"
+                    android:paddingBottom="@dimen/spacing_xs" />
+
+                <Button
+                    android:id="@+id/btn_use_last_glucose"
+                    style="@style/ButtonStyle.Outlined"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/button_height_small"
+                    android:layout_marginStart="@dimen/spacing_small"
+                    android:text="@string/summary_use_last_glucose"
+                    android:textSize="@dimen/text_caption"
+                    android:backgroundTint="@color/background"
+                    app:cornerRadius="@dimen/corner_radius_input" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stats row: Total Carbs + Recommended — extracted from fragment_summary.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginBottom="@dimen/spacing_medium">
+
+    <androidx.cardview.widget.CardView
+        style="@style/CardStyle.Standard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginEnd="@dimen/spacing_small">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/summary_total_carbs_label"
+                android:textSize="9.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:letterSpacing="0.08"
+                android:textAllCaps="true"
+                android:textColor="@color/text_secondary" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:layout_marginTop="@dimen/spacing_xs">
+
+                <TextView
+                    android:id="@+id/tv_total_carbs"
+                    style="@style/TextStyle.StatValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/unit_grams"
+                    android:textSize="@dimen/text_body1"
+                    android:fontFamily="@font/inter"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="@dimen/spacing_xs" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        style="@style/CardStyle.Standard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/spacing_small"
+        app:cardBackgroundColor="@color/primary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/summary_recommended_label"
+                android:textSize="9.5sp"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:letterSpacing="0.08"
+                android:textAllCaps="true"
+                android:textColor="@color/white_60" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:layout_marginTop="@dimen/spacing_xs">
+
+                <TextView
+                    android:id="@+id/tv_recommended_dose"
+                    style="@style/TextStyle.StatValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0.0"
+                    android:textColor="@color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/unit_units"
+                    android:textSize="@dimen/text_body2"
+                    android:fontFamily="@font/inter"
+                    android:textColor="@color/white_60"
+                    android:layout_marginBottom="@dimen/spacing_xs"
+                    android:layout_marginStart="@dimen/spacing_xs" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

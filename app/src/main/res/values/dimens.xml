@@ -128,4 +128,29 @@
     <dimen name="ref_card_width">100dp</dimen>
     <dimen name="ref_card_height">65dp</dimen>
 
+    <!-- ==================== Summary Screen ==================== -->
+    <dimen name="summary_padding_horizontal">20dp</dimen>
+    <dimen name="summary_image_height">160dp</dimen>
+    <dimen name="summary_section_margin_top">20dp</dimen>
+    <dimen name="summary_button_height">40dp</dimen>
+    <dimen name="summary_confirm_button_height">52dp</dimen>
+    <dimen name="summary_card_corner_small">12dp</dimen>
+
+    <!-- ==================== Camera Scan / Loading Screen ==================== -->
+    <dimen name="scan_loading_image_size">220dp</dimen>
+    <dimen name="scan_loading_image_inner">200dp</dimen>
+    <dimen name="scan_plate_target_size">240dp</dimen>
+    <dimen name="scan_ref_target_width">50dp</dimen>
+    <dimen name="scan_ref_target_height">140dp</dimen>
+    <dimen name="scan_coach_pill_horizontal">14dp</dimen>
+    <dimen name="scan_coach_pill_vertical">8dp</dimen>
+    <dimen name="scan_capture_button_size">72dp</dimen>
+    <dimen name="scan_gallery_button_size">32dp</dimen>
+    <dimen name="scan_step_icon_size">24dp</dimen>
+    <dimen name="scan_glucose_input_height">44dp</dimen>
+    <dimen name="scan_top_bar_button_size">36dp</dimen>
+    <dimen name="scan_step_dot_size">9dp</dimen>
+    <dimen name="scan_step_line_width">20dp</dimen>
+    <dimen name="scan_step_line_height">2dp</dimen>
+
 </resources>

@@ -5,8 +5,8 @@
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
+    android:paddingStart="@dimen/spacing_medium"
+    android:paddingEnd="@dimen/spacing_medium"
     android:minHeight="52dp"
     android:background="?attr/selectableItemBackground">
 
@@ -15,7 +15,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:textSize="14sp"
+        android:textSize="@dimen/text_body2"
         android:fontFamily="@font/inter"
         android:textColor="@color/text_primary" />
 
@@ -33,7 +33,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="›"
-        android:textSize="20sp"
+        android:textSize="@dimen/text_h2"
         android:textColor="@color/text_disabled"
         android:fontFamily="@font/inter" />
 

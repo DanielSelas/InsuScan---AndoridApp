@@ -19,8 +19,12 @@ import com.example.insuscan.profile.helpers.ProfileImageHandler
 import com.example.insuscan.profile.helpers.ProfileUiManager
 import com.example.insuscan.utils.TopBarHelper
 import kotlinx.coroutines.launch
+import com.example.insuscan.utils.ToastHelper
 
-
+/**
+ * Profile screen: shows and edits the user's personal and insulin settings,
+ * manages insulin plans, and syncs changes to the server.
+ */
 class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
     private lateinit var ui: ProfileUiManager
@@ -46,7 +50,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         TopBarHelper.setupTopBar(
             rootView = view,
-            title = "Profile",
+            title = getString(R.string.profile_title),
             onBack = { findNavController().navigate(R.id.homeFragment) }
         )
 
@@ -64,7 +68,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ui.rowNameEmail.setOnClickListener {
             val current = UserProfileManager.getUserName(ctx) ?: ""
-            showEditSheet("Name", current, InputType.TYPE_CLASS_TEXT, "") { value ->
+            showEditSheet(getString(R.string.profile_edit_name), current, InputType.TYPE_CLASS_TEXT, "") { value ->
                 UserProfileManager.saveUserName(ctx, value)
                 ui.nameDisplay.text = value
                 saveToServer()
@@ -73,7 +77,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ui.rowAge.setOnClickListener {
             val current = UserProfileManager.getUserAge(ctx)?.toString() ?: ""
-            showEditSheet("Age", current, InputType.TYPE_CLASS_NUMBER, "") { value ->
+            showEditSheet(getString(R.string.profile_edit_age), current, InputType.TYPE_CLASS_NUMBER, "") { value ->
                 value.toIntOrNull()?.let {
                     UserProfileManager.saveUserAge(ctx, it)
                     ui.setRowValue(ui.rowAge, value)
@@ -84,7 +88,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ui.rowGender.setOnClickListener {
             val current = UserProfileManager.getUserGender(ctx) ?: ""
-            showEditSheet("Gender", current, InputType.TYPE_CLASS_TEXT, "") { value ->
+            showEditSheet(getString(R.string.profile_edit_gender), current, InputType.TYPE_CLASS_TEXT, "") { value ->
                 UserProfileManager.saveUserGender(ctx, value)
                 ui.setRowValue(ui.rowGender, value)
                 saveToServer()
@@ -93,25 +97,25 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ui.rowIcr.setOnClickListener {
             val current = UserProfileManager.getInsulinCarbRatioRaw(ctx)?.split(":")?.lastOrNull()?.trim() ?: ""
-            showEditSheet("ICR — grams per unit", current, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL, "g/u") { value ->
+            showEditSheet(getString(R.string.profile_edit_icr), current, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL, getString(R.string.unit_grams_per_unit)) { value ->
                 val trimmed = value.trim()
                 val grams = trimmed.toFloatOrNull()
                 if (grams == null || grams <= 0f) {
-                    com.example.insuscan.utils.ToastHelper.showShort(ctx, "ICR must be a positive number")
+                    ToastHelper.showShort(ctx, getString(R.string.profile_icr_positive_error))
                     return@showEditSheet
                 }
                 UserProfileManager.saveInsulinCarbRatio(ctx, "1:$trimmed")
-                ui.setRowValue(ui.rowIcr, "1u : ${trimmed}g")
+                ui.setRowValue(ui.rowIcr, getString(R.string.profile_icr_value_format, trimmed))
                 saveToServer()
             }
         }
 
         ui.rowIsf.setOnClickListener {
             val current = UserProfileManager.getCorrectionFactor(ctx)?.toInt()?.toString() ?: ""
-            showEditSheet("ISF — mg/dL per unit", current, InputType.TYPE_CLASS_NUMBER, "mg/dL") { value ->
+            showEditSheet(getString(R.string.profile_edit_isf), current, InputType.TYPE_CLASS_NUMBER, getString(R.string.unit_mg_dl)) { value ->
                 value.toFloatOrNull()?.let {
                     UserProfileManager.saveCorrectionFactor(ctx, it)
-                    ui.setRowValue(ui.rowIsf, "$value mg/dL")
+                    ui.setRowValue(ui.rowIsf, getString(R.string.value_mg_dl_format, value))
                     saveToServer()
                 }
             }
@@ -119,10 +123,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ui.rowTargetGlucose.setOnClickListener {
             val current = UserProfileManager.getTargetGlucose(ctx)?.toString() ?: ""
-            showEditSheet("Target glucose", current, InputType.TYPE_CLASS_NUMBER, "mg/dL") { value ->
+            showEditSheet(getString(R.string.profile_edit_target_glucose), current, InputType.TYPE_CLASS_NUMBER, getString(R.string.unit_mg_dl)) { value ->
                 value.toIntOrNull()?.let {
                     UserProfileManager.saveTargetGlucose(ctx, it)
-                    ui.setRowValue(ui.rowTargetGlucose, "$value mg/dL")
+                    ui.setRowValue(ui.rowTargetGlucose, getString(R.string.value_mg_dl_format, value))
                     saveToServer()
                 }
             }
@@ -130,10 +134,10 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
 
         ui.rowDoseRounding.setOnClickListener {
             val current = if (UserProfileManager.getDoseRounding(ctx) == 0.5f) "0.5" else "1"
-            showEditSheet("Dose rounding", current, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL, "u") { value ->
+            showEditSheet(getString(R.string.profile_edit_dose_rounding), current, InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL, getString(R.string.unit_units2)) { value ->
                 value.toFloatOrNull()?.let {
                     UserProfileManager.saveDoseRounding(ctx, it)
-                    ui.setRowValue(ui.rowDoseRounding, "$value u")
+                    ui.setRowValue(ui.rowDoseRounding, getString(R.string.value_units_format, value))
                     saveToServer()
                 }
             }
@@ -207,16 +211,7 @@ class ProfileFragment : Fragment(R.layout.fragment_profile) {
         AppDataStore.saveProfile(dataHelper.buildUserDto())
     }
     private fun loadPlansFromLocal() {
-        val plans = UserProfileManager.getInsulinPlans(ctx)?.map { dto ->
-            InsulinPlan(
-                id = dto.id ?: "",
-                name = dto.name ?: "",
-                isDefault = dto.isDefault,
-                icr = dto.icr,
-                isf = dto.isf,
-                targetGlucose = dto.targetGlucose
-            )
-        }
+        val plans = InsulinPlanMapper.toModelList(UserProfileManager.getInsulinPlans(ctx))
         dataHelper.planViewManager.loadPlans(plans)
     }
 

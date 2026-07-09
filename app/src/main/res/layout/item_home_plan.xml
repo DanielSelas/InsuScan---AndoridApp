@@ -24,13 +24,13 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="12dp">
+        android:layout_marginStart="@dimen/padding_input_horizontal">
 
         <TextView
             android:id="@+id/tv_plan_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14.5sp"
+            android:textSize="@dimen/text_body2"
             android:fontFamily="@font/inter"
             android:textFontWeight="500"
             android:textColor="@color/text_primary" />
@@ -39,7 +39,7 @@
             android:id="@+id/tv_plan_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="12sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:textColor="@color/text_secondary"
             android:layout_marginTop="1dp" />

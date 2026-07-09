@@ -71,4 +71,13 @@
     <color name="meal_afternoon_icon">#16A34A</color>
     <color name="meal_evening_bg">#EBF0FA</color>
     <color name="meal_evening_icon">#1A3B8C</color>
+
+    <!-- Overlays used in specific UI components -->
+    <color name="overlay_image_label">#66000000</color>
+    <color name="white_60">#99FFFFFF</color>
+    <!-- Scan loading screen background -->
+    <color name="scan_loading_bg">#F8F9FA</color>
+    <color name="scan_loading_text_dark">#0D1B2A</color>
+    <color name="scan_loading_text_mid">#6C757D</color>
+
 </resources>

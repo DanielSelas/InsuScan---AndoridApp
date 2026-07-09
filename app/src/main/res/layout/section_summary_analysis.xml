@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Reference notice + Portion analysis — extracted from fragment_summary.xml.
+     Wrapper LinearLayout groups: reference notice card + section label + analysis card. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Reference object notice (shown only when calibration fell back or used alternative) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/layout_reference_notice"
+        style="@style/CardStyle.Warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/padding_input_horizontal"
+            android:gravity="top">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠"
+                android:textSize="@dimen/text_body1"
+                android:textColor="@color/warning"
+                android:layout_marginEnd="@dimen/spacing_small"
+                android:layout_marginTop="1dp" />
+
+            <TextView
+                android:id="@+id/tv_reference_notice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_caption"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/warning"
+                android:lineSpacingExtra="2dp" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Portion analysis -->
+    <TextView
+        style="@style/TextStyle.SectionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/summary_portion_analysis"
+        android:layout_marginTop="@dimen/summary_section_margin_top"
+        android:layout_marginBottom="@dimen/spacing_small" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_analysis_results"
+        style="@style/CardStyle.Standard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/padding_card">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_small">
+
+                <TextView
+                    style="@style/TextStyle.DataRowLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/summary_est_weight" />
+
+                <TextView
+                    android:id="@+id/tv_portion_weight"
+                    style="@style/TextStyle.DataRowValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="@color/divider" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_small">
+
+                <TextView
+                    style="@style/TextStyle.DataRowLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/summary_plate" />
+
+                <TextView
+                    android:id="@+id/tv_plate_dimensions"
+                    style="@style/TextStyle.DataRowValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="@color/divider" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_small">
+
+                <TextView
+                    style="@style/TextStyle.DataRowLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/summary_reference_object" />
+
+                <TextView
+                    android:id="@+id/tv_reference_status"
+                    style="@style/TextStyle.DataRowValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <View android:layout_width="match_parent" android:layout_height="0.5dp" android:background="@color/divider" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/spacing_small">
+
+                <TextView
+                    style="@style/TextStyle.DataRowLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/summary_confidence" />
+
+                <TextView
+                    android:id="@+id/tv_analysis_confidence"
+                    style="@style/TextStyle.DataRowValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

@@ -29,27 +29,27 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="16dp"
+            android:paddingStart="@dimen/spacing_medium"
+            android:paddingEnd="@dimen/spacing_medium"
+            android:paddingTop="@dimen/spacing_medium"
             android:paddingBottom="120dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/ai_assistant"
-                android:textSize="11sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="600"
                 android:letterSpacing="0.08"
                 android:textColor="@color/text_secondary"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="@dimen/spacing_xs"
                 android:layout_marginBottom="6dp" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="@dimen/corner_radius_card"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
@@ -58,8 +58,8 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:gravity="center_horizontal"
-                    android:paddingStart="24dp"
-                    android:paddingEnd="24dp"
+                    android:paddingStart="@dimen/spacing_large"
+                    android:paddingEnd="@dimen/spacing_large"
                     android:paddingTop="28dp"
                     android:paddingBottom="28dp">
 
@@ -84,7 +84,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/chat_coming_title"
-                        android:textSize="18sp"
+                        android:textSize="@dimen/text_h3"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="700"
                         android:textColor="@color/text_primary"
@@ -97,7 +97,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/chat_coming_subtitle"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="@font/inter"
                         android:textColor="@color/text_secondary"
                         android:gravity="center"
@@ -109,15 +109,15 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="24dp">
+                        android:layout_marginTop="@dimen/spacing_large">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:paddingTop="8dp"
-                            android:paddingBottom="8dp">
+                            android:paddingTop="@dimen/spacing_small"
+                            android:paddingBottom="@dimen/spacing_small">
 
                             <TextView
                                 android:layout_width="24dp"
@@ -132,7 +132,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/chat_feature_scan_insights"
-                                android:textSize="14sp"
+                                android:textSize="@dimen/text_body2"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_primary" />
 
@@ -141,7 +141,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
-                            android:layout_marginStart="24dp"
+                            android:layout_marginStart="@dimen/spacing_large"
                             android:background="@color/divider" />
 
                         <LinearLayout
@@ -149,8 +149,8 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:paddingTop="8dp"
-                            android:paddingBottom="8dp">
+                            android:paddingTop="@dimen/spacing_small"
+                            android:paddingBottom="@dimen/spacing_small">
 
                             <TextView
                                 android:layout_width="24dp"
@@ -165,7 +165,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/tailored_dietary_recommendations"
-                                android:textSize="14sp"
+                                android:textSize="@dimen/text_body2"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_primary" />
 
@@ -174,7 +174,7 @@
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
-                            android:layout_marginStart="24dp"
+                            android:layout_marginStart="@dimen/spacing_large"
                             android:background="@color/divider" />
 
                         <LinearLayout
@@ -182,8 +182,8 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:paddingTop="8dp"
-                            android:paddingBottom="8dp">
+                            android:paddingTop="@dimen/spacing_small"
+                            android:paddingBottom="@dimen/spacing_small">
 
                             <TextView
                                 android:layout_width="24dp"
@@ -198,7 +198,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/chat_feature_smart_assistance"
-                                android:textSize="14sp"
+                                android:textSize="@dimen/text_body2"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_primary" />
 
@@ -210,9 +210,9 @@
                         android:id="@+id/btn_chat_coming_soon"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
-                        android:layout_marginTop="24dp"
+                        android:layout_marginTop="@dimen/spacing_large"
                         android:text="@string/chat_coming_soon_button"
-                        android:textSize="14.5sp"
+                        android:textSize="@dimen/text_body2"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="600"
                         android:textAllCaps="false"

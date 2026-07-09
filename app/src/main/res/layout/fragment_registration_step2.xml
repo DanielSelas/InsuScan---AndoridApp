@@ -16,7 +16,7 @@
         android:padding="@dimen/padding_card"
         android:gravity="center_vertical"
         android:background="@color/surface"
-        android:elevation="4dp"
+        android:elevation="@dimen/elevation_card"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Insulin Calculation Details (2/3)"
-            android:textSize="18sp"
+            android:textSize="@dimen/text_h3"
             android:textStyle="bold"
             android:textColor="@color/text_primary" />
     </LinearLayout>
@@ -49,16 +49,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="These fields are required for accurate dose calculations."
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body2"
                 android:textColor="@color/text_secondary"
-                android:layout_marginBottom="16dp"
-                android:layout_marginStart="4dp" />
+                android:layout_marginBottom="@dimen/spacing_medium"
+                android:layout_marginStart="@dimen/spacing_xs" />
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
+                android:layout_marginBottom="@dimen/spacing_medium"
+                app:cardCornerRadius="@dimen/corner_radius_button"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@color/surface">
 
@@ -66,7 +66,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="@dimen/spacing_medium">
 
 
                     <!-- ICR -->
@@ -86,13 +86,13 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Insulin to Carb Ratio*"
-                                android:textSize="16sp" />
+                                android:textSize="@dimen/text_body1" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="1 Unit covers X grams"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_caption"
                                 android:textColor="@color/text_hint" />
                         </LinearLayout>
 
@@ -102,16 +102,16 @@
                             android:orientation="horizontal"
                             android:background="@drawable/edit_text_background"
                             android:gravity="center_vertical"
-                            android:paddingStart="8dp"
-                            android:paddingEnd="8dp">
+                            android:paddingStart="@dimen/spacing_small"
+                            android:paddingEnd="@dimen/spacing_small">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="1 :"
-                                android:textSize="16sp"
+                                android:textSize="@dimen/text_body1"
                                 android:textColor="@color/text_primary"
-                                android:layout_marginEnd="4dp"/>
+                                android:layout_marginEnd="@dimen/spacing_xs"/>
 
                             <EditText
                                 android:id="@+id/et_reg_icr"
@@ -121,7 +121,7 @@
                                 android:inputType="numberDecimal"
                                 android:textAlignment="viewStart"
                                 android:background="@android:color/transparent"
-                                android:padding="8dp"/>
+                                android:padding="@dimen/spacing_small"/>
                         </LinearLayout>
                     </LinearLayout>
 
@@ -129,7 +129,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="@color/divider_profile"
-                        android:layout_marginVertical="12dp" />
+                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
 
                     <!-- ISF -->
                     <LinearLayout
@@ -148,14 +148,14 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Correction Factor*"
-                                android:textSize="16sp" />
+                                android:textSize="@dimen/text_body1" />
 
                             <TextView
                                 android:id="@+id/tv_reg_isf_subtitle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Drop per 1 unit"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_caption"
                                 android:textColor="@color/text_hint" />
                         </LinearLayout>
 
@@ -173,7 +173,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="@color/divider_profile"
-                        android:layout_marginVertical="12dp" />
+                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
 
                     <!-- Target Glucose -->
                     <LinearLayout
@@ -192,14 +192,14 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Target Glucose*"
-                                android:textSize="16sp" />
+                                android:textSize="@dimen/text_body1" />
 
                             <TextView
                                 android:id="@+id/tv_reg_target_subtitle"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="mg/dL"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_caption"
                                 android:textColor="@color/text_hint" />
                         </LinearLayout>
 
@@ -217,7 +217,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
                         android:background="@color/divider_profile"
-                        android:layout_marginVertical="12dp" />
+                        android:layout_marginVertical="@dimen/padding_input_horizontal" />
 
                     <!-- Dose Rounding -->
                     <LinearLayout
@@ -236,7 +236,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Dose Rounding*"
-                                android:textSize="16sp" />
+                                android:textSize="@dimen/text_body1" />
                         </LinearLayout>
 
                         <Spinner
@@ -256,9 +256,9 @@
         android:id="@+id/btn_next_step"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
+        android:layout_margin="@dimen/spacing_medium"
         android:text="Next Step"
-        android:padding="16dp"
+        android:padding="@dimen/spacing_medium"
         app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

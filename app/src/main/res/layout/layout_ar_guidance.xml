@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32dp">
+        android:padding="@dimen/spacing_xl">
 
         <ImageView
             android:id="@+id/iv_ar_animation"
@@ -27,26 +27,26 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="@dimen/spacing_large"
             android:text="Move phone slowly"
             android:textColor="@color/white"
-            android:textSize="24sp"
+            android:textSize="@dimen/text_h1"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tv_ar_status"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/spacing_small"
             android:text="Scanning surface..."
             android:textColor="#DDDDDD"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_body1" />
             
         <Button
             android:id="@+id/btn_cancel_ar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="@dimen/spacing_xl"
             android:text="Cancel"
             android:backgroundTint="#555555"
             android:textColor="@color/white" />

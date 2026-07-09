@@ -13,7 +13,7 @@
         android:paddingStart="28dp"
         android:paddingEnd="28dp"
         android:paddingTop="40dp"
-        android:paddingBottom="24dp">
+        android:paddingBottom="@dimen/spacing_large">
 
         <!-- Logomark -->
         <LinearLayout
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/app_name"
-                android:textSize="18sp"
+                android:textSize="@dimen/text_h3"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:textColor="@color/text_primary"
@@ -49,13 +49,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/auth_sign_in"
-            android:textSize="10.5sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:textFontWeight="500"
             android:letterSpacing="0.1"
             android:textAllCaps="true"
             android:textColor="@color/text_secondary"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="@dimen/spacing_xxl"
             app:layout_constraintTop_toBottomOf="@id/ll_brand"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -65,7 +65,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Welcome back."
-            android:textSize="28sp"
+            android:textSize="@dimen/insulin_dose_size"
             android:fontFamily="@font/inter"
             android:textFontWeight="500"
             android:textColor="@color/text_primary"
@@ -80,7 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/app_tagline"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_body2"
             android:fontFamily="@font/inter"
             android:textColor="@color/text_secondary"
             android:layout_marginTop="6dp"
@@ -94,7 +94,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="EMAIL"
-            android:textSize="10.5sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:textFontWeight="500"
             android:letterSpacing="0.1"
@@ -129,12 +129,12 @@
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
                 android:imeOptions="actionNext"
-                android:textSize="14.5sp"
+                android:textSize="@dimen/text_body2"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_primary"
-                android:hint="you@example.com"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
+                android:hint="@string/login_email_hint"
+                android:paddingTop="@dimen/padding_input_horizontal"
+                android:paddingBottom="@dimen/padding_input_horizontal" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Password label -->
@@ -143,7 +143,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_medium"
             app:layout_constraintTop_toBottomOf="@id/til_email"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -152,8 +152,8 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="PASSWORD"
-                android:textSize="10.5sp"
+                android:text="@string/login_password_label"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:letterSpacing="0.1"
@@ -165,7 +165,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/auth_forgot_password"
-                android:textSize="11sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_secondary"
                 android:textFontWeight="500" />
@@ -198,12 +198,12 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
                 android:imeOptions="actionNext"
-                android:textSize="14.5sp"
+                android:textSize="@dimen/text_body2"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_primary"
-                android:hint="••••••••"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
+                android:hint="@string/login_password_hint"
+                android:paddingTop="@dimen/padding_input_horizontal"
+                android:paddingBottom="@dimen/padding_input_horizontal" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Confirm Password (signup only) -->
@@ -233,12 +233,12 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
                 android:imeOptions="actionDone"
-                android:textSize="14.5sp"
+                android:textSize="@dimen/text_body2"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_primary"
-                android:hint="••••••••"
-                android:paddingTop="12dp"
-                android:paddingBottom="12dp" />
+                android:hint="@string/login_password_hint"
+                android:paddingTop="@dimen/padding_input_horizontal"
+                android:paddingBottom="@dimen/padding_input_horizontal" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Password hint -->
@@ -246,9 +246,9 @@
             android:id="@+id/tv_password_hint"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="@dimen/spacing_xs"
             android:text="@string/auth_password_hint"
-            android:textSize="11sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:textColor="@color/text_secondary"
             android:visibility="gone"
@@ -261,15 +261,15 @@
             android:id="@+id/btn_action"
             android:layout_width="0dp"
             android:layout_height="50dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/summary_padding_horizontal"
             android:text="@string/auth_sign_in"
-            android:textSize="14.5sp"
+            android:textSize="@dimen/text_body2"
             android:fontFamily="@font/inter"
             android:textFontWeight="500"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:backgroundTint="@color/text_primary"
-            app:cornerRadius="12dp"
+            app:cornerRadius="@dimen/corner_radius_button"
             app:layout_constraintTop_toBottomOf="@id/tv_password_hint"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -295,14 +295,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="OR"
-                android:textSize="10sp"
+                android:text="@string/auth_or"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:letterSpacing="0.1"
                 android:textColor="@color/text_secondary"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp" />
+                android:paddingStart="@dimen/padding_input_horizontal"
+                android:paddingEnd="@dimen/padding_input_horizontal" />
 
             <View
                 android:layout_width="0dp"
@@ -317,9 +317,9 @@
             android:id="@+id/btn_google"
             android:layout_width="0dp"
             android:layout_height="50dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/spacing_medium"
             android:text="@string/auth_continue_google"
-            android:textSize="14.5sp"
+            android:textSize="@dimen/text_body2"
             android:fontFamily="@font/inter"
             android:textFontWeight="500"
             android:textColor="@color/text_primary"
@@ -331,7 +331,7 @@
             app:iconTint="@null"
             app:strokeColor="@color/border"
             app:strokeWidth="0.5dp"
-            app:cornerRadius="12dp"
+            app:cornerRadius="@dimen/corner_radius_button"
             style="@style/Widget.Material3.Button.OutlinedButton"
             app:layout_constraintTop_toBottomOf="@id/ll_divider"
             app:layout_constraintStart_toStartOf="parent"
@@ -354,7 +354,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/auth_no_account"
-                android:textSize="12.5sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_secondary" />
 
@@ -363,11 +363,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/auth_sign_up"
-                android:textSize="12.5sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:textColor="@color/text_primary"
-                android:paddingStart="4dp" />
+                android:paddingStart="@dimen/spacing_xs" />
 
         </LinearLayout>
 

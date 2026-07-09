@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/spacing_medium">
 
         <!-- Header row: name + undo + delete -->
         <LinearLayout
@@ -29,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 tools:text="Cherry Tomatoes"
-                android:textSize="15sp"
+                android:textSize="@dimen/text_body1"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="600"
                 android:textColor="@color/text_primary"
@@ -43,7 +43,7 @@
                 android:src="@android:drawable/ic_menu_revert"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Reset item to original"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="@dimen/spacing_xs"
                 app:tint="@color/text_secondary"
                 android:visibility="gone" />
 
@@ -71,12 +71,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 tools:text="340g"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:textColor="@color/primary"
                 android:background="@drawable/chip_primary_light"
-                android:paddingHorizontal="8dp"
+                android:paddingHorizontal="@dimen/spacing_small"
                 android:paddingVertical="3dp" />
 
             <TextView
@@ -84,20 +84,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 tools:text="7g carbs (2g/100g)"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_secondary"
-                android:layout_marginStart="8dp" />
+                android:layout_marginStart="@dimen/spacing_small" />
 
             <TextView
                 android:id="@+id/tv_loading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/loading_searching_data"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/status_warning"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/spacing_small"
                 android:visibility="gone" />
 
         </LinearLayout>

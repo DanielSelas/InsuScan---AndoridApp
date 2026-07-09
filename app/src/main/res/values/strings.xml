@@ -342,4 +342,83 @@
     <string name="home_insulin_plan_section">Insulin plan</string>
     <string name="home_manage_plans">Manage</string>
 
+    <string name="profile_title">Profile</string>
+
+    <!-- ==================== Summary Screen ==================== -->
+    <string name="summary_ai_complete">AI ANALYSIS COMPLETE</string>
+    <string name="summary_dose_ready">Your dose is ready</string>
+    <string name="summary_meal_photo_label">MEAL PHOTO</string>
+    <string name="summary_total_carbs_label">TOTAL CARBS</string>
+    <string name="summary_recommended_label">RECOMMENDED</string>
+    <string name="summary_dose_breakdown">DOSE BREAKDOWN</string>
+    <string name="summary_detected_items">DETECTED ITEMS</string>
+    <string name="summary_current_glucose">CURRENT GLUCOSE</string>
+    <string name="summary_add_item">+ Add item</string>
+    <string name="summary_edit_meal">✎ Edit</string>
+    <string name="summary_use_last_glucose">Use last</string>
+    <string name="summary_confirm_save">✓  Confirm &amp; save meal</string>
+    <string name="summary_no_meal_scanned">No meal scanned yet</string>
+    <string name="summary_scan_now">Scan a meal</string>
+    <string name="summary_active_plan">Active Plan</string>
+    <string name="summary_change_plan">Change</string>
+    <string name="summary_total_row">Total</string>
+    <string name="summary_disclaimer">Always confirm with your healthcare provider. InsuScan is a decision-support tool.</string>
+
+    <!-- ==================== Camera Scan Screen ==================== -->
+    <string name="scan_title">Scan meal</string>
+    <string name="scan_step2_side_view">📐 Step 2: Side View</string>
+    <string name="scan_side_view_body">Tilt your phone sideways to show the depth of the plate. This helps us estimate volume more accurately.</string>
+    <string name="scan_side_photo_ready">I\'m Ready — Take Side Photo</string>
+    <string name="scan_side_skip">Skip — continue with lower accuracy</string>
+    <string name="scan_side_rescan">Rescan</string>
+    <string name="scan_analyzing_title">Analyzing your meal</string>
+    <string name="scan_analyzing_subtitle">This usually takes 5–8 seconds.</string>
+    <string name="scan_step_processing">Processing image</string>
+    <string name="scan_step_detecting">Detecting food</string>
+    <string name="scan_step_measuring">Measuring portion</string>
+    <string name="scan_step_calculating">Calculating dose</string>
+    <string name="scan_glucose_hint">Blood glucose (mg/dL)</string>
+    <string name="scan_show_results">Show Results</string>
+    <string name="content_desc_toggle_flash">Toggle flash</string>
+    <string name="content_desc_manual_entry">Manual entry</string>
+
+    <!-- ==================== Login Screen ==================== -->
+    <string name="login_welcome_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="login_no_account">Don\'t have an account?</string>
+    <string name="login_email_label">EMAIL</string>
+    <string name="login_email_hint">you@example.com</string>
+    <string name="login_password_label">PASSWORD</string>
+    <string name="login_password_hint">••••••••</string>
+    <string name="login_or_divider">OR</string>
+
+    <!-- ==================== Home Screen ==================== -->
+    <string name="home_today">TODAY</string>
+    <string name="home_daily_intake">Daily intake</string>
+    <string name="home_carbs_label">CARBS</string>
+    <string name="home_insulin_label">INSULIN</string>
+    <string name="home_plan_default">Default</string>
+    <string name="home_plan_profile_values">Profile values</string>
+
+    <string name="profile_edit_name">Name</string>
+    <string name="profile_edit_age">Age</string>
+    <string name="profile_edit_gender">Gender</string>
+    <string name="profile_edit_weight">Weight</string>
+    <string name="profile_edit_height">Height</string>
+
+    <!-- Authentication Strings -->
+    <string name="auth_or">OR</string>
+
+    <string name="profile_edit_icr">ICR — grams per unit</string>
+    <string name="profile_edit_isf">ISF — mg/dL per unit</string>
+    <string name="profile_edit_target_glucose">Target glucose</string>
+    <string name="profile_edit_dose_rounding">Dose rounding</string>
+    <string name="profile_icr_positive_error">ICR must be a positive number</string>
+    <string name="unit_mg_dl">mg/dL</string>
+    <string name="unit_grams_per_unit">g/u</string>
+    <string name="unit_units2">u</string>
+    <string name="value_mg_dl_format">%1$s mg/dL</string>
+    <string name="value_units_format">%1$s u</string>
+    <string name="profile_icr_value_format">1u : %1$sg</string>
+
 </resources>

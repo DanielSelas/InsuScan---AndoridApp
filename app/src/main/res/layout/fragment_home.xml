@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingBottom="24dp">
+        android:paddingBottom="@dimen/spacing_large">
 
         <!-- Header -->
         <LinearLayout
@@ -18,10 +18,10 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
-            android:paddingTop="20dp"
-            android:paddingBottom="8dp">
+            android:paddingStart="@dimen/summary_padding_horizontal"
+            android:paddingEnd="@dimen/summary_padding_horizontal"
+            android:paddingTop="@dimen/summary_padding_horizontal"
+            android:paddingBottom="@dimen/spacing_small">
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -33,7 +33,7 @@
                     android:id="@+id/tv_home_greeting_sub"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/inter"
                     android:textColor="@color/text_secondary" />
 
@@ -41,7 +41,7 @@
                     android:id="@+id/tv_home_greeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="26sp"
+                    android:textSize="@dimen/text_h1_large"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="700"
                     android:textColor="@color/text_primary"
@@ -62,9 +62,9 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="12dp"
-            app:cardCornerRadius="16dp"
+            android:layout_marginHorizontal="@dimen/summary_padding_horizontal"
+            android:layout_marginTop="@dimen/padding_input_horizontal"
+            app:cardCornerRadius="@dimen/corner_radius_card"
             app:cardElevation="0dp"
             app:cardBackgroundColor="@color/surface">
 
@@ -73,7 +73,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:padding="16dp">
+                android:padding="@dimen/spacing_medium">
 
                 <com.example.insuscan.home.GlucoseGaugeView
                     android:id="@+id/gauge_glucose"
@@ -85,13 +85,13 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:layout_marginStart="16dp">
+                    android:layout_marginStart="@dimen/spacing_medium">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="CURRENT GLUCOSE"
-                        android:textSize="10sp"
+                        android:text="@string/summary_current_glucose"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="500"
                         android:letterSpacing="0.1"
@@ -110,7 +110,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="--"
-                            android:textSize="32sp"
+                            android:textSize="@dimen/glucose_display_size"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="700"
                             android:textColor="@color/text_primary" />
@@ -118,11 +118,12 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text=" mg/dL"
-                            android:textSize="13sp"
+                            android:text="@string/unit_mgdl"
+                            android:layout_marginStart="@dimen/spacing_xs"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_secondary"
-                            android:layout_marginBottom="4dp" />
+                            android:layout_marginBottom="@dimen/spacing_xs" />
 
                     </LinearLayout>
 
@@ -131,11 +132,11 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="In range"
-                        android:textSize="11sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="500"
                         android:textColor="@color/secondary"
-                        android:layout_marginTop="4dp" />
+                        android:layout_marginTop="@dimen/spacing_xs" />
 
                 </LinearLayout>
 
@@ -147,9 +148,9 @@
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="12dp"
-            app:cardCornerRadius="16dp"
+            android:layout_marginHorizontal="@dimen/summary_padding_horizontal"
+            android:layout_marginTop="@dimen/padding_input_horizontal"
+            app:cardCornerRadius="@dimen/corner_radius_card"
             app:cardElevation="0dp"
             app:cardBackgroundColor="@color/surface">
 
@@ -157,7 +158,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/spacing_medium">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -174,8 +175,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="TODAY"
-                            android:textSize="10sp"
+                            android:text="@string/home_today"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="500"
                             android:letterSpacing="0.1"
@@ -185,8 +186,8 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Daily intake"
-                            android:textSize="15sp"
+                            android:text="@string/home_daily_intake"
+                            android:textSize="@dimen/text_body1"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="600"
                             android:textColor="@color/text_primary"
@@ -199,7 +200,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0 meals logged"
-                        android:textSize="11sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textColor="@color/text_secondary" />
 
@@ -209,7 +210,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="@dimen/spacing_medium">
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -228,7 +229,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textSize="28sp"
+                                android:textSize="@dimen/insulin_dose_size"
                                 android:fontFamily="@font/inter"
                                 android:textFontWeight="700"
                                 android:textColor="@color/text_primary" />
@@ -236,8 +237,9 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="g"
-                                android:textSize="14sp"
+                                android:text="@string/unit_grams"
+                                android:layout_marginStart="2dp"
+                                android:textSize="@dimen/text_body2"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginBottom="2dp" />
@@ -247,14 +249,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="CARBS"
-                            android:textSize="10sp"
+                            android:text="@string/home_carbs_label"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="500"
                             android:letterSpacing="0.1"
                             android:textAllCaps="true"
                             android:textColor="@color/text_secondary"
-                            android:layout_marginTop="4dp" />
+                            android:layout_marginTop="@dimen/spacing_xs" />
 
                         <View
                             android:layout_width="40dp"
@@ -281,7 +283,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textSize="28sp"
+                                android:textSize="@dimen/insulin_dose_size"
                                 android:fontFamily="@font/inter"
                                 android:textFontWeight="700"
                                 android:textColor="@color/text_primary" />
@@ -289,8 +291,9 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="u"
-                                android:textSize="14sp"
+                                android:text="@string/unit_units"
+                                android:layout_marginStart="2dp"
+                                android:textSize="@dimen/text_body2"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginBottom="2dp" />
@@ -300,14 +303,14 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="INSULIN"
-                            android:textSize="10sp"
+                            android:text="@string/home_insulin_label"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="500"
                             android:letterSpacing="0.1"
                             android:textAllCaps="true"
                             android:textColor="@color/text_secondary"
-                            android:layout_marginTop="4dp" />
+                            android:layout_marginTop="@dimen/spacing_xs" />
 
                         <View
                             android:layout_width="40dp"
@@ -328,15 +331,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="16dp">
+            android:layout_marginHorizontal="@dimen/summary_padding_horizontal"
+            android:layout_marginTop="@dimen/spacing_medium">
 
             <Button
                 android:id="@+id/btn_start_scan"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:text="@string/home_scan_meal_button"
-                android:textSize="15sp"
+                android:textSize="@dimen/text_body1"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:textAllCaps="false"
@@ -352,9 +355,9 @@
                 android:id="@+id/btn_open_chat"
                 android:layout_width="match_parent"
                 android:layout_height="44dp"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/spacing_small"
                 android:text="@string/home_ask_assistant_button"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="500"
                 android:textAllCaps="false"
@@ -373,22 +376,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginHorizontal="20dp"
-            android:layout_marginTop="20dp">
+            android:layout_marginHorizontal="@dimen/summary_padding_horizontal"
+            android:layout_marginTop="@dimen/summary_padding_horizontal">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="@dimen/padding_input_horizontal">
 
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/home_insulin_plan_section"
-                    android:textSize="10.5sp"
+                    android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="500"
                     android:letterSpacing="0.1"
@@ -400,7 +403,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/home_manage_plans"
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="500"
                     android:textColor="@color/primary" />
@@ -410,7 +413,7 @@
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
+                app:cardCornerRadius="@dimen/corner_radius_card"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="@color/surface">
 
@@ -418,10 +421,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingStart="16dp"
-                    android:paddingEnd="16dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp">
+                    android:paddingStart="@dimen/spacing_medium"
+                    android:paddingEnd="@dimen/spacing_medium"
+                    android:paddingTop="@dimen/spacing_xs"
+                    android:paddingBottom="@dimen/spacing_xs">
 
                     <LinearLayout
                         android:id="@+id/row_default_plan"
@@ -447,13 +450,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:layout_marginStart="12dp">
+                            android:layout_marginStart="@dimen/padding_input_horizontal">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Default"
-                                android:textSize="14.5sp"
+                                android:text="@string/home_plan_default"
+                                android:textSize="@dimen/text_body2"
                                 android:fontFamily="@font/inter"
                                 android:textFontWeight="500"
                                 android:textColor="@color/text_primary" />
@@ -461,8 +464,8 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Profile values"
-                                android:textSize="12sp"
+                                android:text="@string/home_plan_profile_values"
+                                android:textSize="@dimen/text_caption"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginTop="1dp" />

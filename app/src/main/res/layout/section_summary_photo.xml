@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Meal photo card — extracted from fragment_summary.xml -->
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/CardStyle.Standard"
+    android:id="@+id/card_image"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/spacing_medium">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/summary_image_height">
+
+            <ImageView
+                android:id="@+id/iv_meal_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/content_desc_meal_image" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/summary_meal_photo_label"
+                android:textSize="@dimen/text_caption"
+                android:fontFamily="@font/inter"
+                android:textColor="@color/white"
+                android:background="@color/overlay_image_label"
+                android:padding="@dimen/spacing_small"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="@dimen/spacing_small" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>
