@@ -421,4 +421,10 @@
     <string name="value_units_format">%1$s u</string>
     <string name="profile_icr_value_format">1u : %1$sg</string>
 
+    <string name="plan_hint_name">Plan name</string>
+    <string name="plan_hint_icr">ICR (grams per unit)</string>
+    <string name="plan_hint_isf">ISF (mg/dL per unit)</string>
+    <string name="plan_dialog_title">New insulin plan</string>
+    <string name="dialog_add">Add</string>
+    <string name="dialog_cancel">Cancel</string>
 </resources>

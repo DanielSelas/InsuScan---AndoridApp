@@ -1,13 +1,15 @@
 package com.example.insuscan.profile.helpers
 
 import android.content.Context
-import com.example.insuscan.network.dto.InsulinPlanDto
 import com.example.insuscan.network.dto.UserDto
-import com.example.insuscan.profile.InsulinPlan
 import com.example.insuscan.profile.InsulinPlanViewManager
 import com.example.insuscan.profile.UserProfileManager
 import com.google.firebase.auth.FirebaseAuth
 
+/**
+ * Loads profile data into the UI, pulls the Google account profile,
+ * and builds the UserDto sent to the server.
+ */
 class ProfileDataHelper(private val context: Context, private val ui: ProfileUiManager) {
 
     private val pm get() = UserProfileManager
@@ -28,7 +30,7 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
         ui.setRowValue(ui.rowTargetGlucose, if (target != null) "$target mg/dL" else "—")
 
         val rounding = pm.getDoseRounding(ctx)
-        ui.setRowValue(ui.rowDoseRounding, if (rounding == 0.5f) "0.5 u" else "1 u")
+        ui.setRowValue(ui.rowDoseRounding, if (rounding == UserProfileManager.DEFAULT_DOSE_ROUNDING) "0.5 u" else "1 u")
 
         val age = pm.getUserAge(ctx)
         ui.setRowValue(ui.rowAge, if (age != null) "$age" else "—")
@@ -52,24 +54,11 @@ class ProfileDataHelper(private val context: Context, private val ui: ProfileUiM
         }
     }
 
+    /**
+     * Builds a UserDto from the stored profile, normalizing the ICR to "1:x" form.
+     */
     fun buildUserDto(): UserDto {
-        val ctx = context
-        var rawRatio = pm.getInsulinCarbRatioRaw(ctx)
-        if (rawRatio != null && !rawRatio.contains(":")) rawRatio = "1:$rawRatio"
-        return UserDto(
-            userId = null,
-            username = pm.getUserName(ctx),
-            role = null,
-            avatar = pm.getProfilePhotoUrl(ctx),
-            insulinCarbRatio = rawRatio,
-            correctionFactor = pm.getCorrectionFactor(ctx),
-            targetGlucose = pm.getTargetGlucose(ctx),
-            age = pm.getUserAge(ctx),
-            gender = pm.getUserGender(ctx),
-            doseRounding = if (pm.getDoseRounding(ctx) == 0.5f) "0.5" else "1",
-            insulinPlans = pm.getInsulinPlans(ctx),
-            createdTimestamp = null,
-            updatedTimestamp = null
-        )
+        val doseRounding = if (pm.getDoseRounding(context) == UserProfileManager.DEFAULT_DOSE_ROUNDING) "0.5" else "1"
+        return UserProfileManager.buildUserDto(context, doseRounding)
     }
 }

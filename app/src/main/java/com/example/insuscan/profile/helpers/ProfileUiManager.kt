@@ -13,7 +13,6 @@ class ProfileUiManager(val view: View) {
     val editPhotoButton: ImageView = view.findViewById(R.id.iv_edit_photo)
     val nameDisplay: TextView = view.findViewById(R.id.tv_user_name_display)
     val emailTextView: TextView = view.findViewById(R.id.tv_user_email)
-    val loadingOverlay: FrameLayout = view.findViewById(R.id.loading_overlay)
     val logoutButton: View = view.findViewById(R.id.btn_logout)
     val plansContainer: LinearLayout = view.findViewById(R.id.plans_container)
     val rowNameEmail: View = view.findViewById(R.id.row_name_email)

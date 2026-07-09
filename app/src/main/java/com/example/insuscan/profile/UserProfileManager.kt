@@ -2,8 +2,17 @@ package com.example.insuscan.profile
 
 import android.content.Context
 import com.example.insuscan.utils.FileLogger
-
+import com.example.insuscan.network.dto.InsulinPlanDto
+import com.example.insuscan.network.dto.UserDto
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+/**
+ * SharedPreferences-backed store for the user's profile and settings.
+ * Acts as the single access point, delegating calculations, profile objects,
+ * and server sync to dedicated helpers.
+ */
 object UserProfileManager {
+    const val DEFAULT_DOSE_ROUNDING = 0.5f
     private const val KEY_USER_EMAIL = "user_email"
     private const val PREFS_NAME = "insu_profile_prefs"
     private const val KEY_RATIO = "insulin_carb_ratio"
@@ -62,12 +71,8 @@ object UserProfileManager {
 
     fun saveInsulinCarbRatio(context: Context, ratioText: String) = savePref(context, KEY_RATIO, ratioText)
     fun getInsulinCarbRatioRaw(context: Context): String? = getPrefNullable(context, KEY_RATIO)
-    
-    fun getUnitsPerGram(context: Context): Float? = UserProfileCalculations.getUnitsPerGram(context)
-    fun getGramsPerUnit(context: Context): Float? = UserProfileCalculations.getGramsPerUnit(context)
 
-    fun saveUserProfile(context: Context, profile: UserProfile) = UserProfileDataManager.saveUserProfile(context, profile)
-    fun getUserProfile(context: Context): UserProfile? = UserProfileDataManager.getUserProfile(context)
+    fun getGramsPerUnit(context: Context): Float? = UserProfileCalculations.getGramsPerUnit(context)
 
     fun isRegistrationComplete(context: Context): Boolean {
         val p = prefs(context)
@@ -98,17 +103,16 @@ object UserProfileManager {
     fun getUserGender(context: Context): String? = getPrefNullable(context, KEY_USER_GENDER)
 
     fun saveDoseRounding(context: Context, rounding: Float) = savePref(context, KEY_DOSE_ROUNDING, rounding)
-    fun getDoseRounding(context: Context): Float = getPref(context, KEY_DOSE_ROUNDING, 0.5f)
+    fun getDoseRounding(context: Context): Float = getPref(context, KEY_DOSE_ROUNDING, DEFAULT_DOSE_ROUNDING)
 
-
-    fun saveInsulinPlans(context: Context, plans: List<com.example.insuscan.network.dto.InsulinPlanDto>) {
+    fun saveInsulinPlans(context: Context, plans: List<InsulinPlanDto>) {
         val json = com.google.gson.Gson().toJson(plans)
         savePref(context, KEY_INSULIN_PLANS, json)
     }
 
-    fun getInsulinPlans(context: Context): List<com.example.insuscan.network.dto.InsulinPlanDto>? {
+    fun getInsulinPlans(context: Context): List<InsulinPlanDto>? {
         val json = getPrefNullable<String>(context, KEY_INSULIN_PLANS) ?: return null
-        val type = object : com.google.gson.reflect.TypeToken<List<com.example.insuscan.network.dto.InsulinPlanDto>>() {}.type
+        val type = object : com.google.gson.reflect.TypeToken<List<InsulinPlanDto>>() {}.type
         return try {
             com.google.gson.Gson().fromJson(json, type)
         } catch (e: Exception) {
@@ -116,11 +120,30 @@ object UserProfileManager {
         }
     }
 
+    fun buildUserDto(context: Context, doseRounding: String): UserDto {
+        var rawRatio = getInsulinCarbRatioRaw(context)
+        if (rawRatio != null && !rawRatio.contains(":")) rawRatio = "1:$rawRatio"
+        return UserDto(
+            userId = null,
+            username = getUserName(context),
+            role = null,
+            avatar = getProfilePhotoUrl(context),
+            insulinCarbRatio = rawRatio,
+            correctionFactor = getCorrectionFactor(context),
+            targetGlucose = getTargetGlucose(context),
+            age = getUserAge(context),
+            gender = getUserGender(context),
+            doseRounding = doseRounding,
+            insulinPlans = getInsulinPlans(context),
+            createdTimestamp = null,
+            updatedTimestamp = null
+        )
+    }
 
     fun saveProfilePhotoUrl(context: Context, url: String) = savePref(context, KEY_PROFILE_PHOTO_URL, url)
     fun getProfilePhotoUrl(context: Context): String? = getPrefNullable(context, KEY_PROFILE_PHOTO_URL)
 
-    fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) = UserProfileSyncManager.syncFromServer(context, user)
+    fun syncFromServer(context: Context, user: UserDto) = UserProfileSyncManager.syncFromServer(context, user)
 
     fun clearAllData(context: Context) {
         prefs(context).edit().clear().apply()
