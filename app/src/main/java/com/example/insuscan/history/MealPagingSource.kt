@@ -1,6 +1,5 @@
 package com.example.insuscan.history
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.insuscan.network.dto.MealDto
@@ -9,16 +8,14 @@ import com.example.insuscan.network.repository.MealRepository
 class MealPagingSource(
     private val repository: MealRepository,
     private val userEmail: String,
-    private val filterDate: String? // Null = Show all, String "YYYY-MM-DD" = Filter
+    private val filterDate: String?
 ) : PagingSource<Int, MealDto>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MealDto> {
         val pageNumber = params.key ?: 0
         val pageSize = params.loadSize
-        Log.d("HistoryFilter", "PagingSource load() - filterDate: $filterDate, page: $pageNumber, size: $pageSize")
-
         return try {
-            // Determine which repository method to call based on filterDate
+
             val result = if (filterDate != null) {
                 repository.getMealsByDate(userEmail, filterDate, pageNumber, pageSize)
             } else {

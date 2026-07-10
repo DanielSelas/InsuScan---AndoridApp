@@ -11,20 +11,19 @@ import androidx.paging.cachedIn
 import androidx.paging.insertSeparators
 import androidx.paging.map
 import com.example.insuscan.history.models.HistoryUiModel
+import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.network.dto.MealDto
 import com.example.insuscan.network.repository.MealRepository
-import com.example.insuscan.profile.UserProfileManager
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import com.example.insuscan.utils.DateTimeHelper
-import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.network.repository.MealRepositoryImpl
+import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.utils.DateTimeHelper
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import android.util.Log
 
 class HistoryViewModel(
     private val repository: MealRepository,
@@ -33,7 +32,6 @@ class HistoryViewModel(
 
     private val _dateFilter = MutableStateFlow<String?>(null)
     
-    // Separate flow for the "Top Card"
     private val _latestMeal = MutableStateFlow<Meal?>(null)
     val latestMeal: kotlinx.coroutines.flow.StateFlow<Meal?> = _latestMeal
 
@@ -56,13 +54,11 @@ class HistoryViewModel(
     }
 
     fun setDateFilter(date: String?) {
-        Log.d("HistoryFilter", "ViewModel setDateFilter called with: $date")
         _dateFilter.value = date
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val historyFlow: Flow<PagingData<HistoryUiModel>> = _dateFilter.flatMapLatest { date ->
-        Log.d("HistoryFilter", "flatMapLatest triggered with date: $date")
 
         Pager(
             config = PagingConfig(pageSize = 20, enablePlaceholders = false)

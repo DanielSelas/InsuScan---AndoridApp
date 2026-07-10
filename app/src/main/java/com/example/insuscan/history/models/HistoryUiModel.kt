@@ -3,13 +3,11 @@ package com.example.insuscan.history.models
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.utils.DoseFormatter
 
-// Sealed class for the list items with UI logic moved here
 sealed class HistoryUiModel {
     data class Header(val date: String) : HistoryUiModel()
 
     data class MealItem(val meal: Meal) : HistoryUiModel() {
 
-        // title: "Banana, Lemon • 81g" or "Banana, Lemon +2 • 120g"
         val displayTitle: String
             get() {
                 val items = meal.foodItems
