@@ -116,7 +116,6 @@ This Android app is one half of the **InsuScan** platform:
 
 </div>
 
-<br>
 ---
 
 ## Overview
