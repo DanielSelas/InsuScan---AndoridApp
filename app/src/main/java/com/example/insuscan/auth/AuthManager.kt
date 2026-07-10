@@ -2,11 +2,11 @@ package com.example.insuscan.auth
 
 import android.content.Context
 import android.content.Intent
+import com.example.insuscan.auth.exception.AuthException
+import com.example.insuscan.auth.util.AuthErrorHandler
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.example.insuscan.auth.exception.AuthException
-import com.example.insuscan.auth.util.AuthErrorHandler
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider

@@ -6,7 +6,6 @@ import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.view.isVisible
-import com.example.insuscan.utils.ToastHelper
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -16,6 +15,7 @@ import com.example.insuscan.auth.helper.LoginFlowManager
 import com.example.insuscan.auth.util.AuthErrorHandler
 import com.example.insuscan.auth.validation.AuthValidator
 import com.example.insuscan.network.repository.UserRepositoryImpl
+import com.example.insuscan.utils.ToastHelper
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 

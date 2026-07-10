@@ -15,10 +15,10 @@ object GlucoseHelper {
 
     fun getStatus(glucoseMgDl: Int, targetMgDl: Int): Status {
         return when {
-            glucoseMgDl < 70 -> Status.LOW
+            glucoseMgDl < GlucoseThresholds.LOW -> Status.LOW
             glucoseMgDl < targetMgDl - 20 -> Status.BELOW_TARGET
             glucoseMgDl <= targetMgDl + 30 -> Status.IN_RANGE
-            glucoseMgDl <= 180 -> Status.ABOVE_TARGET
+            glucoseMgDl <= GlucoseThresholds.HIGH -> Status.ABOVE_TARGET
             else -> Status.HIGH
         }
     }

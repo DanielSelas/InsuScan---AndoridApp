@@ -5,13 +5,9 @@ import android.content.Context
 import com.example.insuscan.R
 
 /**
- * Shared utility for reference object selection.
- * Used by ScanFragment to avoid code duplication.
+ * Shared utility for reference object selection and server-value mapping.
  */
 object ReferenceObjectHelper {
-
-    // ─── REPLACE the entire enum class body ───
-
     enum class ReferenceObjectType(
         val displayNameResId: Int,
         val lengthCm: Float,

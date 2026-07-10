@@ -9,17 +9,15 @@ import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.appdata.AppDataStore
 import com.example.insuscan.appdata.DataState
 import com.example.insuscan.profile.UserProfileManager
-
-import androidx.lifecycle.lifecycleScope
-
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 class SplashAnimationFragment : Fragment(R.layout.fragment_splash_animation) {
