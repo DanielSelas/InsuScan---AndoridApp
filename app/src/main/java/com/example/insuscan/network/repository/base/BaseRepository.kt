@@ -5,9 +5,19 @@ import retrofit2.Response
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
+/**
+ * Base class for all repository implementations.
+ *
+ * Provides [safeApiCall] and [safeApiCallUnit] wrappers that translate HTTP
+ * status codes and network exceptions into typed [ApiException] failures,
+ * so callers never receive raw Retrofit responses.
+ */
 abstract class BaseRepository {
 
-    // Standard API call wrapper — maps HTTP codes and network errors to ApiException
+    /**
+     * Executes [call] and maps the response to a [Result].
+     * HTTP 2xx with a body → success; 4xx/5xx and network errors → typed [ApiException].
+     */
     protected suspend fun <T> safeApiCall(call: suspend () -> Response<T>): Result<T> {
         return try {
             val response = call()
@@ -46,7 +56,10 @@ abstract class BaseRepository {
         }
     }
 
-    // For endpoints that return no body
+    /**
+     * Variant of [safeApiCall] for endpoints that return no body (e.g. DELETE).
+     * Any 2xx response is mapped to [Result.success] of [Unit].
+     */
     protected suspend fun safeApiCallUnit(call: suspend () -> Response<*>): Result<Unit> {
         return try {
             val response = call()

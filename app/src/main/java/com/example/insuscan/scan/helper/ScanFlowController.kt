@@ -121,13 +121,12 @@ class ScanFlowController(
     }
 
     fun onCaptureClicked() {
-        Log.d(TAG, "📸 CAPTURE CLICKED | captureOnlyMode=$isCaptureOnlyMode | sidePhotoMode=$isSidePhotoMode | refType=$selectedReferenceType | arReady=${hardware.arCoreManager?.isReady}")
+        Log.d(TAG, "Capture clicked — mode: captureOnly=$isCaptureOnlyMode, sidePhoto=$isSidePhotoMode, ref=$selectedReferenceType")
         uiState.showLoading(true, "Capturing image...")
         hardware.cameraManager.captureImage(
             outputDirectory = context.cacheDir,
             onImageCaptured = { file ->
                 capturedImagePath = file.absolutePath
-                Log.d(TAG, "🖼️ IMAGE CAPTURED | path=${file.absolutePath} | size=${"%.2f".format(file.length() / 1024.0)}KB")
                 isShowingCapturedImage = true
                 uiState.switchToCapturedImageMode(file, fragment, isSidePhotoMode)
                 
@@ -138,7 +137,6 @@ class ScanFlowController(
                     return@captureImage
                 }
 
-                Log.d(TAG, "Image captured, running validation...")
                 val capturedLux = hardware.currentLux
                 val validationResult = ImageValidator.validateCapturedImage(file, capturedLux)
                 when (validationResult) {
@@ -146,6 +144,7 @@ class ScanFlowController(
                         when (validationResult.report.overall) {
                             QualityLevel.FAILED -> {
                                 Log.w(TAG, "Image failed validation: ${validationResult.report.message}")
+
                                 uiState.showLoading(false)
                                 ToastHelper.showLong(context, context.getString(R.string.scan_quality_issue, validationResult.report.message))
                                 switchToCameraMode()
@@ -156,7 +155,6 @@ class ScanFlowController(
                                 analyzePortionAndContinue(file)
                             }
                             QualityLevel.OK -> {
-                                Log.d(TAG, "Image passed validation, proceeding to analysis")
                                 analyzePortionAndContinue(file)
                             }
                         }
@@ -176,7 +174,6 @@ class ScanFlowController(
     }
 
     fun switchToCameraMode() {
-        Log.d(TAG, "🔄 SWITCH TO CAMERA MODE | clearing pending state | pendingBitmap=${pendingMainBitmap != null} | pendingFile=${pendingMainFile?.name}")
         coachEvaluator.reset()
         isShowingCapturedImage = false
         capturedImagePath = null
@@ -193,7 +190,7 @@ class ScanFlowController(
     }
 
     private fun analyzePortionAndContinue(imageFile: File) {
-        Log.d(TAG, "🔬 ANALYSIS START | file=${imageFile.name} | refType=$selectedReferenceType | refExpected=${ReferenceObjectHelper.fromServerValue(selectedReferenceType) != ReferenceObjectHelper.ReferenceObjectType.NONE} | refFoundInPreview=${hardware.cameraManager.lastQualityResult?.isReferenceObjectFound}")
+        Log.d(TAG, "Starting analysis — ref=$selectedReferenceType")
         val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
         if (bitmap == null) {
             uiState.showLoading(false)
@@ -207,10 +204,8 @@ class ScanFlowController(
         hardware.pipelineManager.wasRefFoundInLivePreview = hardware.cameraManager.lastQualityResult?.isReferenceObjectFound ?: false
 
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val refCheck = hardware.pipelineManager.checkReferenceObject(bitmap, selectedReferenceType)
-            Log.d(TAG, "🎯 REF CHECK RESULT | type=${refCheck::class.simpleName} | selectedRef=$selectedReferenceType | effectiveRef will be determined next")
-            val effectiveRefType = selectedReferenceType
-            val result = hardware.pipelineManager.runAnalysis(bitmap, imageFile, effectiveRefType, capturedImagePath)
+            hardware.pipelineManager.checkReferenceObject(bitmap, selectedReferenceType)
+            val result = hardware.pipelineManager.runAnalysis(bitmap, imageFile, selectedReferenceType, capturedImagePath)
             handlePipelineResult(result)
         }
     }
@@ -219,7 +214,6 @@ class ScanFlowController(
         when (result) {
 
             is PipelineResult.Success -> {
-                Log.d(TAG, "✅ PIPELINE SUCCESS | warning=${result.warning} | meal=${result.meal}")
                 pendingSuccessMeal = result.meal
                 pendingSuccessWarning = result.warning
                 if (isWaitingForResults) {
@@ -231,7 +225,6 @@ class ScanFlowController(
                 }
             }
             is PipelineResult.NeedSidePhoto -> {
-                Log.d(TAG, "📷 NEED SIDE PHOTO | requesting second capture")
                 uiState.showLoading(false)
                 pendingMainBitmap = result.bitmap
                 pendingMainFile = result.imageFile
@@ -239,12 +232,11 @@ class ScanFlowController(
                 uiState.showSidePhotoCard()
             }
             PipelineResult.NoFoodDetected -> {
-                Log.w(TAG, "⚠️ NO FOOD DETECTED")
                 uiState.showLoading(false)
                 dialogHelper.showNoFoodDetectedDialog()
             }
             is PipelineResult.Failed -> {
-                Log.e(TAG, "❌ PIPELINE FAILED | error=${result.error}")
+                Log.e(TAG, "Pipeline failed: ${result.error.message}")
                 uiState.showLoading(false)
                 dialogHelper.handleScanError(result.error)
             }
@@ -292,7 +284,6 @@ class ScanFlowController(
     }
 
     fun processGalleryImage(uri: Uri) {
-        Log.d(TAG, "🖼️ GALLERY IMAGE | uri=$uri | captureOnlyMode=$isCaptureOnlyMode")
         uiState.showLoading(true, "Loading image...")
         try {
             val inputStream = context.contentResolver.openInputStream(uri)

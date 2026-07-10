@@ -2,6 +2,12 @@ package com.example.insuscan.scan.notice
 
 import com.example.insuscan.meal.Meal
 
+/**
+ * Builds a user-facing HTML notice when the server used a fallback or alternative
+ * reference object to estimate portion size.
+ *
+ * Returns `null` when no notice is needed (normal scan, no warnings).
+ */
 object ReferenceNoticeBuilder {
 
     private const val CODE_ALTERNATIVE_TOP  = "ALTERNATIVE_OBJECT_USED_IN_TOP"
@@ -9,6 +15,10 @@ object ReferenceNoticeBuilder {
     private const val CODE_PLATE_TOP        = "PLATE_SIZE_ESTIMATE_IN_TOP"
     private const val CODE_PLATE_SIDE       = "PLATE_SIZE_ESTIMATE_IN_SIDE"
 
+    /**
+     * Inspects [meal]'s review warnings and returns an HTML notice string,
+     * or `null` if there are no relevant warnings.
+     */
     fun build(meal: Meal): String? {
         val warnings = meal.reviewWarnings ?: return null
         if (warnings.isEmpty()) return null
@@ -43,25 +53,6 @@ object ReferenceNoticeBuilder {
             "The selected reference wasn't found, so another detected object was used for sizing."
         }
         return "<b>Backup reference used</b><br>$body"
-    }
-    private fun defaultAlternativeMessage(userSelectedNone: Boolean): String =
-        if (userSelectedNone) {
-            "No reference object was selected, but an alternative was detected and used for calibration."
-        } else {
-            "The selected reference object was not found, but an alternative was detected and used for calibration."
-        }
-
-    private fun humanize(serverValue: String?): String {
-        if (serverValue.isNullOrBlank()) return "none"
-        return serverValue.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
-    }
-
-    private fun stripCodePrefix(raw: String): String {
-        val closeBracket = raw.indexOf(']')
-        if (raw.startsWith("[") && closeBracket > 0 && closeBracket < raw.length - 1) {
-            return raw.substring(closeBracket + 1).trim()
-        }
-        return raw
     }
 
     private fun String.containsCode(code: String): Boolean = this.contains(code, ignoreCase = true)

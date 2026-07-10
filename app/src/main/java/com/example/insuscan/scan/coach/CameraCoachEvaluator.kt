@@ -4,11 +4,25 @@ import com.example.insuscan.camera.model.ImageQualityResult
 import com.example.insuscan.camera.model.QualityLevel
 import com.example.insuscan.utils.ReferenceObjectHelper
 
+/**
+ * Evaluates live camera quality and orientation to produce the correct [CameraCoachState].
+ *
+ * Also tracks how long the plate has been in-frame: after 5 seconds of continued
+ * presence despite a quality failure, a [CameraCoachState.ForceCapture] is emitted
+ * so the user is never permanently blocked.
+ */
 class CameraCoachEvaluator {
 
     private var plateInFrameStartTime = 0L
     private var isForceCaptureAllowed = false
 
+    /**
+     * Returns the coaching state for the current top-photo preview frame.
+     *
+     * @param quality          Latest image quality analysis; null before the first frame.
+     * @param isDeviceLevel    Whether the device tilt is within the acceptable range.
+     * @param selectedRefType  Server value of the user's chosen reference object.
+     */
     fun evaluate(
         quality: ImageQualityResult?,
         isDeviceLevel: Boolean,
@@ -20,7 +34,6 @@ class CameraCoachEvaluator {
         updateForceCapture(report.isPlateFound)
 
         if (!isDeviceLevel) return CameraCoachState.LevelPhone()
-
         if (!report.isPlateFound) return CameraCoachState.FindPlate()
 
         val refExpected = isRefExpected(selectedRefType)
@@ -43,11 +56,13 @@ class CameraCoachEvaluator {
         return CameraCoachState.Ready()
     }
 
+    /** Resets the force-capture timer. Call when switching back to camera mode. */
     fun reset() {
         plateInFrameStartTime = 0L
         isForceCaptureAllowed = false
     }
 
+    /** Returns the coaching state for the side-photo step based on device tilt. */
     fun evaluateSidePhoto(isSideAngle: Boolean): CameraCoachState =
         if (isSideAngle) CameraCoachState.SidePhotoReady() else CameraCoachState.SidePhotoNeedTilt()
 

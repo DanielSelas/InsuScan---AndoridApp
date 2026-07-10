@@ -15,8 +15,11 @@ import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ReferenceObjectHelper
 
 /**
- * Owns and wires up the scan hardware: camera, ARCore, orientation, light sensor,
- * and the reference-object chips.
+ * Owns and wires up all scan hardware components: camera, ARCore, orientation sensor,
+ * light sensor, pipeline manager, and reference-object chips.
+ *
+ * Delegates event notifications (quality updates, orientation changes, reference type changes)
+ * to the provided callbacks so the fragment stays free of hardware concerns.
  */
 class ScanHardwareController(
     private val fragment: Fragment,
@@ -40,13 +43,13 @@ class ScanHardwareController(
     lateinit var pipelineManager: ScanPipelineManager
     lateinit var refChipsController: ReferenceChipsController
 
+    /** Initialises all hardware components in dependency order. */
     fun initializeAll() {
         val context = fragment.requireContext()
-        
-        // 1. ARCore
+
         arCoreManager = ArCoreManager(context)
         val arReady = arCoreManager?.initialize(fragment.requireActivity()) == true
-        Log.d(TAG, "ArCoreManager initialized: $arReady (supported=${arCoreManager?.isSupported})")
+        Log.d(TAG, "ARCore initialised — ready: $arReady, supported: ${arCoreManager?.isSupported}")
 
         uiState.hiddenArSurfaceView.preserveEGLContextOnPause = true
         uiState.hiddenArSurfaceView.setEGLContextClientVersion(2)
@@ -54,16 +57,13 @@ class ScanHardwareController(
         uiState.hiddenArSurfaceView.setRenderer(arCoreManager)
         uiState.hiddenArSurfaceView.renderMode = android.opengl.GLSurfaceView.RENDERMODE_CONTINUOUSLY
 
-        // 2. Camera Manager
         cameraManager = CameraManager(context)
         cameraManager.arCoreManager = arCoreManager
         cameraManager.onImageQualityUpdate = { quality -> onQualityUpdate(quality) }
 
         pipelineManager = ScanPipelineManager(context)
-
         pipelineManager.arCoreManager = arCoreManager
 
-        // 4. Reference Chips
         refChipsController = ReferenceChipsController(
             context = context,
             chipGroup = uiState.chipGroupRefObject,
@@ -79,21 +79,18 @@ class ScanHardwareController(
         cameraManager.selectedReferenceType = initialRefType
         onRefTypeChanged(initialRefType)
 
-        // 5. Orientation Helper
         orientationHelper = OrientationHelper(context)
         orientationHelper.onOrientationChanged = { _, _, isLevel, isSideAngle ->
             onOrientationChanged(isLevel, isSideAngle)
         }
 
-        // 6. Light Sensor
         lightSensorHelper = LightSensorHelper(context)
-        Log.d(TAG, "LightSensor available: ${lightSensorHelper.isAvailable}")
+        Log.d(TAG, "Light sensor available: ${lightSensorHelper.isAvailable}")
         cameraManager.luxProvider = { lightSensorHelper.currentLux }
-
     }
 
     fun startCamera(lifecycleOwner: LifecycleOwner, onReady: () -> Unit = {}, onError: (String) -> Unit = {}) {
-        uiState.cameraPreview.post { 
+        uiState.cameraPreview.post {
             cameraManager.startCamera(
                 lifecycleOwner = lifecycleOwner,
                 previewView = uiState.cameraPreview,
@@ -103,6 +100,10 @@ class ScanHardwareController(
         }
     }
 
+    /**
+     * Initialises hardware if not already done, then starts the camera preview.
+     * Safe to call on each fragment resume.
+     */
     fun startCameraIfInitialized(lifecycleOwner: LifecycleOwner, onReady: () -> Unit = {}, onError: (String) -> Unit = {}) {
         if (!::cameraManager.isInitialized) {
             initializeAll()
@@ -138,6 +139,7 @@ class ScanHardwareController(
         if (::cameraManager.isInitialized) cameraManager.setTorchEnabled(enabled)
     }
 
+    /** Resets reference chips to NONE and stops the camera preview (used when loading a gallery image). */
     fun resetForGallery() {
         onRefTypeChanged("NONE")
         refChipsController.setType(ReferenceObjectHelper.ReferenceObjectType.NONE)

@@ -8,15 +8,24 @@ import androidx.core.content.ContextCompat
 import com.example.insuscan.R
 import com.example.insuscan.utils.ReferenceObjectHelper.ReferenceObjectType
 
+/**
+ * Manages the reference-object chip bar on the scan screen.
+ *
+ * Renders three chips (syringe, card, none), tracks the current selection,
+ * resizes the on-screen target zone to match the chosen object, and notifies
+ * [onSelectionChanged] whenever the user taps a different chip.
+ */
 class ReferenceChipsController(
     private val context: Context,
     private val chipGroup: LinearLayout,
     private val targetZone: View? = null
 ) {
 
+    /** The server-value string of the currently selected reference type. */
     var selectedServerValue: String? = null
         private set
 
+    /** Invoked whenever the user selects a different chip. */
     var onSelectionChanged: ((ReferenceObjectType) -> Unit)? = null
 
     private val chipSyringe: LinearLayout = chipGroup.findViewById(R.id.chip_ref_syringe)
@@ -26,6 +35,7 @@ class ReferenceChipsController(
     private val allChips: List<LinearLayout>
         get() = listOf(chipSyringe, chipCard, chipNone)
 
+    /** Initialises chip click listeners and applies the default selection. */
     fun setup() {
         val defaultType = resolveDefaultType()
         applySelection(defaultType)
@@ -38,6 +48,7 @@ class ReferenceChipsController(
         chipNone.setOnClickListener { onChipSelected(ReferenceObjectType.NONE) }
     }
 
+    /** Programmatically selects a chip without user interaction. */
     fun setType(type: ReferenceObjectType) {
         setSelectedChip(chipForType(type))
         applySelection(type)

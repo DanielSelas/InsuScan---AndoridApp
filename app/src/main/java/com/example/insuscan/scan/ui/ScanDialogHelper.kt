@@ -8,6 +8,13 @@ import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.network.exception.ScanException
 import com.example.insuscan.utils.ToastHelper
 
+/**
+ * Builds and shows the scan-related dialogs (no food detected, scan failed,
+ * side-photo prompt, retake options) and routes typed errors to the right dialog.
+ *
+ * Delegates user decisions (try again, cancel, take/skip side photo, retake)
+ * back to the [Listener].
+ */
 class ScanDialogHelper(
     private val context: Context,
     private val listener: Listener
@@ -25,13 +32,13 @@ class ScanDialogHelper(
         AlertDialog.Builder(context)
             .setTitle(R.string.dialog_no_food_title)
             .setMessage("We couldn't identify any food items.\n\nTry a clearer photo with good lighting.")
-            .setPositiveButton("Try Again") { d, _ -> 
+            .setPositiveButton("Try Again") { d, _ ->
                 d.dismiss()
-                listener.onTryAgainClicked() 
+                listener.onTryAgainClicked()
             }
-            .setNegativeButton("Cancel") { d, _ -> 
+            .setNegativeButton("Cancel") { d, _ ->
                 d.dismiss()
-                listener.onCancelClicked() 
+                listener.onCancelClicked()
             }
             .setCancelable(false)
             .show()
@@ -41,36 +48,36 @@ class ScanDialogHelper(
         AlertDialog.Builder(context)
             .setTitle(R.string.dialog_scan_failed_title)
             .setMessage(message)
-            .setPositiveButton("Try Again") { d, _ -> 
+            .setPositiveButton("Try Again") { d, _ ->
                 d.dismiss()
-                listener.onTryAgainClicked() 
+                listener.onTryAgainClicked()
             }
-            .setNegativeButton("Cancel") { d, _ -> 
+            .setNegativeButton("Cancel") { d, _ ->
                 d.dismiss()
-                listener.onCancelClicked() 
+                listener.onCancelClicked()
             }
             .setCancelable(false)
             .show()
     }
 
+    /**
+     * Maps a typed scan or network error to the appropriate dialog or toast.
+     */
     fun handleScanError(error: Throwable) {
         when (error) {
-            // Scan-specific
-            is ScanException.NoFoodDetected -> showNoFoodDetectedDialog()
-            is ScanException.NetworkError -> showScanFailedDialog("No internet connection. Please check your network and try again.")
-            is ScanException.ServerError -> showScanFailedDialog("Server error. Please try again later.")
-            is ScanException.Unauthorized -> ToastHelper.showLong(context, context.getString(R.string.scan_session_expired))
-            // Camera / scan pipeline
-            is CameraException.PlateNotFound -> showNoFoodDetectedDialog()
-            is CameraException.NoScaleSource -> showScanFailedDialog("Place a reference object next to the food for accurate measurements.")
-            is CameraException.ARCoreSessionFailed -> ToastHelper.showLong(context, context.getString(R.string.scan_ar_unavailable))
+            is ScanException.NoFoodDetected       -> showNoFoodDetectedDialog()
+            is ScanException.NetworkError         -> showScanFailedDialog("No internet connection. Please check your network and try again.")
+            is ScanException.ServerError          -> showScanFailedDialog("Server error. Please try again later.")
+            is ScanException.Unauthorized         -> ToastHelper.showLong(context, context.getString(R.string.scan_session_expired))
+            is CameraException.PlateNotFound      -> showNoFoodDetectedDialog()
+            is CameraException.NoScaleSource      -> showScanFailedDialog("Place a reference object next to the food for accurate measurements.")
+            is CameraException.ARCoreSessionFailed-> ToastHelper.showLong(context, context.getString(R.string.scan_ar_unavailable))
             is CameraException.PortionEstimationFailed -> showScanFailedDialog("Could not estimate portion size. Try again with better lighting.")
-            // Network (from ApiException via BaseRepository)
-            is ApiException.NoConnection -> showScanFailedDialog("No internet connection. Please check your network and try again.")
-            is ApiException.Timeout -> showScanFailedDialog("Request timed out. Please try again.")
-            is ApiException.ServerError -> showScanFailedDialog("Server error (${error.code}). Please try again later.")
-            is ApiException.Unauthorized -> ToastHelper.showLong(context, context.getString(R.string.scan_session_expired))
-            else -> showScanFailedDialog("Something went wrong. Please try again.")
+            is ApiException.NoConnection          -> showScanFailedDialog("No internet connection. Please check your network and try again.")
+            is ApiException.Timeout               -> showScanFailedDialog("Request timed out. Please try again.")
+            is ApiException.ServerError           -> showScanFailedDialog("Server error (${error.code}). Please try again later.")
+            is ApiException.Unauthorized          -> ToastHelper.showLong(context, context.getString(R.string.scan_session_expired))
+            else                                  -> showScanFailedDialog("Something went wrong. Please try again.")
         }
     }
 

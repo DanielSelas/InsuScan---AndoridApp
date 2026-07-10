@@ -10,6 +10,9 @@ import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.network.repository.base.BaseRepository
 import com.example.insuscan.utils.FileLogger
 
+/**
+ * Repository implementation for all meal-related API operations.
+ */
 class MealRepositoryImpl : BaseRepository(), MealRepository {
 
     private val api = RetrofitClient.api
@@ -20,20 +23,7 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
     }
 
     override suspend fun saveScannedMeal(email: String, meal: MealDto): Result<MealDto> = safeApiCall {
-        FileLogger.log("NET", "📤 UPLOADING MEAL to $email")
-        FileLogger.log("NET", "   Total Carbs: ${meal.totalCarbs}")
-        FileLogger.log("NET", "   Calc Dose  : ${meal.recommendedDose}")
-        FileLogger.log("NET", "   Food Items : ${meal.foodItems?.size}")
-        
-        // Detailed check of what we are sending for the calculation
-        if (meal.insulinCalculation != null) {
-            FileLogger.log("NET", "   [Calc Data] CarbDose: ${meal.insulinCalculation.carbDose}")
-            FileLogger.log("NET", "   [Calc Data] RecDose: ${meal.insulinCalculation.recommendedDose}")
-        } else {
-             FileLogger.log("NET", "   [Calc Data] NULL")
-        }
-
-        Log.d("DEBUG_SAVE", "Repo: Sending POST to meals/${ApiConfig.SYSTEM_ID}/$email/save-scanned")
+        FileLogger.log("NET", "Uploading meal for $email — carbs: ${meal.totalCarbs}, items: ${meal.foodItems?.size}")
         api.saveScannedMeal(ApiConfig.SYSTEM_ID, email, meal)
     }
 
@@ -68,14 +58,13 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
     override suspend fun deleteMeal(mealId: String): Result<Unit> = safeApiCallUnit {
         api.deleteMeal(ApiConfig.SYSTEM_ID, mealId)
     }
+
     override suspend fun getMealsByDate(
         email: String,
         date: String,
         page: Int,
         size: Int
     ): Result<List<MealDto>> {
-        Log.d("HistoryFilter", "API Request - email: $email, from: $date, to: $date, page: $page, size: $size")
-
         val res = api.getMealsByDate(
             systemId = ApiConfig.SYSTEM_ID,
             email = email,
@@ -84,8 +73,6 @@ class MealRepositoryImpl : BaseRepository(), MealRepository {
             page = page,
             size = size
         )
-        Log.d("HistoryFilter", "API Response - code: ${res.code()}, body size: ${res.body()?.size ?: "null"}")
-
         return if (res.isSuccessful) Result.success(res.body().orEmpty())
         else Result.failure(ApiException.ClientError(res.code(), res.message()))
     }

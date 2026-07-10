@@ -9,8 +9,10 @@ import java.util.Date
 import java.util.Locale
 
 /**
- * Writes logs to a local file "insuscan_client_flow.txt" in the app's private storage.
- * This allows the user to export the file for debugging.
+ * Appends timestamped log lines to `insuscan_client_flow.txt` in the app's external files dir.
+ * The file can be pulled from the device for debugging without a USB connection.
+ *
+ * Must call [init] once (e.g. in Application.onCreate) before any other method.
  */
 object FileLogger {
 
@@ -18,10 +20,12 @@ object FileLogger {
     private val TIME_FMT = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
     private var logFile: File? = null
 
+    /** Initialises the log file path. Safe to call multiple times. */
     fun init(context: Context) {
         logFile = File(context.getExternalFilesDir(null), LOG_FILE_NAME)
     }
 
+    /** Appends a raw [message] line with a timestamp prefix. Thread-safe. */
     @Synchronized
     fun append(message: String) {
         val file = logFile ?: return
@@ -35,14 +39,17 @@ object FileLogger {
         }
     }
 
+    /** Appends a tagged log line in the format `[tag] message`. */
     fun log(tag: String, message: String) {
         append("[$tag] $message")
     }
 
+    /** Returns the absolute path of the log file, or `"Not initialized"` if [init] was not called. */
     fun getLogFilePath(): String {
         return logFile?.absolutePath ?: "Not initialized"
     }
-    
+
+    /** Truncates the log file to zero bytes. */
     fun clear() {
         val file = logFile ?: return
         try {
