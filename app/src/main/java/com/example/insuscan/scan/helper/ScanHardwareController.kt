@@ -4,17 +4,20 @@ import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
-
 import com.example.insuscan.ar.ArCoreManager
 import com.example.insuscan.camera.CameraManager
 import com.example.insuscan.camera.model.ImageQualityResult
+import com.example.insuscan.camera.sensor.LightSensorHelper
 import com.example.insuscan.camera.sensor.OrientationHelper
 import com.example.insuscan.scan.ReferenceChipsController
 import com.example.insuscan.scan.ScanPipelineManager
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ReferenceObjectHelper
-import com.example.insuscan.camera.sensor.LightSensorHelper
 
+/**
+ * Owns and wires up the scan hardware: camera, ARCore, orientation, light sensor,
+ * and the reference-object chips.
+ */
 class ScanHardwareController(
     private val fragment: Fragment,
     private val uiState: ScanUiStateManager,

@@ -2,12 +2,14 @@ package com.example.insuscan.scan
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.scan.coach.CameraCoachEvaluator
 import com.example.insuscan.scan.helper.ScanFlowController
@@ -15,8 +17,6 @@ import com.example.insuscan.scan.helper.ScanHardwareController
 import com.example.insuscan.scan.ui.ScanDialogHelper
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ToastHelper
-import android.content.res.ColorStateList
-import androidx.navigation.fragment.findNavController
 
 class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateManager.Listener, ScanDialogHelper.Listener {
 

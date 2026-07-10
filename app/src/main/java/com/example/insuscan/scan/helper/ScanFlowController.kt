@@ -5,29 +5,32 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.fragment.app.Fragment
-import com.example.insuscan.R
 import androidx.lifecycle.lifecycleScope
+import com.example.insuscan.R
+import com.example.insuscan.camera.exception.CameraException
 import com.example.insuscan.camera.model.ImageQualityResult
+import com.example.insuscan.camera.model.QualityLevel
 import com.example.insuscan.camera.validator.ImageValidator
 import com.example.insuscan.camera.validator.ValidationResult
+import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.scan.CapturedScanData
 import com.example.insuscan.scan.PipelineResult
-import com.example.insuscan.scan.RefCheckResult
 import com.example.insuscan.scan.ScanMode
 import com.example.insuscan.scan.ScanResultCallback
 import com.example.insuscan.scan.coach.CameraCoachEvaluator
 import com.example.insuscan.scan.coach.MeasurementStrategy
-import com.example.insuscan.camera.exception.CameraException
-import com.example.insuscan.network.exception.ApiException
+import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
 import com.example.insuscan.scan.ui.ScanDialogHelper
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ReferenceObjectHelper
 import com.example.insuscan.utils.ToastHelper
 import kotlinx.coroutines.launch
 import java.io.File
-import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
-import com.example.insuscan.camera.model.QualityLevel
 
+/**
+ * Drives the scan UI flow: capture, validation, side-photo handling, and routing
+ * each pipeline result to the right dialog or success path.
+ */
 class ScanFlowController(
     private val fragment: Fragment,
     private val hardware: ScanHardwareController,

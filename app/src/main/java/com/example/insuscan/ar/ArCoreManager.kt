@@ -2,13 +2,17 @@ package com.example.insuscan.ar
 
 import android.content.Context
 import android.graphics.Rect
+import android.opengl.GLSurfaceView
 import android.util.Log
 import com.example.insuscan.ar.measurement.ArDepthMeasurer
 import com.example.insuscan.ar.model.ArMeasurement
-import com.google.ar.core.*
+import com.google.ar.core.ArCoreApk
+import com.google.ar.core.Config
+import com.google.ar.core.Frame
+import com.google.ar.core.Plane
+import com.google.ar.core.Session
+import com.google.ar.core.TrackingState
 import com.google.ar.core.exceptions.UnavailableException
-
-import android.opengl.GLSurfaceView
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 

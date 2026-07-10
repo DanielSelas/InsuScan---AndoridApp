@@ -9,15 +9,20 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.camera.view.PreviewView
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import androidx.core.text.HtmlCompat
+import com.bumptech.glide.Glide
 import com.example.insuscan.R
 import com.example.insuscan.scan.coach.CameraCoachState
 import com.example.insuscan.scan.coach.CoachSeverity
 import com.example.insuscan.scan.coach.MeasurementStrategy
 import java.io.File
-import com.bumptech.glide.Glide
-import androidx.cardview.widget.CardView
-import androidx.core.text.HtmlCompat
+
+/**
+ * Holds the scan screen views and switches between its UI states
+ * (camera, captured image, loading, side-photo).
+ */
 class ScanUiStateManager(
     private val view: View,
     private val listener: Listener

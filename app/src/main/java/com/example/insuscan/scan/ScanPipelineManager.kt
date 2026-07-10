@@ -3,6 +3,8 @@ package com.example.insuscan.scan
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import com.example.insuscan.analysis.detection.PlateDetector
+import com.example.insuscan.ar.ArCoreManager
 import com.example.insuscan.camera.exception.CameraException
 import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.meal.Meal
@@ -11,13 +13,10 @@ import com.example.insuscan.network.repository.ScanRepository
 import com.example.insuscan.network.repository.ScanRepositoryImpl
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.ReferenceObjectHelper
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import com.example.insuscan.analysis.detection.PlateDetector
-import com.example.insuscan.ar.ArCoreManager
-import com.example.insuscan.ar.model.ArMeasurement
-import com.google.gson.Gson
 
 sealed class RefCheckResult {
     data class Proceed(val refType: String?) : RefCheckResult()

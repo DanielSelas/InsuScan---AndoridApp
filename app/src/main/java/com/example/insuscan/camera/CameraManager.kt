@@ -2,7 +2,6 @@ package com.example.insuscan.camera
 
 import android.content.Context
 import android.util.Log
-import androidx.camera.core.AspectRatio
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture

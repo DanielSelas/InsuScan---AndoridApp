@@ -7,7 +7,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
-import com.example.insuscan.utils.TopBarHelper
 
 class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
 
