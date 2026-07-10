@@ -74,7 +74,6 @@ class LoginFlowManager(
                 }
             } catch (e: Exception) {
                 onLoading(false)
-                Log.e("LoginFlow", "Error checking registration", e)
                 onNavigateToRegistration()
             }
         }

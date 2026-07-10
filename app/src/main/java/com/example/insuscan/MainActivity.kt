@@ -45,9 +45,6 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-//        com.example.insuscan.utils.FileLogger.init(applicationContext)
-        com.example.insuscan.utils.FileLogger.log("MAIN", "App Started")
-
         initializeViews()
         setupNavListeners()
         observeDestination()
@@ -108,7 +105,6 @@ class MainActivity : AppCompatActivity() {
 
             if (isScan) return@forEach
 
-            item.findViewWithTag<ImageView>(null)
             val icon = item.getChildAt(0) as? ImageView
             val label = item.getChildAt(1) as? TextView
 

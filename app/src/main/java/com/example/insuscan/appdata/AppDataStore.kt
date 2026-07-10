@@ -112,14 +112,12 @@ object AppDataStore {
                         _saveErrors.emit("No user email")
                         return@withLock
                     }
-                    android.util.Log.d("AppDataStore", "Sending UserDto: $userDto")
 
                     UserRepositoryImpl().updateUser(email, userDto)
                         .onSuccess { lastSaveFailed = false }
                         .onFailure {
                             lastSaveFailed = true
                             val msg = com.example.insuscan.network.NetworkErrorPresenter.userMessage(it)
-                            android.util.Log.e("AppDataStore", msg, it)
                             _saveErrors.emit(msg)
                         }
                 } finally {
