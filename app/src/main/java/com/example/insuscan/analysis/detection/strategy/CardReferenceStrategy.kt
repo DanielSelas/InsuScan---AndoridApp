@@ -8,6 +8,12 @@ import com.example.insuscan.analysis.model.DetectionResult
 import org.opencv.core.MatOfPoint
 import org.opencv.core.RotatedRect
 
+/**
+ * Detects a credit-card-sized reference object and derives the pixel-to-cm ratio from it.
+ *
+ * Combines an area-based ratio with a homography estimate when available, which yields
+ * higher confidence for tilted cards.
+ */
 class CardReferenceStrategy : ReferenceObjectStrategy {
     companion object {
         private const val TAG = "CardStrategy"

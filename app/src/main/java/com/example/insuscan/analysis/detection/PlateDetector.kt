@@ -2,7 +2,11 @@ package com.example.insuscan.analysis.detection
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.example.insuscan.analysis.detection.strategy.*
+import com.example.insuscan.analysis.detection.strategy.AdaptiveThresholdStrategy
+import com.example.insuscan.analysis.detection.strategy.CannyEdgeStrategy
+import com.example.insuscan.analysis.detection.strategy.GradientMagnitudeStrategy
+import com.example.insuscan.analysis.detection.strategy.OtsuThresholdStrategy
+import com.example.insuscan.analysis.detection.strategy.PlateDetectionStrategy
 import com.example.insuscan.analysis.model.PlateDetectionResult
 import com.example.insuscan.analysis.model.ShapeType
 import org.opencv.android.Utils
@@ -60,8 +64,17 @@ class PlateDetector {
                 scaleFactor = origWidth.toDouble() / TARGET_PROCESSING_WIDTH.toDouble()
                 val targetHeight = (origHeight / scaleFactor).toInt()
                 processingMat = Mat()
-                Imgproc.resize(mat, processingMat, Size(TARGET_PROCESSING_WIDTH.toDouble(), targetHeight.toDouble()))
-                Log.d(TAG, "Downscaled ${origWidth}x${origHeight} → ${TARGET_PROCESSING_WIDTH}x${targetHeight} (scale=${"%.2f".format(scaleFactor)})")
+                Imgproc.resize(
+                    mat,
+                    processingMat,
+                    Size(TARGET_PROCESSING_WIDTH.toDouble(), targetHeight.toDouble())
+                )
+                Log.d(
+                    TAG,
+                    "Downscaled ${origWidth}x${origHeight} → ${TARGET_PROCESSING_WIDTH}x${targetHeight} (scale=${
+                        "%.2f".format(scaleFactor)
+                    })"
+                )
             } else {
                 scaleFactor = 1.0
                 processingMat = mat
@@ -100,7 +113,10 @@ class PlateDetector {
                     (b.bottom * scaleFactor).toInt()
                 )
                 bestResult = bestResult.copy(bounds = scaledRect)
-                Log.d(TAG, "Scaled bounds back: ${b.width()}x${b.height()} → ${scaledRect.width()}x${scaledRect.height()}")
+                Log.d(
+                    TAG,
+                    "Scaled bounds back: ${b.width()}x${b.height()} → ${scaledRect.width()}x${scaledRect.height()}"
+                )
             }
 
             // Clean up
