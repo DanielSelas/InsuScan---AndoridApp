@@ -81,6 +81,8 @@ This Android app is one half of the **InsuScan** platform:
 
 ## Screenshots
 
+<div align="center">
+
 <table cellpadding="14">
   <tr>
     <th align="center">Scan</th>
@@ -105,6 +107,9 @@ This Android app is one half of the **InsuScan** platform:
     </td>
   </tr>
 </table>
+
+</div>
+
 
 <br>
 
