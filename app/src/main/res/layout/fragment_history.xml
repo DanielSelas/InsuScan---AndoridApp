@@ -16,24 +16,24 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="24dp">
+            android:paddingBottom="@dimen/spacing_large">
 
             <!-- Header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:paddingTop="20dp"
-                android:paddingBottom="16dp">
+                android:paddingStart="@dimen/summary_padding_horizontal"
+                android:paddingEnd="@dimen/summary_padding_horizontal"
+                android:paddingTop="@dimen/summary_padding_horizontal"
+                android:paddingBottom="@dimen/spacing_medium">
 
                 <TextView
                     android:id="@+id/tv_history_title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="History"
-                    android:textSize="28sp"
+                    android:textSize="@dimen/insulin_dose_size"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="700"
                     android:textColor="@color/text_primary"
@@ -43,7 +43,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Your meals, doses, and glucose trends."
-                    android:textSize="13sp"
+                    android:textSize="@dimen/text_caption"
                     android:fontFamily="@font/inter"
                     android:textColor="@color/text_secondary"
                     android:layout_marginTop="2dp" />
@@ -55,9 +55,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:layout_marginBottom="16dp">
+                android:paddingStart="@dimen/summary_padding_horizontal"
+                android:paddingEnd="@dimen/summary_padding_horizontal"
+                android:layout_marginBottom="@dimen/spacing_medium">
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
@@ -71,7 +71,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="@dimen/padding_input_horizontal">
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -101,7 +101,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="g"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_caption"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginBottom="3dp" />
@@ -110,7 +110,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="per meal"
-                            android:textSize="10sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_secondary" />
                     </LinearLayout>
@@ -129,7 +129,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="@dimen/padding_input_horizontal">
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -159,7 +159,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="u"
-                                android:textSize="12sp"
+                                android:textSize="@dimen/text_caption"
                                 android:fontFamily="@font/inter"
                                 android:textColor="@color/text_secondary"
                                 android:layout_marginBottom="3dp" />
@@ -168,7 +168,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="per meal"
-                            android:textSize="10sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_secondary" />
                     </LinearLayout>
@@ -186,7 +186,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="12dp">
+                        android:padding="@dimen/padding_input_horizontal">
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -211,7 +211,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="total logged"
-                            android:textSize="10sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_secondary" />
                     </LinearLayout>
@@ -224,16 +224,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
-                android:layout_marginBottom="16dp"
+                android:paddingStart="@dimen/summary_padding_horizontal"
+                android:paddingEnd="@dimen/summary_padding_horizontal"
+                android:layout_marginBottom="@dimen/spacing_medium"
                 android:gravity="center_vertical">
 
                 <androidx.cardview.widget.CardView
                     android:layout_width="0dp"
                     android:layout_height="40dp"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="@dimen/spacing_small"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="0dp"
                     app:cardBackgroundColor="@color/surface">
@@ -248,18 +248,18 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="🔍"
-                            android:textSize="13sp" />
+                            android:textSize="@dimen/text_caption" />
                         <EditText
                             android:id="@+id/et_search"
                             android:layout_width="0dp"
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:hint="Search meals"
-                            android:textSize="13sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_primary"
                             android:background="@null"
-                            android:paddingStart="8dp"
+                            android:paddingStart="@dimen/spacing_small"
                             android:inputType="text"
                             android:imeOptions="actionSearch"
                             android:singleLine="true" />
@@ -287,7 +287,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="⚙ Filter"
-                            android:textSize="13sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="500"
                             android:textColor="@color/text_primary" />
@@ -298,7 +298,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="✕ Clear"
-                        android:textSize="12sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="500"
                         android:textColor="@color/primary"
@@ -317,8 +317,8 @@
                 android:id="@+id/rv_meal_history"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="20dp"
-                android:paddingEnd="20dp"
+                android:paddingStart="@dimen/summary_padding_horizontal"
+                android:paddingEnd="@dimen/summary_padding_horizontal"
                 android:clipToPadding="false"
                 android:nestedScrollingEnabled="false" />
 
@@ -329,7 +329,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:paddingTop="48dp"
+                android:paddingTop="@dimen/spacing_xxl"
                 android:visibility="gone">
                 <TextView
                     android:layout_width="wrap_content"
@@ -341,11 +341,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="No meals logged yet"
-                    android:textSize="15sp"
+                    android:textSize="@dimen/text_body1"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="500"
                     android:textColor="@color/text_secondary"
-                    android:layout_marginTop="12dp" />
+                    android:layout_marginTop="@dimen/padding_input_horizontal" />
             </LinearLayout>
 
         </LinearLayout>

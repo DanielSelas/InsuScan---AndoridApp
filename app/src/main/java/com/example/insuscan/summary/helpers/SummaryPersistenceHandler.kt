@@ -13,14 +13,21 @@ import com.example.insuscan.summary.helpers.SummaryCalculationHelper.DOSE_BLOCKI
 import com.example.insuscan.summary.helpers.SummaryCalculationHelper.DOSE_HARD_CAP
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import com.example.insuscan.mapping.MealDtoMapper
+import com.example.insuscan.auth.AuthManager
+import com.example.insuscan.R
 
+/**
+ * Validates and saves the summary meal: pre-save checks, high-dose confirmation,
+ * building the updated meal, and persisting it to the server.
+ */
 sealed class SaveValidation {
     object Valid : SaveValidation()
     object NoMealData : SaveValidation()
     object NoFoodDetected : SaveValidation()
     object ProfileIncomplete : SaveValidation()
 
-    data class PlanInvalid(val message: String) : SaveValidation()
+    data class PlanInvalid(val messageResId: Int) : SaveValidation()
 }
 
 class SummaryPersistenceHandler(
@@ -42,9 +49,9 @@ class SummaryPersistenceHandler(
 
                 if (dose > DOSE_HARD_CAP) {
                     AlertDialog.Builder(context)
-                        .setTitle("Dose Rejected")
-                        .setMessage(String.format("The calculated dose of %.1f units exceeds the maximum safe limit of %d units.\n\nThis is likely a scan error. Please review and correct your meal data before saving.", dose, DOSE_HARD_CAP.toInt()))
-                        .setPositiveButton("OK", null)
+                        .setTitle(R.string.dialog_dose_rejected_title)
+                        .setMessage(context.getString(R.string.dialog_dose_rejected_msg, String.format("%.1f", dose), DOSE_HARD_CAP.toInt()))
+                        .setPositiveButton(R.string.action_ok, null)
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .show()
                     return
@@ -56,23 +63,23 @@ class SummaryPersistenceHandler(
                 }
                 performSave(meal!!, lastCalculatedResult)
             }
-            is SaveValidation.NoMealData -> showError("No meal data to save")
-            is SaveValidation.NoFoodDetected -> showError("No food detected. Use 'Edit' to add items manually.")
+            is SaveValidation.NoMealData -> showError(context.getString(R.string.error_no_meal_save))
+            is SaveValidation.NoFoodDetected -> showError(context.getString(R.string.error_no_food_detected_save))
             is SaveValidation.ProfileIncomplete -> showIncompleteProfileDialog()
-            is SaveValidation.PlanInvalid -> showPlanInvalidDialog(validation.message)
+            is SaveValidation.PlanInvalid -> showPlanInvalidDialog(validation.messageResId)
 
         }
     }
 
     private fun showHighDoseConfirmationDialog(meal: Meal, dose: Float, result: DoseResult?) {
         AlertDialog.Builder(context)
-            .setTitle("Very High Dose Warning")
-            .setMessage(String.format("The recommended dose is %.1f units, which is unusually high.\n\nPlease verify:\n  • The scanned food items are correct\n  • The portion sizes look right\n  • Your glucose reading is accurate\n\nAre you sure this dose is correct?", dose))
-            .setPositiveButton("I Confirm This Dose") { _, _ ->
+            .setTitle(R.string.dialog_high_dose_title)
+            .setMessage(context.getString(R.string.dialog_high_dose_msg, String.format("%.1f", dose)))
+            .setPositiveButton(R.string.action_confirm_dose) { _, _ ->
                 highDoseAcknowledged = true
                 performSave(meal, result)
             }
-            .setNegativeButton("Cancel", null)
+            .setNegativeButton(R.string.action_cancel, null)
             .setIcon(android.R.drawable.ic_dialog_alert)
             .setCancelable(false)
             .show()
@@ -88,23 +95,27 @@ class SummaryPersistenceHandler(
         }
     }
 
-    private fun validateActivePlan(): String? = PlanValidator.validate(
+    private fun effectiveIcr(): Float? = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context)
+    private fun effectiveIsf(): Float? = MealSessionManager.activePlanIsf ?: UserProfileManager.getCorrectionFactor(context)
+    private fun effectiveTarget(): Int? = MealSessionManager.activePlanTargetGlucose ?: UserProfileManager.getTargetGlucose(context)
+
+    private fun validateActivePlan(): Int? = PlanValidator.validate(
         planActive = MealSessionManager.activePlanName != null &&
-                MealSessionManager.activePlanName != "Default",
+                MealSessionManager.activePlanName != DEFAULT_PLAN_LABEL,
         planIcr = MealSessionManager.activePlanIcr,
         planIsf = MealSessionManager.activePlanIsf,
         planTarget = MealSessionManager.activePlanTargetGlucose,
-        effectiveIcr = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context),
-        effectiveIsf = MealSessionManager.activePlanIsf ?: UserProfileManager.getCorrectionFactor(context),
-        effectiveTarget = MealSessionManager.activePlanTargetGlucose ?: UserProfileManager.getTargetGlucose(context)
+        effectiveIcr = effectiveIcr(),
+        effectiveIsf = effectiveIsf(),
+        effectiveTarget = effectiveTarget()
     )
 
-    private fun showPlanInvalidDialog(message: String) {
+    private fun showPlanInvalidDialog(messageResId: Int) {
         AlertDialog.Builder(context)
-            .setTitle("Plan Incomplete")
-            .setMessage(message)
-            .setPositiveButton("Complete Profile") { _, _ -> onIncompleteProfileRequested() }
-            .setNegativeButton("Cancel", null)
+            .setTitle(R.string.dialog_plan_incomplete_title)
+            .setMessage(messageResId)
+            .setPositiveButton(R.string.action_complete_profile) { _, _ -> onIncompleteProfileRequested() }
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 
@@ -122,10 +133,10 @@ class SummaryPersistenceHandler(
         return meal.copy(
             insulinDose = finalResult.roundedDose,
             recommendedDose = finalResult.roundedDose,
-            savedPlanName = MealSessionManager.activePlanName ?: "Default",
-            savedIcr = MealSessionManager.activePlanIcr ?: UserProfileManager.getGramsPerUnit(context),
-            savedIsf = MealSessionManager.activePlanIsf ?: UserProfileManager.getCorrectionFactor(context),
-            savedTargetGlucose = MealSessionManager.activePlanTargetGlucose ?: UserProfileManager.getTargetGlucose(context),
+            savedPlanName = MealSessionManager.activePlanName ?: DEFAULT_PLAN_LABEL,
+            savedIcr = effectiveIcr(),
+            savedIsf = effectiveIsf(),
+            savedTargetGlucose = effectiveTarget(),
             glucoseLevel = glucoseValue,
             carbDose = finalResult.carbDose,
             correctionDose = finalResult.correctionDose
@@ -139,38 +150,38 @@ class SummaryPersistenceHandler(
             try {
                 val currentMeal = MealSessionManager.currentMeal
                 if (currentMeal == null) {
-                     showError("Error: No meal data to save")
+                     showError(context.getString(R.string.error_no_meal_save))
                      ui.logButton.isEnabled = true
                      return@launch
                 }
 
-                val mealDto = com.example.insuscan.mapping.MealDtoMapper.mapToDto(currentMeal)
-                val userEmail = com.example.insuscan.auth.AuthManager.getUserEmail() ?: ""
+                val mealDto = MealDtoMapper.mapToDto(currentMeal)
+                val userEmail = AuthManager.getUserEmail() ?: ""
 
                 val result = mealRepository.saveScannedMeal(userEmail, mealDto)
 
                 if (result.isSuccess) {
-                    ToastHelper.showShort(context, "Meal logged successfully")
+                    ToastHelper.showShort(context, context.getString(R.string.success_meal_saved))
                     MealSessionManager.clearSession()
                     AppDataStore.onMealsChanged()
                     onMealSavedSuccessfully()
                 } else {
                     val errorMsg = when (val e = result.exceptionOrNull()) {
-                        is ApiException.NoConnection -> "No internet connection. The meal was NOT saved. Please try again."
-                        is ApiException.Timeout -> "Request timed out. The meal was NOT saved. Please try again."
-                        is ApiException.ServerError -> "Server error (${e.code}). The meal was NOT saved."
-                        is ApiException.ClientError -> "Save rejected (${e.code}). The meal was NOT saved."
-                        is ApiException.Unauthorized -> "Session expired. Please log in again."
-                        else -> "Failed to save. The meal was NOT saved. Please try again."
+                        is ApiException.NoConnection -> context.getString(R.string.error_save_no_connection)
+                        is ApiException.Timeout -> context.getString(R.string.error_save_timeout)
+                        is ApiException.ServerError -> context.getString(R.string.error_save_server, e.code)
+                        is ApiException.ClientError -> context.getString(R.string.error_save_client, e.code)
+                        is ApiException.Unauthorized -> context.getString(R.string.error_session_expired)
+                        else -> context.getString(R.string.error_save_failed)
                     }
                     showError(errorMsg)
                     ui.logButton.isEnabled = true
                 }
             } catch (e: ApiException.NoConnection) {
-                showError("No internet connection. Please try again.")
+                showError(context.getString(R.string.error_save_no_connection))
                 ui.logButton.isEnabled = true
             } catch (e: Exception) {
-                showError("Failed to save. Please try again.")
+                showError(context.getString(R.string.error_save_failed))
                 ui.logButton.isEnabled = true
             }
         }
@@ -178,12 +189,16 @@ class SummaryPersistenceHandler(
 
     private fun showIncompleteProfileDialog() {
         AlertDialog.Builder(context)
-            .setTitle("Profile Incomplete")
-            .setMessage("Your medical profile is missing required values (ICR, ISF or target glucose), so the meal can't be saved yet.\n\nComplete your profile to continue.")
-            .setPositiveButton("Complete Profile") { _, _ -> onIncompleteProfileRequested() }
-            .setNegativeButton("Cancel", null)
+            .setTitle(R.string.dialog_profile_incomplete_title)
+            .setMessage(R.string.dialog_profile_incomplete_msg)
+            .setPositiveButton(R.string.action_complete_profile) { _, _ -> onIncompleteProfileRequested() }
+            .setNegativeButton(R.string.action_cancel, null)
             .show()
     }
 
     private fun showError(message: String) = ToastHelper.showShort(context, message)
+
+    companion object {
+        private const val DEFAULT_PLAN_LABEL = "Default"
+    }
 }

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Summary footer — extracted from fragment_summary.xml.
+     Wrapper LinearLayout groups: disclaimer text + empty state + warnings. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Warning text -->
+    <TextView
+        android:id="@+id/tv_disclaimer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/summary_disclaimer"
+        android:textSize="11.5sp"
+        android:fontFamily="@font/inter"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:layout_marginTop="@dimen/spacing_medium"
+        android:layout_marginBottom="@dimen/spacing_small" />
+
+    <!-- Empty state -->
+    <LinearLayout
+        android:id="@+id/layout_empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="@dimen/spacing_xl"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/summary_no_meal_scanned"
+            android:textSize="@dimen/text_body1"
+            android:fontFamily="@font/inter"
+            android:textFontWeight="500"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="@dimen/spacing_small" />
+
+        <Button
+            android:id="@+id/btn_scan_now"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/summary_scan_now"
+            android:textAllCaps="false"
+            android:fontFamily="@font/inter"
+            android:backgroundTint="@color/primary"
+            app:cornerRadius="@dimen/corner_radius_button" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_high_dose_warning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/warning_bg"
+        android:padding="@dimen/padding_input_horizontal"
+        android:layout_marginTop="@dimen/padding_input_horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_high_dose_warning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_caption"
+            android:fontFamily="@font/inter"
+            android:textColor="@color/warning" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_dose_rounding_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:textSize="@dimen/text_caption"
+        android:fontFamily="@font/inter"
+        android:textColor="@color/text_secondary"
+        android:gravity="center"
+        android:layout_marginTop="@dimen/spacing_small" />
+
+</LinearLayout>

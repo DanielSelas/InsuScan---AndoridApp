@@ -27,7 +27,10 @@ class PlateDetectionSmoother(private val historySize: Int = 5) {
 
         if (boundsHistory.size < 2) return raw
 
-        var avgLeft = 0; var avgTop = 0; var avgRight = 0; var avgBottom = 0
+        var avgLeft = 0;
+        var avgTop = 0;
+        var avgRight = 0;
+        var avgBottom = 0
         for (r in boundsHistory) {
             avgLeft += r.left; avgTop += r.top; avgRight += r.right; avgBottom += r.bottom
         }

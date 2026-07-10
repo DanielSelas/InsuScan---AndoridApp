@@ -2,6 +2,9 @@ package com.example.insuscan.auth.util
 
 import com.example.insuscan.auth.exception.AuthException
 
+/**
+ * Translates raw Firebase Auth error strings into typed AuthException values.
+ */
 object AuthErrorHandler {
 
     /** Maps a raw Firebase error string to a typed [AuthException]. */

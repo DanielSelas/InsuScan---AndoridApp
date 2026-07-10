@@ -7,7 +7,7 @@
     android:background="@color/white"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:elevation="8dp">
+    android:elevation="@dimen/elevation_card_raised">
 
     <LinearLayout
         android:id="@+id/nav_home"
@@ -29,7 +29,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Home"
-            android:textSize="10sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:layout_marginTop="3dp"/>
     </LinearLayout>
@@ -54,7 +54,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="History"
-            android:textSize="10sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:layout_marginTop="3dp"/>
     </LinearLayout>
@@ -79,7 +79,7 @@
             android:gravity="center"
             android:background="@drawable/bg_scan_fab"
             android:layout_marginTop="-20dp"
-            android:elevation="6dp">
+            android:elevation="@dimen/elevation_fab">
             <ImageView
                 android:id="@+id/icon_scan"
                 android:layout_width="22dp"
@@ -91,7 +91,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Scan"
-                android:textSize="10sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/white"
                 android:layout_marginTop="2dp"/>
@@ -118,7 +118,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Assist"
-            android:textSize="10sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:layout_marginTop="3dp"/>
     </LinearLayout>
@@ -143,7 +143,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="You"
-            android:textSize="10sp"
+            android:textSize="@dimen/text_caption"
             android:fontFamily="@font/inter"
             android:layout_marginTop="3dp"/>
     </LinearLayout>

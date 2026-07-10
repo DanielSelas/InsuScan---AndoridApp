@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dose breakdown section — extracted from fragment_summary.xml.
+     Wrapper LinearLayout groups the section label + rows table. -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Dose Breakdown -->
+    <TextView
+        style="@style/TextStyle.SectionLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/summary_dose_breakdown"
+        android:layout_marginBottom="@dimen/spacing_small" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Carb dose row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="@dimen/padding_input_horizontal">
+
+            <TextView
+                style="@style/TextStyle.Body14"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/insulin_carb_dose" />
+
+            <TextView
+                android:id="@+id/tv_carb_dose"
+                style="@style/TextStyle.Body14.Medium"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.0 u" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/divider" />
+
+        <!-- Active plan row -->
+        <LinearLayout
+            android:id="@+id/layout_active_plan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="@dimen/padding_input_horizontal"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                style="@style/TextStyle.Body14"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/summary_active_plan" />
+
+            <TextView
+                android:id="@+id/tv_active_plan"
+                style="@style/TextStyle.Body14"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary" />
+
+            <TextView
+                android:id="@+id/tv_change_plan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/summary_change_plan"
+                android:textSize="@dimen/text_caption"
+                android:fontFamily="@font/inter"
+                android:textFontWeight="500"
+                android:textColor="@color/primary"
+                android:layout_marginStart="@dimen/spacing_small" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/divider" />
+
+        <!-- Correction dose row -->
+        <LinearLayout
+            android:id="@+id/layout_correction_dose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="@dimen/padding_input_horizontal"
+            android:visibility="gone">
+
+            <TextView
+                style="@style/TextStyle.Body14"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/insulin_correction" />
+
+            <TextView
+                android:id="@+id/tv_correction_dose"
+                style="@style/TextStyle.Body14"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+0.0 u"
+                android:textFontWeight="500"
+                android:textColor="@color/status_warning" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
+            android:background="@color/divider" />
+
+        <!-- Total row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="@dimen/padding_input_horizontal">
+
+            <TextView
+                style="@style/TextStyle.Body14"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/summary_total_row"
+                android:textFontWeight="600" />
+
+            <TextView
+                android:id="@+id/tv_final_dose"
+                style="@style/TextStyle.Body14"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.0 u"
+                android:textFontWeight="700"
+                android:textColor="@color/primary" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

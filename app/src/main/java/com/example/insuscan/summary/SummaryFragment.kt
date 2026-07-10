@@ -10,15 +10,23 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.meal.MealSessionManager
-import com.example.insuscan.profile.UserProfileManager
-import com.example.insuscan.utils.TopBarHelper
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.example.insuscan.summary.helpers.*
-
 import com.example.insuscan.network.repository.InsulinCalcRepositoryImpl
-import com.example.insuscan.utils.FileLogger
+import com.example.insuscan.profile.UserProfileManager
+import com.example.insuscan.summary.helpers.DoseResult
+import com.example.insuscan.summary.helpers.SummaryCalculationHelper
+import com.example.insuscan.summary.helpers.SummaryDoseDisplayHandler
+import com.example.insuscan.summary.helpers.SummaryImageHandler
+import com.example.insuscan.summary.helpers.SummaryMealDisplayHandler
+import com.example.insuscan.summary.helpers.SummaryPersistenceHandler
+import com.example.insuscan.summary.helpers.SummaryUiManager
+import com.example.insuscan.utils.TopBarHelper
 import kotlinx.coroutines.launch
+import androidx.navigation.NavOptions
 
+/**
+ * Meal summary screen: shows the scanned meal, computes and displays the insulin dose
+ * (local preview + server result), and logs the confirmed meal.
+ */
 class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private lateinit var ui: SummaryUiManager
@@ -81,6 +89,13 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         }
     }
 
+    private fun navigateClearingBackStack(destinationId: Int) {
+        val navOptions = NavOptions.Builder()
+            .setPopUpTo(R.id.nav_graph, false)
+            .build()
+        findNavController().navigate(destinationId, null, navOptions)
+    }
+
     private fun initializeListeners() {
         ui.editButton.setOnClickListener { navigateToManualEntry() }
 
@@ -94,7 +109,8 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
         ui.glucoseEditText.setOnEditorActionListener { _, _, _ ->
             ui.glucoseEditText.clearFocus()
-            val imm = ctx.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+            val imm =
+                ctx.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
             imm.hideSoftInputFromWindow(ui.glucoseEditText.windowToken, 0)
             true
         }
@@ -136,6 +152,7 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
                 }
         }
     }
+
     private fun recalculateDose() {
         persistenceHandler.highDoseAcknowledged = false
         val ready = doseDisplayHandler.calculateAndDisplayDose()
@@ -144,7 +161,8 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
 
     private fun restoreGlucoseField() {
         if (!ui.glucoseEditText.text.isNullOrEmpty()) return
-        val glucose = MealSessionManager.enteredGlucose ?: MealSessionManager.currentMeal?.glucoseLevel
+        val glucose =
+            MealSessionManager.enteredGlucose ?: MealSessionManager.currentMeal?.glucoseLevel
         if (glucose != null) {
             ui.glucoseEditText.setText(glucose.toString())
         }
@@ -182,10 +200,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
             }.onFailure { e ->
                 ui.recommendedDoseText.alpha = 1f
                 ui.setLogButtonEnabled(wasEnabled)
-                android.util.Log.d("CALC_COMPARE", "Server call failed: ${e.message}")
+                Log.d("CALC_COMPARE", "Server call failed: ${e.message}")
             }
         }
     }
+
     private fun checkAndRefreshProfileStatus() {
         val meal = MealSessionManager.currentMeal ?: return
         if (meal.profileComplete) return
@@ -204,6 +223,23 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         }
     }
 
+
+    private fun proceedToHistory() {
+        navigateClearingBackStack(R.id.historyFragment)
+    }
+
+    private fun proceedToScan() {
+        navigateClearingBackStack(R.id.scanFragment)
+    }
+
+    private fun navigateToProfile() {
+        findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
+    }
+
+    private fun navigateToManualEntry() {
+        findNavController().navigate(R.id.action_summaryFragment_to_manualEntryFragment)
+    }
+
     override fun onResume() {
         super.onResume()
 
@@ -216,35 +252,11 @@ class SummaryFragment : Fragment(R.layout.fragment_summary) {
         mealDisplayHandler.updateFoodDisplay()
         ui.updateAnalysisResults()
 
-        ui.updateEmptyStateVisibility()
-        if (MealSessionManager.currentMeal != null) {
         imageHandler.displayMealImage()
-        }
 
         restoreGlucoseField()
 
         recalculateDose()
     }
 
-    private fun proceedToHistory() {
-        val navOptions = androidx.navigation.NavOptions.Builder()
-            .setPopUpTo(R.id.nav_graph, false)
-            .build()
-        findNavController().navigate(R.id.historyFragment, null, navOptions)
-    }
-
-    private fun proceedToScan() {
-        val navOptions = androidx.navigation.NavOptions.Builder()
-            .setPopUpTo(R.id.nav_graph, false)
-            .build()
-        findNavController().navigate(R.id.scanFragment, null, navOptions)
-    }
-
-    private fun navigateToProfile() {
-        findNavController().navigate(R.id.action_summaryFragment_to_profileFragment)
-    }
-
-    private fun navigateToManualEntry() {
-        findNavController().navigate(R.id.action_summaryFragment_to_manualEntryFragment)
-    }
 }

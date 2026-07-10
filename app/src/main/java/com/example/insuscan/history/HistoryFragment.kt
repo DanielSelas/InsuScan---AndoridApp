@@ -1,14 +1,12 @@
 package com.example.insuscan.history
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -18,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.insuscan.R
 import com.example.insuscan.appdata.AppDataStore
-import com.example.insuscan.appdata.DataState
 import com.example.insuscan.utils.DateTimeHelper
 import com.google.android.material.datepicker.MaterialDatePicker
 import kotlinx.coroutines.flow.collectLatest
@@ -58,9 +55,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         btnFilterContainer = view.findViewById(R.id.btn_filter_container)
         btnClearFilter = view.findViewById(R.id.btn_clear_filter)
 
-        val tvAvgCarbs = view.findViewById<TextView>(R.id.tv_avg_carbs)
-        val tvAvgDose = view.findViewById<TextView>(R.id.tv_avg_dose)
-        val tvTotalMeals = view.findViewById<TextView>(R.id.tv_total_meals)
     }
 
     private fun setupRecyclerView() {
@@ -82,8 +76,8 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             when {
                 isError -> emptyStateText.text =
                     com.example.insuscan.network.NetworkErrorPresenter.message((refresh as LoadState.Error).error)
-                isListEmpty && btnClearFilter.isVisible -> emptyStateText.text = "No meals found for this date."
-                isListEmpty -> emptyStateText.text = "No meals yet.\nScan your first meal to get started!"
+                isListEmpty && btnClearFilter.isVisible -> emptyStateText.text = getString(R.string.history_no_meals_date)
+                isListEmpty -> emptyStateText.text = getString(R.string.history_no_meals_yet)
             }
         }
 
@@ -114,7 +108,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
             }
 
             val apiDateString = DateTimeHelper.formatDateForFilter(selection)
-            Log.d("HistoryFilter", "Date picker selected: $selection ms -> API date: $apiDateString")
 
             val uiFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
             val displayDate = uiFormat.format(Date(selection))
@@ -134,7 +127,6 @@ class HistoryFragment : Fragment(R.layout.fragment_history) {
         btnClearFilter.isVisible = false
 
         viewModel.setDateFilter(null)
-        Log.d("HistoryFilter", "Filter cleared")
     }
 
     override fun onResume() {

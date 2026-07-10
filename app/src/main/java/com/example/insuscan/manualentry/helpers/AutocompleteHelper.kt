@@ -14,6 +14,10 @@ import com.example.insuscan.network.dto.ScoredFoodResultDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/**
+ * Drives the food-name autocomplete: debounces input, queries the AI search endpoint,
+ * and shows the suggestion list.
+ */
 class AutocompleteHelper(
     private val scope: CoroutineScope,
     private val etFoodName: EditText,

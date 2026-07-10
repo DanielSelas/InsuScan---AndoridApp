@@ -2,10 +2,22 @@ package com.example.insuscan.profile
 
 import android.content.Context
 import com.example.insuscan.utils.FileLogger
+import com.example.insuscan.network.dto.InsulinPlanDto
+import com.example.insuscan.network.dto.UserDto
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
+/**
+ * SharedPreferences-backed store for the user's profile and medical settings.
+ *
+ * Acts as the single source of truth for local profile data, delegating
+ * derived calculations to [UserProfileCalculations] and server sync to [UserProfileSyncManager].
+ */
 object UserProfileManager {
-    private const val KEY_USER_EMAIL = "user_email"
+    const val DEFAULT_DOSE_ROUNDING = 0.5f
+
     private const val PREFS_NAME = "insu_profile_prefs"
+    private const val KEY_USER_EMAIL = "user_email"
     private const val KEY_RATIO = "insulin_carb_ratio"
     private const val KEY_USER_NAME = "user_name"
     private const val KEY_CORRECTION_FACTOR = "correction_factor"
@@ -13,7 +25,6 @@ object UserProfileManager {
     private const val KEY_USER_AGE = "user_age"
     private const val KEY_USER_GENDER = "user_gender"
     private const val KEY_DOSE_ROUNDING = "dose_rounding"
-
     private const val KEY_PROFILE_PHOTO_URL = "profile_photo_url"
     private const val KEY_REGISTRATION_COMPLETE = "registration_complete"
     private const val KEY_INSULIN_PLANS = "insulin_plans"
@@ -58,17 +69,18 @@ object UserProfileManager {
         editor.apply()
     }
 
+    /** Initialises the [FileLogger] with the app context. Call once on startup. */
     fun init(context: Context) { FileLogger.init(context) }
 
     fun saveInsulinCarbRatio(context: Context, ratioText: String) = savePref(context, KEY_RATIO, ratioText)
     fun getInsulinCarbRatioRaw(context: Context): String? = getPrefNullable(context, KEY_RATIO)
-    
-    fun getUnitsPerGram(context: Context): Float? = UserProfileCalculations.getUnitsPerGram(context)
+
     fun getGramsPerUnit(context: Context): Float? = UserProfileCalculations.getGramsPerUnit(context)
 
-    fun saveUserProfile(context: Context, profile: UserProfile) = UserProfileDataManager.saveUserProfile(context, profile)
-    fun getUserProfile(context: Context): UserProfile? = UserProfileDataManager.getUserProfile(context)
-
+    /**
+     * Returns `true` if the user has completed the registration flow.
+     * Falls back to checking for a saved target glucose value for backwards compatibility.
+     */
     fun isRegistrationComplete(context: Context): Boolean {
         val p = prefs(context)
         if (p.contains(KEY_REGISTRATION_COMPLETE)) return p.getBoolean(KEY_REGISTRATION_COMPLETE, false)
@@ -77,7 +89,7 @@ object UserProfileManager {
     }
 
     fun setRegistrationComplete(context: Context, complete: Boolean) = savePref(context, KEY_REGISTRATION_COMPLETE, complete)
-    
+
     fun saveUserName(context: Context, name: String) = savePref(context, KEY_USER_NAME, name)
     fun getUserName(context: Context): String? = getPrefNullable(context, KEY_USER_NAME)
 
@@ -98,30 +110,54 @@ object UserProfileManager {
     fun getUserGender(context: Context): String? = getPrefNullable(context, KEY_USER_GENDER)
 
     fun saveDoseRounding(context: Context, rounding: Float) = savePref(context, KEY_DOSE_ROUNDING, rounding)
-    fun getDoseRounding(context: Context): Float = getPref(context, KEY_DOSE_ROUNDING, 0.5f)
+    fun getDoseRounding(context: Context): Float = getPref(context, KEY_DOSE_ROUNDING, DEFAULT_DOSE_ROUNDING)
 
-
-    fun saveInsulinPlans(context: Context, plans: List<com.example.insuscan.network.dto.InsulinPlanDto>) {
-        val json = com.google.gson.Gson().toJson(plans)
+    fun saveInsulinPlans(context: Context, plans: List<InsulinPlanDto>) {
+        val json = Gson().toJson(plans)
         savePref(context, KEY_INSULIN_PLANS, json)
     }
 
-    fun getInsulinPlans(context: Context): List<com.example.insuscan.network.dto.InsulinPlanDto>? {
+    fun getInsulinPlans(context: Context): List<InsulinPlanDto>? {
         val json = getPrefNullable<String>(context, KEY_INSULIN_PLANS) ?: return null
-        val type = object : com.google.gson.reflect.TypeToken<List<com.example.insuscan.network.dto.InsulinPlanDto>>() {}.type
+        val type = object : TypeToken<List<InsulinPlanDto>>() {}.type
         return try {
-            com.google.gson.Gson().fromJson(json, type)
+            Gson().fromJson(json, type)
         } catch (e: Exception) {
             null
         }
     }
 
+    /**
+     * Assembles a [UserDto] from all locally stored profile values.
+     * Normalises the ICR string to `"1:x"` format before including it.
+     */
+    fun buildUserDto(context: Context, doseRounding: String): UserDto {
+        var rawRatio = getInsulinCarbRatioRaw(context)
+        if (rawRatio != null && !rawRatio.contains(":")) rawRatio = "1:$rawRatio"
+        return UserDto(
+            userId = null,
+            username = getUserName(context),
+            role = null,
+            avatar = getProfilePhotoUrl(context),
+            insulinCarbRatio = rawRatio,
+            correctionFactor = getCorrectionFactor(context),
+            targetGlucose = getTargetGlucose(context),
+            age = getUserAge(context),
+            gender = getUserGender(context),
+            doseRounding = doseRounding,
+            insulinPlans = getInsulinPlans(context),
+            createdTimestamp = null,
+            updatedTimestamp = null
+        )
+    }
 
     fun saveProfilePhotoUrl(context: Context, url: String) = savePref(context, KEY_PROFILE_PHOTO_URL, url)
     fun getProfilePhotoUrl(context: Context): String? = getPrefNullable(context, KEY_PROFILE_PHOTO_URL)
 
-    fun syncFromServer(context: Context, user: com.example.insuscan.network.dto.UserDto) = UserProfileSyncManager.syncFromServer(context, user)
+    /** Delegates server-to-local profile sync to [UserProfileSyncManager]. */
+    fun syncFromServer(context: Context, user: UserDto) = UserProfileSyncManager.syncFromServer(context, user)
 
+    /** Clears all locally stored profile data. */
     fun clearAllData(context: Context) {
         prefs(context).edit().clear().apply()
     }

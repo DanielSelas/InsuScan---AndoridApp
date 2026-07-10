@@ -6,27 +6,31 @@ import android.net.Uri
 import android.util.Log
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.insuscan.R
+import com.example.insuscan.camera.exception.CameraException
 import com.example.insuscan.camera.model.ImageQualityResult
+import com.example.insuscan.camera.model.QualityLevel
 import com.example.insuscan.camera.validator.ImageValidator
 import com.example.insuscan.camera.validator.ValidationResult
+import com.example.insuscan.network.exception.ApiException
 import com.example.insuscan.scan.CapturedScanData
 import com.example.insuscan.scan.PipelineResult
-import com.example.insuscan.scan.RefCheckResult
 import com.example.insuscan.scan.ScanMode
 import com.example.insuscan.scan.ScanResultCallback
 import com.example.insuscan.scan.coach.CameraCoachEvaluator
 import com.example.insuscan.scan.coach.MeasurementStrategy
-import com.example.insuscan.camera.exception.CameraException
-import com.example.insuscan.network.exception.ApiException
+import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
 import com.example.insuscan.scan.ui.ScanDialogHelper
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ReferenceObjectHelper
 import com.example.insuscan.utils.ToastHelper
 import kotlinx.coroutines.launch
 import java.io.File
-import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
-import com.example.insuscan.camera.model.QualityLevel
 
+/**
+ * Drives the scan UI flow: capture, validation, side-photo handling, and routing
+ * each pipeline result to the right dialog or success path.
+ */
 class ScanFlowController(
     private val fragment: Fragment,
     private val hardware: ScanHardwareController,
@@ -63,12 +67,12 @@ class ScanFlowController(
         uiState.btnSubmitScan.setOnClickListener {
             val text = uiState.glucoseInput.text.toString().trim()
             if (text.isEmpty()) {
-                ToastHelper.showShort(context, "Please enter your blood glucose level.")
+                ToastHelper.showShort(context, context.getString(R.string.scan_enter_glucose))
                 return@setOnClickListener
             }
             val value = text.toIntOrNull()
             if (value == null || value < 30 || value > 600) {
-                ToastHelper.showShort(context, "Blood glucose must be between 30 and 600 mg/dL.")
+                ToastHelper.showShort(context, context.getString(R.string.scan_glucose_range_error))
                 return@setOnClickListener
             }
 
@@ -78,7 +82,7 @@ class ScanFlowController(
             } else {
                 isWaitingForResults = true
                 uiState.btnSubmitScan.isEnabled = false
-                uiState.btnSubmitScan.text = "Waiting..."
+                uiState.btnSubmitScan.text = context.getString(R.string.scan_waiting)
                 uiState.glucoseInput.isEnabled = false
             }
         }
@@ -117,13 +121,12 @@ class ScanFlowController(
     }
 
     fun onCaptureClicked() {
-        Log.d(TAG, "📸 CAPTURE CLICKED | captureOnlyMode=$isCaptureOnlyMode | sidePhotoMode=$isSidePhotoMode | refType=$selectedReferenceType | arReady=${hardware.arCoreManager?.isReady}")
+        Log.d(TAG, "Capture clicked — mode: captureOnly=$isCaptureOnlyMode, sidePhoto=$isSidePhotoMode, ref=$selectedReferenceType")
         uiState.showLoading(true, "Capturing image...")
         hardware.cameraManager.captureImage(
             outputDirectory = context.cacheDir,
             onImageCaptured = { file ->
                 capturedImagePath = file.absolutePath
-                Log.d(TAG, "🖼️ IMAGE CAPTURED | path=${file.absolutePath} | size=${"%.2f".format(file.length() / 1024.0)}KB")
                 isShowingCapturedImage = true
                 uiState.switchToCapturedImageMode(file, fragment, isSidePhotoMode)
                 
@@ -134,7 +137,6 @@ class ScanFlowController(
                     return@captureImage
                 }
 
-                Log.d(TAG, "Image captured, running validation...")
                 val capturedLux = hardware.currentLux
                 val validationResult = ImageValidator.validateCapturedImage(file, capturedLux)
                 when (validationResult) {
@@ -142,17 +144,17 @@ class ScanFlowController(
                         when (validationResult.report.overall) {
                             QualityLevel.FAILED -> {
                                 Log.w(TAG, "Image failed validation: ${validationResult.report.message}")
+
                                 uiState.showLoading(false)
-                                ToastHelper.showLong(context, "Image quality issue:\n${validationResult.report.message}\nPlease retake.")
+                                ToastHelper.showLong(context, context.getString(R.string.scan_quality_issue, validationResult.report.message))
                                 switchToCameraMode()
                             }
                             QualityLevel.BORDERLINE -> {
                                 Log.w(TAG, "Image borderline quality: ${validationResult.report.message}")
-                                ToastHelper.showLong(context, "Heads up: ${validationResult.report.message}")
+                                ToastHelper.showLong(context, context.getString(R.string.scan_quality_warning, validationResult.report.message))
                                 analyzePortionAndContinue(file)
                             }
                             QualityLevel.OK -> {
-                                Log.d(TAG, "Image passed validation, proceeding to analysis")
                                 analyzePortionAndContinue(file)
                             }
                         }
@@ -172,7 +174,6 @@ class ScanFlowController(
     }
 
     fun switchToCameraMode() {
-        Log.d(TAG, "🔄 SWITCH TO CAMERA MODE | clearing pending state | pendingBitmap=${pendingMainBitmap != null} | pendingFile=${pendingMainFile?.name}")
         coachEvaluator.reset()
         isShowingCapturedImage = false
         capturedImagePath = null
@@ -189,11 +190,11 @@ class ScanFlowController(
     }
 
     private fun analyzePortionAndContinue(imageFile: File) {
-        Log.d(TAG, "🔬 ANALYSIS START | file=${imageFile.name} | refType=$selectedReferenceType | refExpected=${ReferenceObjectHelper.fromServerValue(selectedReferenceType) != ReferenceObjectHelper.ReferenceObjectType.NONE} | refFoundInPreview=${hardware.cameraManager.lastQualityResult?.isReferenceObjectFound}")
+        Log.d(TAG, "Starting analysis — ref=$selectedReferenceType")
         val bitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
         if (bitmap == null) {
             uiState.showLoading(false)
-            ToastHelper.showShort(context, "Failed to process image")
+            ToastHelper.showShort(context, context.getString(R.string.scan_process_failed))
             return
         }
 
@@ -203,10 +204,8 @@ class ScanFlowController(
         hardware.pipelineManager.wasRefFoundInLivePreview = hardware.cameraManager.lastQualityResult?.isReferenceObjectFound ?: false
 
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            val refCheck = hardware.pipelineManager.checkReferenceObject(bitmap, selectedReferenceType)
-            Log.d(TAG, "🎯 REF CHECK RESULT | type=${refCheck::class.simpleName} | selectedRef=$selectedReferenceType | effectiveRef will be determined next")
-            val effectiveRefType = selectedReferenceType
-            val result = hardware.pipelineManager.runAnalysis(bitmap, imageFile, effectiveRefType, capturedImagePath)
+            hardware.pipelineManager.checkReferenceObject(bitmap, selectedReferenceType)
+            val result = hardware.pipelineManager.runAnalysis(bitmap, imageFile, selectedReferenceType, capturedImagePath)
             handlePipelineResult(result)
         }
     }
@@ -215,7 +214,6 @@ class ScanFlowController(
         when (result) {
 
             is PipelineResult.Success -> {
-                Log.d(TAG, "✅ PIPELINE SUCCESS | warning=${result.warning} | meal=${result.meal}")
                 pendingSuccessMeal = result.meal
                 pendingSuccessWarning = result.warning
                 if (isWaitingForResults) {
@@ -227,7 +225,6 @@ class ScanFlowController(
                 }
             }
             is PipelineResult.NeedSidePhoto -> {
-                Log.d(TAG, "📷 NEED SIDE PHOTO | requesting second capture")
                 uiState.showLoading(false)
                 pendingMainBitmap = result.bitmap
                 pendingMainFile = result.imageFile
@@ -235,12 +232,11 @@ class ScanFlowController(
                 uiState.showSidePhotoCard()
             }
             PipelineResult.NoFoodDetected -> {
-                Log.w(TAG, "⚠️ NO FOOD DETECTED")
                 uiState.showLoading(false)
                 dialogHelper.showNoFoodDetectedDialog()
             }
             is PipelineResult.Failed -> {
-                Log.e(TAG, "❌ PIPELINE FAILED | error=${result.error}")
+                Log.e(TAG, "Pipeline failed: ${result.error.message}")
                 uiState.showLoading(false)
                 dialogHelper.handleScanError(result.error)
             }
@@ -288,7 +284,6 @@ class ScanFlowController(
     }
 
     fun processGalleryImage(uri: Uri) {
-        Log.d(TAG, "🖼️ GALLERY IMAGE | uri=$uri | captureOnlyMode=$isCaptureOnlyMode")
         uiState.showLoading(true, "Loading image...")
         try {
             val inputStream = context.contentResolver.openInputStream(uri)
@@ -328,7 +323,7 @@ class ScanFlowController(
             dialogHelper.handleScanError(e)
         } catch (e: Exception) {
             uiState.showLoading(false)
-            ToastHelper.showShort(context, "Failed to process image. Please try again.")
+            ToastHelper.showShort(context, context.getString(R.string.scan_process_failed_retry))
         }
     }
 

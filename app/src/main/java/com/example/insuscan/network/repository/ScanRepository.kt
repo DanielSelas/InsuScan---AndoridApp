@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 
 import com.example.insuscan.network.dto.MealDto
 
+/**
+ * Sends a two-photo meal scan (top and side) to the backend for food and portion analysis.
+ */
 interface ScanRepository {
     suspend fun scanImage(
         topImage: Bitmap,

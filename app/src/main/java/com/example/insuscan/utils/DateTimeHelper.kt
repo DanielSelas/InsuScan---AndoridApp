@@ -6,6 +6,12 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
+/**
+ * Parses and formats timestamps for display and API communication.
+ *
+ * Handles both ISO-8601 strings and epoch-millisecond values,
+ * and produces locale-aware labels for cards, list headers, and API queries.
+ */
 object DateTimeHelper {
 
     private val ISO_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).apply {
@@ -15,31 +21,34 @@ object DateTimeHelper {
     private val FULL_ISO_FORMAT = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
         timeZone = TimeZone.getTimeZone("UTC")
     }
-    
+
     private val DISPLAY_FORMAT = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
 
-    // Parses server timestamp - handles both ISO string and millis
+    /**
+     * Parses a server timestamp that may be an ISO-8601 string or a raw epoch-millisecond value.
+     * Returns the current time if the input is null or unparseable.
+     */
     fun parseTimestamp(ts: String?): Long {
         if (ts == null) return System.currentTimeMillis()
 
-        // Try parsing as Long (millis)
         ts.toLongOrNull()?.let { return it }
 
-        // Try parsing as ISO date string
         return try {
-            // Handle potentially different server formats
-             if (ts.endsWith("Z")) {
-                 FULL_ISO_FORMAT.parse(ts)?.time ?: System.currentTimeMillis()
-             } else {
-                 ISO_FORMAT.parse(ts)?.time ?: System.currentTimeMillis()
-             }
+            if (ts.endsWith("Z")) {
+                FULL_ISO_FORMAT.parse(ts)?.time ?: System.currentTimeMillis()
+            } else {
+                ISO_FORMAT.parse(ts)?.time ?: System.currentTimeMillis()
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             System.currentTimeMillis()
         }
     }
 
-    // Formats formatted timestamp for display inside cards (e.g. 19:04 or 12 Jan, 19:04)
+    /**
+     * Formats a timestamp for display inside meal cards.
+     * Shows "Today" or "Yesterday" when applicable, otherwise "dd MMM, HH:mm".
+     */
     fun formatDate(timestamp: Long): String {
         return when {
             DateUtils.isToday(timestamp) -> "Today, " + SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
@@ -48,7 +57,9 @@ object DateTimeHelper {
         }
     }
 
-    // New: Formats date strictly for Headers (Grouping by Day)
+    /**
+     * Formats a timestamp as a day-group header label ("Today", "Yesterday", or "dd MMM").
+     */
     fun formatHeaderDate(timestamp: Long): String {
         return when {
             DateUtils.isToday(timestamp) -> "Today"
@@ -57,11 +68,12 @@ object DateTimeHelper {
         }
     }
 
+    /** Formats a timestamp as a full ISO-8601 UTC string for API requests. */
     fun formatForApi(timestamp: Long): String {
         return FULL_ISO_FORMAT.format(Date(timestamp))
     }
 
-    // Formats date for filtering (YYYY-MM-DD) - matches server expectation
+    /** Formats a timestamp as a UTC date string (yyyy-MM-dd) for server-side date filtering. */
     fun formatDateForFilter(timestamp: Long): String {
         return SimpleDateFormat("yyyy-MM-dd", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")

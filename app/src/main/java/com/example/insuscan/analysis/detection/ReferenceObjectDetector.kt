@@ -3,14 +3,18 @@ package com.example.insuscan.analysis.detection
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
-import com.example.insuscan.analysis.detection.strategy.*
+import com.example.insuscan.analysis.detection.strategy.CardReferenceStrategy
+import com.example.insuscan.analysis.detection.strategy.StrictReferenceStrategy
 import com.example.insuscan.analysis.detection.util.ReferenceDebugStats
 import com.example.insuscan.analysis.model.DetectionResult
 import com.example.insuscan.analysis.model.FallbackDetectionResult
 import com.example.insuscan.utils.ReferenceObjectHelper
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
-import org.opencv.core.*
+import org.opencv.core.Mat
+import org.opencv.core.MatOfPoint
+import org.opencv.core.MatOfPoint2f
+import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 
 /**
@@ -20,26 +24,29 @@ import org.opencv.imgproc.Imgproc
 class ReferenceObjectDetector(private val context: Context) {
 
     companion object {
-            private const val TAG = "RefObjectDetector"
+        private const val TAG = "RefObjectDetector"
 
-            // Detection area thresholds
-            private const val MIN_CONTOUR_AREA = 1000.0
-            private const val MAX_CONTOUR_AREA = 500000.0
+        // Detection area thresholds
+        private const val MIN_CONTOUR_AREA = 1000.0
+        private const val MAX_CONTOUR_AREA = 500000.0
 
-            // OpenCV Magic Numbers extracted
-            private const val BLUR_KERNEL_SIZE = 5.0
-            private const val BLUR_SIGMA = 0.0
-            private const val CANNY_THRESHOLD_LOW = 50.0
-            private const val CANNY_THRESHOLD_HIGH = 150.0
+        // OpenCV Magic Numbers extracted
+        private const val BLUR_KERNEL_SIZE = 5.0
+        private const val BLUR_SIGMA = 0.0
+        private const val CANNY_THRESHOLD_LOW = 50.0
+        private const val CANNY_THRESHOLD_HIGH = 150.0
 
-            // Relative sizing logic
-            private const val REF_RESOLUTION_PIXELS = 2_000_000.0
-        }
+        // Relative sizing logic
+        private const val REF_RESOLUTION_PIXELS = 2_000_000.0
+    }
 
     private var isOpenCvInitialized = false
-    private var expectedObjectLengthCm = ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.lengthCm
-    private var expectedObjectWidthCm = ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.widthCm
-    private var expectedObjectHeightCm = ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.heightCm
+    private var expectedObjectLengthCm =
+        ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.lengthCm
+    private var expectedObjectWidthCm =
+        ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.widthCm
+    private var expectedObjectHeightCm =
+        ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE.heightCm
 
     /** Detection mode determines which aspect ratio and solidity thresholds to use. */
     enum class DetectionMode {
@@ -139,8 +146,12 @@ class ReferenceObjectDetector(private val context: Context) {
 
         for (contour in contours) {
             val area = Imgproc.contourArea(contour)
-            if (area < minArea) { stats.tooSmall++; continue }
-            if (area > maxArea) { stats.tooLarge++; continue }
+            if (area < minArea) {
+                stats.tooSmall++; continue
+            }
+            if (area > maxArea) {
+                stats.tooLarge++; continue
+            }
 
             val contour2f = MatOfPoint2f(*contour.toArray())
             val rotatedRect = Imgproc.minAreaRect(contour2f)
@@ -163,7 +174,10 @@ class ReferenceObjectDetector(private val context: Context) {
         stats.candidates = candidates.size
         if (candidates.isEmpty()) return null
 
-        Log.d(TAG, "Detection done — total=${stats.totalContours}, tooSmall=${stats.tooSmall}, tooLarge=${stats.tooLarge}, badRatio=${stats.badRatio}, badSolidity=${stats.badSolidity}, candidates=${stats.candidates}")
+        Log.d(
+            TAG,
+            "Detection done — total=${stats.totalContours}, tooSmall=${stats.tooSmall}, tooLarge=${stats.tooLarge}, badRatio=${stats.badRatio}, badSolidity=${stats.badSolidity}, candidates=${stats.candidates}"
+        )
 
         return candidates.maxByOrNull { it.confidence }?.copy(debugInfo = stats.toString())
     }
@@ -197,7 +211,7 @@ class ReferenceObjectDetector(private val context: Context) {
             val originalHeight = expectedObjectHeightCm
 
             when (fallbackMode) {
-                DetectionMode.CARD   -> configureForType(ReferenceObjectHelper.ReferenceObjectType.CARD)
+                DetectionMode.CARD -> configureForType(ReferenceObjectHelper.ReferenceObjectType.CARD)
                 DetectionMode.STRICT -> configureForType(ReferenceObjectHelper.ReferenceObjectType.INSULIN_SYRINGE)
             }
 
@@ -206,7 +220,10 @@ class ReferenceObjectDetector(private val context: Context) {
             setExpectedObjectDimensions(originalLength, originalWidth, originalHeight)
 
             if (fallbackResult is DetectionResult.Found) {
-                Log.d(TAG, "Smart detect: found ALTERNATIVE with mode $fallbackMode (instead of $selectedMode)")
+                Log.d(
+                    TAG,
+                    "Smart detect: found ALTERNATIVE with mode $fallbackMode (instead of $selectedMode)"
+                )
                 return FallbackDetectionResult(
                     result = fallbackResult,
                     detectedMode = fallbackMode,

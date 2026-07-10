@@ -11,11 +11,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
 
     // converts server MealDto -> local Meal (for loading history)
     override fun map(from: MealDto): Meal {
-        android.util.Log.d("PLAN_DEBUG", "from.savedPlanName = ${from.savedPlanName}")
-        android.util.Log.d(
-            "PLAN_DEBUG",
-            "from.insulinCalculation?.activePlanName = ${from.insulinCalculation?.activePlanName}"
-        )
+
         return Meal(
             title = from.foodItems?.firstOrNull()?.name ?: "Meal Analysis",
             carbs = from.totalCarbs ?: 0f,
@@ -43,11 +39,9 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             missingProfileFields = from.missingProfileFields ?: emptyList(),
             insulinMessage = from.insulinMessage,
 
-            // fixed: read glucose from both top level and insulinCalculation
             glucoseLevel = from.currentGlucose ?: from.insulinCalculation?.currentGlucose,
             glucoseUnits = from.glucoseUnits,
 
-            // fixed: calculation breakdown - read from top level first, fallback to nested
             carbDose = from.carbDose ?: from.insulinCalculation?.carbDose,
             correctionDose = from.correctionDose ?: from.insulinCalculation?.correctionDose,
 
@@ -67,7 +61,7 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
         return MealDto(
             mealId = if (meal.serverId != null) MealIdDto("", meal.serverId) else null,
             userId = null, // backend handles user context
-            imageUrl = null,  // fixed: don't save image path (delete after save)
+            imageUrl = null,
 
             foodItems = meal.foodItems?.map { FoodItemDtoMapper.mapToDto(it) },
             totalCarbs = meal.carbs,
@@ -81,7 +75,6 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             referenceDetected = meal.referenceObjectDetected,
             referenceObjectType = meal.referenceObjectType,
 
-            // fixed: complete insulin calculation with all fields
             insulinCalculation = InsulinCalculationDto(
                 totalCarbs = meal.carbs,
                 carbDose = meal.carbDose,
@@ -95,7 +88,6 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
 
                 ),
 
-            // fixed: top-level fields that server expects
             currentGlucose = meal.glucoseLevel,
             glucoseUnits = meal.glucoseUnits,
             activityLevel = meal.activityLevel,
@@ -109,7 +101,6 @@ object MealDtoMapper : Mapper<MealDto, Meal> {
             missingProfileFields = meal.missingProfileFields,
             insulinMessage = meal.insulinMessage,
 
-            // fixed: separate doses
             recommendedDose = meal.recommendedDose,
             actualDose = meal.insulinDose,
 

@@ -3,6 +3,8 @@ package com.example.insuscan.scan
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import com.example.insuscan.analysis.detection.PlateDetector
+import com.example.insuscan.ar.ArCoreManager
 import com.example.insuscan.camera.exception.CameraException
 import com.example.insuscan.mapping.MealDtoMapper
 import com.example.insuscan.meal.Meal
@@ -11,14 +13,16 @@ import com.example.insuscan.network.repository.ScanRepository
 import com.example.insuscan.network.repository.ScanRepositoryImpl
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.utils.ReferenceObjectHelper
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import com.example.insuscan.analysis.detection.PlateDetector
-import com.example.insuscan.ar.ArCoreManager
-import com.example.insuscan.ar.model.ArMeasurement
-import com.google.gson.Gson
 
+/**
+ * Outcome of the reference-object pre-check step.
+ * Client-side detection is delegated to the server in V2; this sealed class
+ * is kept for extensibility.
+ */
 sealed class RefCheckResult {
     data class Proceed(val refType: String?) : RefCheckResult()
     data class AlternativeFound(
@@ -27,6 +31,9 @@ sealed class RefCheckResult {
     ) : RefCheckResult()
 }
 
+/**
+ * Result of a complete scan pipeline run.
+ */
 sealed class PipelineResult {
     data class Success(val meal: Meal, val warning: String? = null) : PipelineResult()
     data class NeedSidePhoto(
@@ -38,6 +45,13 @@ sealed class PipelineResult {
     data class Failed(val error: Throwable) : PipelineResult()
 }
 
+/**
+ * Orchestrates the two-phase scan pipeline: optional ARCore data snapshot,
+ * side-photo gate, server upload, and mapping the response to a [PipelineResult].
+ *
+ * A side photo is always requested on the first call to [runAnalysis] unless
+ * the user explicitly skips (via [skipSidePhoto]) or a side image is provided.
+ */
 class ScanPipelineManager(private val context: Context) {
 
     companion object {
@@ -45,7 +59,11 @@ class ScanPipelineManager(private val context: Context) {
     }
 
     private var collectedArcoreDataJson: String? = null
+
+    /** Set to `true` when the user's selected reference object should be visible in the frame. */
     var isRefObjectExpectedInFrame: Boolean = false
+
+    /** Set to `true` when the reference object was detected during the live camera preview. */
     var wasRefFoundInLivePreview: Boolean = false
 
     var arCoreManager: ArCoreManager? = null
@@ -58,19 +76,34 @@ class ScanPipelineManager(private val context: Context) {
         sidePhotoOffered = false
     }
 
+    /** Marks the side-photo step as already handled, bypassing the gate in [runAnalysis]. */
     fun skipSidePhoto() {
         sidePhotoOffered = true
     }
 
+    /**
+     * Pre-check step — currently a no-op pass-through (server handles reference detection in V2).
+     */
     suspend fun checkReferenceObject(
         bitmap: Bitmap,
         selectedRefType: String?
     ): RefCheckResult = withContext(Dispatchers.IO) {
-        // Client-side detection is disabled in V2 (delegated to server).
-        // Just proceed with the selected type.
         RefCheckResult.Proceed(selectedRefType)
     }
 
+    /**
+     * Runs the full analysis pipeline for the captured [bitmap].
+     *
+     * Requests a side photo on the first invocation unless [sideImage] is provided
+     * or [skipSidePhoto] was called. On subsequent calls (or when side image is supplied),
+     * uploads both images to the server and returns a [PipelineResult].
+     *
+     * @param bitmap             Top-view meal image.
+     * @param imageFile          Backing file for the top image (used for image-path resolution).
+     * @param refType            Server value of the selected reference object.
+     * @param capturedImagePath  Local path to the top image (for display in the summary).
+     * @param sideImage          Side-view meal image, or null to trigger the side-photo gate.
+     */
     suspend fun runAnalysis(
         bitmap: Bitmap,
         imageFile: File,
@@ -81,26 +114,17 @@ class ScanPipelineManager(private val context: Context) {
         try {
             val email = UserProfileManager.getUserEmail(context) ?: "test@example.com"
 
-            // Milestone 7 V2 Pipeline ALWAYS requires a side photo unless user explicitly skips
             if (sideImage == null && !sidePhotoOffered) {
                 sidePhotoOffered = true
-                Log.d(TAG, "Requesting side photo for V2 pipeline")
+                Log.d(TAG, "Requesting side photo")
                 return@withContext PipelineResult.NeedSidePhoto(bitmap, imageFile, refType)
             }
 
             val finalRefType = refType ?: "UNKNOWN"
 
-            Log.d(TAG, "========== SCAN PAYLOAD (V2) ==========")
-            Log.d(TAG, "referenceType    : $finalRefType")
-            Log.d(TAG, "email            : $email")
-            Log.d(TAG, "sideImage        : ${sideImage != null}")
-            Log.d(TAG, "=======================================")
-
-            // If user skipped side photo, we must use the top image as the side image to not break the server
+            // When the user skipped the side photo, reuse the top image to avoid breaking the server contract
             val actualSideImage = sideImage ?: bitmap
-
             val arcoreDataJson = collectedArcoreDataJson
-            Log.d(TAG, "arcoreData       : ${if (arcoreDataJson != null) "present" else "null"}")
 
             val scanResult = scanRepository.scanImage(
                 topImage = bitmap,
@@ -171,12 +195,11 @@ class ScanPipelineManager(private val context: Context) {
         capturedImagePath: String?
     ): PipelineResult.Success {
         var meal = MealDtoMapper.map(dto)
-        
+
         if (capturedImagePath != null && meal.imagePath?.startsWith("uploaded://") == true) {
             meal = meal.copy(imagePath = "file://$capturedImagePath")
         }
 
-        // Propagate review warnings from the server (V2 PipelineWarnings)
         val warning = if (!dto.reviewWarnings.isNullOrEmpty()) {
             dto.reviewWarnings.joinToString("\n")
         } else {
@@ -186,8 +209,12 @@ class ScanPipelineManager(private val context: Context) {
         return PipelineResult.Success(meal, warning)
     }
 
+    /**
+     * Captures ARCore depth data for the given [bitmap] and caches it for the next [runAnalysis] call.
+     * Should be called immediately after image capture, while the AR session is still active.
+     */
     fun snapshotArcoreData(bitmap: Bitmap) {
         collectedArcoreDataJson = collectArcoreData(bitmap)
-        Log.d(TAG, "arcoreData snapshot: ${if (collectedArcoreDataJson != null) "present" else "null"}")
+        Log.d(TAG, "ARCore snapshot: ${if (collectedArcoreDataJson != null) "present" else "null"}")
     }
 }

@@ -11,8 +11,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="@dimen/spacing_medium"
+        android:paddingEnd="@dimen/spacing_medium"
         android:minHeight="52dp"
         android:background="?attr/selectableItemBackground">
 
@@ -26,7 +26,7 @@
                 android:id="@+id/tv_plan_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="14sp"
+                android:textSize="@dimen/text_body2"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_primary" />
 
@@ -34,7 +34,7 @@
                 android:id="@+id/tv_plan_summary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_secondary"
                 android:layout_marginTop="1dp"
@@ -47,7 +47,7 @@
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:src="@android:drawable/ic_menu_delete"
-            android:layout_marginEnd="12dp"
+            android:layout_marginEnd="@dimen/padding_input_horizontal"
             android:visibility="gone"
             android:contentDescription="Delete plan" />
 
@@ -56,7 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="›"
-            android:textSize="20sp"
+            android:textSize="@dimen/text_h2"
             android:textColor="@color/text_disabled"
             android:fontFamily="@font/inter" />
 
@@ -68,15 +68,15 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:visibility="gone"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingBottom="12dp">
+        android:paddingStart="@dimen/spacing_medium"
+        android:paddingEnd="@dimen/spacing_medium"
+        android:paddingBottom="@dimen/padding_input_horizontal">
 
         <View
             android:layout_width="match_parent"
             android:layout_height="0.5dp"
             android:background="@color/divider"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="@dimen/padding_input_horizontal" />
 
         <!-- ICR -->
         <LinearLayout

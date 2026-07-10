@@ -55,25 +55,7 @@ class RegistrationStep3Helper(
      * Builds a UserDto from all locally stored profile data.
      */
     fun buildUserDto(doseRounding: Float): UserDto {
-        val pm = UserProfileManager
-        var rawRatio = pm.getInsulinCarbRatioRaw(context)
-        if (rawRatio != null && !rawRatio.contains(":")) rawRatio = "1:$rawRatio"
-
-        return UserDto(
-            userId = null,
-            username = pm.getUserName(context),
-            role = null,
-            avatar = pm.getProfilePhotoUrl(context),
-            insulinCarbRatio = rawRatio,
-            correctionFactor = pm.getCorrectionFactor(context),
-            targetGlucose = pm.getTargetGlucose(context),
-            age = pm.getUserAge(context),
-            gender = pm.getUserGender(context),
-            doseRounding = doseRounding.toString(),
-            insulinPlans = pm.getInsulinPlans(context),
-            createdTimestamp = null,
-            updatedTimestamp = null
-        )
+        return UserProfileManager.buildUserDto(context, doseRounding.toString())
     }
 
     /**

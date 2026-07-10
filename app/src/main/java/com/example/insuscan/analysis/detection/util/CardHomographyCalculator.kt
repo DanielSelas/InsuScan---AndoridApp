@@ -26,7 +26,12 @@ object CardHomographyCalculator {
             val contour2f = MatOfPoint2f(*contour.toArray())
             val peri = Imgproc.arcLength(contour2f, true)
             val approxCurve = MatOfPoint2f()
-            Imgproc.approxPolyDP(contour2f, approxCurve, APPROX_POLY_EPSILON_MULTIPLIER * peri, true)
+            Imgproc.approxPolyDP(
+                contour2f,
+                approxCurve,
+                APPROX_POLY_EPSILON_MULTIPLIER * peri,
+                true
+            )
 
             if (approxCurve.rows() != 4) {
                 Log.d(TAG, "Expected 4 corners, got ${approxCurve.rows()}")
@@ -66,7 +71,7 @@ object CardHomographyCalculator {
 
             val srcWidthPx = Math.sqrt(
                 Math.pow(topTwo[1].x - topTwo[0].x, 2.0) +
-                Math.pow(topTwo[1].y - topTwo[0].y, 2.0)
+                        Math.pow(topTwo[1].y - topTwo[0].y, 2.0)
             )
 
             if (srcWidthPx < MIN_SOURCE_WIDTH_PX) {

@@ -307,4 +307,239 @@
     <string name="ref_option_none">No Reference Object</string>
     <string name="history_label_reference">Reference Object</string>
 
+    <string name="chat_coming_title">AI Assistant is Coming Soon</string>
+    <string name="chat_coming_subtitle">We are developing an intelligent assistant to help you gain deeper insights from your meals and scan results. Soon, you will be able to identify personal patterns and receive tailored guidance for nutrition, glucose, and insulin management.</string>
+    <string name="chat_feature_scan_insights">Advanced insights from scan data</string>
+    <string name="chat_feature_smart_assistance">Smart assistance for your nutrition and health</string>
+    <string name="chat_coming_soon_button">Coming soon</string>
+    <string name="tailored_dietary_recommendations">Tailored dietary recommendations</string>
+    <string name="ai_assistant">AI ASSISTANT</string>
+
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="plan_details_format">ICR %1$s · ISF %2$s · TG %3$s</string>
+    <string name="default_greeting_name">New Friend</string>
+
+    <string name="home_summary_refreshing">Refreshing...</string>
+    <string name="glucose_status_low">Low</string>
+    <string name="glucose_status_high">High</string>
+    <string name="glucose_status_in_range">In range</string>
+    <plurals name="meals_logged">
+        <item quantity="one">%d meal logged</item>
+        <item quantity="other">%d meals logged</item>
+    </plurals>
+    <string name="value_placeholder">--</string>
+
+    <string name="plan_name_unnamed">Unnamed</string>
+    <string name="plan_subtitle_sick">Sick day values</string>
+    <string name="plan_subtitle_workout">Reduced carb ratio</string>
+    <string name="plan_subtitle_stress">Higher correction</string>
+    <string name="plan_subtitle_custom">Custom values</string>
+
+    <string name="home_scan_meal_button">Scan a meal</string>
+    <string name="home_ask_assistant_button">Ask the assistant instead</string>
+    <string name="home_insulin_plan_section">Insulin plan</string>
+    <string name="home_manage_plans">Manage</string>
+
+    <string name="profile_title">Profile</string>
+
+    <!-- ==================== Summary Screen ==================== -->
+    <string name="summary_ai_complete">AI ANALYSIS COMPLETE</string>
+    <string name="summary_dose_ready">Your dose is ready</string>
+    <string name="summary_meal_photo_label">MEAL PHOTO</string>
+    <string name="summary_total_carbs_label">TOTAL CARBS</string>
+    <string name="summary_recommended_label">RECOMMENDED</string>
+    <string name="summary_dose_breakdown">DOSE BREAKDOWN</string>
+    <string name="summary_detected_items">DETECTED ITEMS</string>
+    <string name="summary_current_glucose">CURRENT GLUCOSE</string>
+    <string name="summary_add_item">+ Add item</string>
+    <string name="summary_edit_meal">✎ Edit</string>
+    <string name="summary_use_last_glucose">Use last</string>
+    <string name="summary_confirm_save">✓  Confirm &amp; save meal</string>
+    <string name="summary_no_meal_scanned">No meal scanned yet</string>
+    <string name="summary_scan_now">Scan a meal</string>
+    <string name="summary_active_plan">Active Plan</string>
+    <string name="summary_change_plan">Change</string>
+    <string name="summary_total_row">Total</string>
+    <string name="summary_disclaimer">Always confirm with your healthcare provider. InsuScan is a decision-support tool.</string>
+
+    <!-- ==================== Camera Scan Screen ==================== -->
+    <string name="scan_title">Scan meal</string>
+    <string name="scan_step2_side_view">📐 Step 2: Side View</string>
+    <string name="scan_side_view_body">Tilt your phone sideways to show the depth of the plate. This helps us estimate volume more accurately.</string>
+    <string name="scan_side_photo_ready">I\'m Ready — Take Side Photo</string>
+    <string name="scan_side_skip">Skip — continue with lower accuracy</string>
+    <string name="scan_side_rescan">Rescan</string>
+    <string name="scan_analyzing_title">Analyzing your meal</string>
+    <string name="scan_analyzing_subtitle">This usually takes 5–8 seconds.</string>
+    <string name="scan_step_processing">Processing image</string>
+    <string name="scan_step_detecting">Detecting food</string>
+    <string name="scan_step_measuring">Measuring portion</string>
+    <string name="scan_step_calculating">Calculating dose</string>
+    <string name="scan_glucose_hint">Blood glucose (mg/dL)</string>
+    <string name="scan_show_results">Show Results</string>
+    <string name="content_desc_toggle_flash">Toggle flash</string>
+    <string name="content_desc_manual_entry">Manual entry</string>
+
+    <!-- ==================== Login Screen ==================== -->
+    <string name="login_welcome_title">Welcome back</string>
+    <string name="login_subtitle">Sign in to continue</string>
+    <string name="login_no_account">Don\'t have an account?</string>
+    <string name="login_email_label">EMAIL</string>
+    <string name="login_email_hint">you@example.com</string>
+    <string name="login_password_label">PASSWORD</string>
+    <string name="login_password_hint">••••••••</string>
+    <string name="login_or_divider">OR</string>
+
+    <!-- ==================== Home Screen ==================== -->
+    <string name="home_today">TODAY</string>
+    <string name="home_daily_intake">Daily intake</string>
+    <string name="home_carbs_label">CARBS</string>
+    <string name="home_insulin_label">INSULIN</string>
+    <string name="home_plan_default">Default</string>
+    <string name="home_plan_profile_values">Profile values</string>
+
+    <string name="profile_edit_name">Name</string>
+    <string name="profile_edit_age">Age</string>
+    <string name="profile_edit_gender">Gender</string>
+    <string name="profile_edit_weight">Weight</string>
+    <string name="profile_edit_height">Height</string>
+
+    <!-- Authentication Strings -->
+    <string name="auth_or">OR</string>
+
+    <string name="profile_edit_icr">ICR — grams per unit</string>
+    <string name="profile_edit_isf">ISF — mg/dL per unit</string>
+    <string name="profile_edit_target_glucose">Target glucose</string>
+    <string name="profile_edit_dose_rounding">Dose rounding</string>
+    <string name="profile_icr_positive_error">ICR must be a positive number</string>
+    <string name="unit_mg_dl">mg/dL</string>
+    <string name="unit_grams_per_unit">g/u</string>
+    <string name="unit_units2">u</string>
+    <string name="value_mg_dl_format">%1$s mg/dL</string>
+    <string name="value_units_format">%1$s u</string>
+    <string name="profile_icr_value_format">1u : %1$sg</string>
+
+    <string name="plan_hint_name">Plan name</string>
+    <string name="plan_hint_icr">ICR (grams per unit)</string>
+    <string name="plan_hint_isf">ISF (mg/dL per unit)</string>
+    <string name="plan_dialog_title">New insulin plan</string>
+    <string name="dialog_add">Add</string>
+    <!-- ==================== Refactored Extraction ==================== -->
+    <string name="profile_photo_dialog_title">Profile Photo</string>
+    <string name="profile_photo_take">Take Photo</string>
+    <string name="profile_photo_choose">Choose from Gallery</string>
+    <string name="profile_photo_remove">Remove Photo</string>
+    <string name="error_camera_permission">Camera permission denied</string>
+    <string name="msg_uploading_photo">Uploading photo...</string>
+    <string name="msg_photo_updated">Photo updated and saved!</string>
+    <string name="msg_photo_removed">Photo removed</string>
+
+    <string name="error_plan_missing_values">The selected plan is missing values (ICR, ISF or target glucose). Complete it in your profile.</string>
+    <string name="error_icr_positive">ICR must be a positive value. Update it in your profile.</string>
+    <string name="error_isf_positive">ISF must be greater than zero. Update it in your profile.</string>
+    <string name="error_target_positive">Target glucose must be set. Update it in your profile.</string>
+
+    <string name="msg_round_pen_hint">Round to %1$s on your pen</string>
+    <string name="dialog_select_plan_title">Select Insulin Plan</string>
+    <string name="warning_dose_blocked">BLOCKED: %1$s units exceeds the maximum safe dose (%2$d units). Please check your meal data for errors.</string>
+    <string name="warning_dose_very_high">Very high dose: %1$s units. You will need to confirm before saving.</string>
+    <string name="warning_dose_high">High dose: %1$s units. Please verify your meal data is correct.</string>
+    <string name="state_setup_required">Setup Required</string>
+    <string name="state_tap_to_complete">Tap here to complete profile</string>
+
+    <string name="msg_no_meal_data">No meal data</string>
+    <string name="msg_detected_items_count">DETECTED ITEMS · %1$d</string>
+    <string name="msg_no_food_detected">No food detected in image</string>
+    <string name="msg_missing_data_warning">⚠️ %1$s</string>
+    <string name="msg_carbs_count"> · %1$d g carbs</string>
+    <string name="dialog_edit_weight_title">Edit Weight (grams)</string>
+    <string name="dialog_edit_weight_msg">Enter new weight for %1$s:</string>
+    <string name="action_update">Update</string>
+    <string name="msg_weight_updated">Weight updated: %1$d g</string>
+
+    <string name="dialog_dose_rejected_title">Dose Rejected</string>
+    <string name="dialog_dose_rejected_msg">The calculated dose of %1$s units exceeds the maximum safe limit of %2$d units.\n\nThis is likely a scan error. Please review and correct your meal data before saving.</string>
+    <string name="dialog_high_dose_title">Very High Dose Warning</string>
+    <string name="dialog_high_dose_msg">The recommended dose is %1$s units, which is unusually high.\n\nPlease verify:\n  • The scanned food items are correct\n  • The portion sizes look right\n  • Your glucose reading is accurate\n\nAre you sure this dose is correct?</string>
+    <string name="action_confirm_dose">I Confirm This Dose</string>
+    <string name="error_no_meal_save">No meal data to save</string>
+    <string name="error_no_food_detected_save">No food detected. Use \'Edit\' to add items manually.</string>
+    <string name="dialog_plan_incomplete_title">Plan Incomplete</string>
+    <string name="dialog_profile_incomplete_title">Profile Incomplete</string>
+    <string name="dialog_profile_incomplete_msg">Your medical profile is missing required values (ICR, ISF or target glucose), so the meal can\'t be saved yet.\n\nComplete your profile to continue.</string>
+    <string name="action_complete_profile">Complete Profile</string>
+    <string name="error_save_no_connection">No internet connection. The meal was NOT saved. Please try again.</string>
+    <string name="error_save_timeout">Request timed out. The meal was NOT saved. Please try again.</string>
+    <string name="error_save_server">Server error (%1$d). The meal was NOT saved.</string>
+    <string name="error_save_client">Save rejected (%1$d). The meal was NOT saved.</string>
+    <string name="error_session_expired">Session expired. Please log in again.</string>
+    <string name="error_save_failed">Failed to save. The meal was NOT saved. Please try again.</string>
+
+    <string name="error_storage_upload_failed">Image upload failed: %1$s</string>
+    <string name="error_storage_file_too_large">File is too large (%1$d KB). Maximum allowed: %2$d KB.</string>
+    <string name="error_storage_invalid_type">File type \'%1$s\' is not supported. Please use JPG or PNG.</string>
+    <string name="error_storage_download_failed">Could not retrieve image URL from storage.</string>
+    <string name="error_storage_unauthorized">You are not authorized to access this file.</string>
+    <string name="error_storage_unknown">An unknown storage error occurred.</string>
+
+    <string name="plan_name_sick_day">Sick Day</string>
+    <string name="plan_name_workout">Workout</string>
+    <string name="plan_name_stress">Stress</string>
+    <string name="plan_summary_icr">ICR 1:%1$d</string>
+    <string name="plan_summary_isf"> · ISF %1$d</string>
+    <string name="plan_summary_tg"> · TG %1$d</string>
+    <string name="dialog_cancel">Cancel</string>
+
+    <!-- Phase 2 Extracted Strings -->
+    <!-- Authentication & Registration -->
+    <string name="auth_prompt_no_account">Don\'t have an account? </string>
+    <string name="auth_prompt_has_account">Already have an account? </string>
+    <string name="msg_password_reset_sent">Password reset email sent to %1$s</string>
+    <string name="msg_registration_complete">Registration complete!</string>
+    <string name="msg_sync_failed">Saved locally. Server sync failed.</string>
+
+    <!-- History -->
+    <string name="history_no_meals_date">No meals found for this date.</string>
+    <string name="history_no_meals_yet">No meals yet.\nScan your first meal to get started!</string>
+    <string name="history_status_normal">Normal</string>
+
+    <!-- Manual Entry -->
+    <string name="msg_enter_food_name">Please enter food name</string>
+    <string name="msg_add_at_least_one_food">Add at least one food item</string>
+    <string name="msg_meal_updated_carbs">Meal updated: %1$d g carbs</string>
+    <string name="msg_added_food">✅ Added: %1$s</string>
+    <string name="msg_results_for">Results for: %1$s</string>
+    <string name="msg_total_carbs">Total carbs: %1$d g</string>
+    <string name="msg_please_select_item">Please select an item</string>
+    <string name="msg_enter_food_name_dialog">Enter food name</string>
+    <string name="msg_enter_valid_weight">Enter valid weight</string>
+    <string name="msg_enter_carbs_per_100g">Enter carbs per 100g</string>
+    <string name="msg_updated">Updated</string>
+    <string name="action_add_food">Add</string>
+
+    <!-- Scanning & Camera -->
+    <string name="scan_waiting">Waiting...</string>
+    <string name="scan_enter_glucose">Please enter your blood glucose level.</string>
+    <string name="scan_glucose_range_error">Blood glucose must be between 30 and 600 mg/dL.</string>
+    <string name="scan_quality_issue">Image quality issue:\n%1$s\nPlease retake.</string>
+    <string name="scan_quality_warning">Heads up: %1$s</string>
+    <string name="scan_process_failed">Failed to process image</string>
+    <string name="scan_process_failed_retry">Failed to process image. Please try again.</string>
+    <string name="scan_req_camera_permission">Camera permission is required to scan</string>
+    <string name="scan_center_plate">Center the plate in the frame 🍽️</string>
+    <string name="dialog_enter_glucose_title">Enter Glucose</string>
+    <string name="dialog_no_food_title">No Food Detected</string>
+    <string name="dialog_scan_failed_title">Scan Failed</string>
+    <string name="dialog_side_photo_title">Side Photo Needed</string>
+    <string name="dialog_retake_photo_title">Retake Photo</string>
+    <string name="dialog_resume_scan_title">Resume scan?</string>
+    <string name="scan_session_expired">Session expired. Please log in again.</string>
+    <string name="scan_ar_unavailable">AR unavailable. Scan will continue without depth data.</string>
+    <string name="action_show_results">Show Results</string>
+
+    <!-- Summary & Profile -->
+    <string name="summary_glucose_below">Below target</string>
+    <string name="summary_glucose_above">Above target</string>
 </resources>

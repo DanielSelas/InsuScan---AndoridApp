@@ -12,7 +12,12 @@ import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.profile.UserProfileManager
 import com.example.insuscan.scan.notice.ReferenceNoticeBuilder
 import androidx.core.text.HtmlCompat
+import com.example.insuscan.utils.GlucoseThresholds
 
+/**
+ * Holds the summary screen's views and updates them: dose fields, glucose status,
+ * portion/analysis results, the reference notice, and log-button enablement.
+ */
 class SummaryUiManager(val view: View, val context: Context) {
     val mealItemsContainer: LinearLayout = view.findViewById(R.id.layout_meal_items_container)
     val totalCarbsText: TextView = view.findViewById(R.id.tv_total_carbs)
@@ -81,30 +86,60 @@ class SummaryUiManager(val view: View, val context: Context) {
             glucoseStatusText.text = ""
             return
         }
-        val target = UserProfileManager.getTargetGlucose(context) ?: 100
+        val target = UserProfileManager.getTargetGlucose(context) ?: DEFAULT_TARGET
         when {
-            glucose < 70 -> {
+            glucose < GlucoseThresholds.LOW -> {
                 glucoseStatusText.text = "⚠️ Low!"
-                glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
+                glucoseStatusText.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.status_critical
+                    )
+                )
             }
-            glucose < target - 20 -> {
-                glucoseStatusText.text = "Below target"
-                glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
+
+            glucose < target - BELOW_TARGET_MARGIN -> {
+                glucoseStatusText.text = context.getString(R.string.summary_glucose_below)
+                glucoseStatusText.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.status_warning
+                    )
+                )
             }
-            glucose <= target + 30 -> {
+
+            glucose <= target + IN_RANGE_UPPER_MARGIN -> {
                 glucoseStatusText.text = "✓ In range"
-                glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_normal))
+                glucoseStatusText.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.status_normal
+                    )
+                )
             }
-            glucose <= 180 -> {
-                glucoseStatusText.text = "Above target"
-                glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_warning))
+
+            glucose <= GlucoseThresholds.HIGH -> {
+                glucoseStatusText.text = context.getString(R.string.summary_glucose_above)
+                glucoseStatusText.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.status_warning
+                    )
+                )
             }
+
             else -> {
                 glucoseStatusText.text = "⚠️ High!"
-                glucoseStatusText.setTextColor(ContextCompat.getColor(context, R.color.status_critical))
+                glucoseStatusText.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.status_critical
+                    )
+                )
             }
         }
     }
+
     fun updateAnalysisResults() {
         val meal = MealSessionManager.currentMeal
 
@@ -130,6 +165,7 @@ class SummaryUiManager(val view: View, val context: Context) {
         referenceStatusText.text = when {
             meal.referenceObjectDetected == true && !refType.isNullOrBlank() && refType != "NONE" ->
                 refType.replace("_", " ").lowercase().replaceFirstChar { it.uppercase() }
+
             meal.referenceObjectDetected == true -> "Detected ✓"
             meal.referenceObjectDetected == false -> "Not detected"
             else -> "N/A"
@@ -139,8 +175,8 @@ class SummaryUiManager(val view: View, val context: Context) {
             val percentage = (confidence * 100).toInt()
             confidenceText.text = "$percentage%"
             val colorRes = when {
-                percentage >= 80 -> R.color.secondary
-                percentage >= 60 -> R.color.status_warning
+                percentage >= CONFIDENCE_HIGH -> R.color.secondary
+                percentage >= CONFIDENCE_MEDIUM -> R.color.status_warning
                 else -> R.color.status_critical
             }
             confidenceText.setTextColor(ContextCompat.getColor(context, colorRes))
@@ -151,7 +187,8 @@ class SummaryUiManager(val view: View, val context: Context) {
         if (message.isNullOrBlank()) {
             referenceNoticeLayout.visibility = View.GONE
         } else {
-            referenceNoticeText.text = HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_COMPACT)
+            referenceNoticeText.text =
+                HtmlCompat.fromHtml(message, HtmlCompat.FROM_HTML_MODE_COMPACT)
             referenceNoticeLayout.visibility = View.VISIBLE
         }
     }
@@ -162,7 +199,8 @@ class SummaryUiManager(val view: View, val context: Context) {
 
     fun setupScrollListener() {
         if (contentScrollView == null) return
-        contentScrollView.viewTreeObserver.addOnGlobalLayoutListener(object : android.view.ViewTreeObserver.OnGlobalLayoutListener {
+        contentScrollView.viewTreeObserver.addOnGlobalLayoutListener(object :
+            android.view.ViewTreeObserver.OnGlobalLayoutListener {
             override fun onGlobalLayout() {
                 contentScrollView.viewTreeObserver.removeOnGlobalLayoutListener(this)
                 checkScrollAndEnable()
@@ -176,6 +214,17 @@ class SummaryUiManager(val view: View, val context: Context) {
         val child = contentScrollView?.getChildAt(0) ?: return
         val scrollHeight = contentScrollView.height
         val diff = child.height - (scrollHeight + contentScrollView.scrollY)
-        if (child.height <= scrollHeight || diff <= 50) setLogButtonEnabled(true)
+        if (child.height <= scrollHeight || diff <= SCROLL_BOTTOM_THRESHOLD_PX) setLogButtonEnabled(
+            true
+        )
+    }
+
+    companion object {
+        private const val DEFAULT_TARGET = 100
+        private const val BELOW_TARGET_MARGIN = 20
+        private const val IN_RANGE_UPPER_MARGIN = 30
+        private const val CONFIDENCE_HIGH = 80
+        private const val CONFIDENCE_MEDIUM = 60
+        private const val SCROLL_BOTTOM_THRESHOLD_PX = 50
     }
 }

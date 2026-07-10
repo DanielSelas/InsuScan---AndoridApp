@@ -11,7 +11,13 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.ByteArrayOutputStream
 import java.net.UnknownHostException
 import java.net.SocketTimeoutException
-import okhttp3.RequestBody.Companion.toRequestBody
+
+/**
+ * Uploads the top and side meal photos to the scan endpoint and returns the parsed [MealDto].
+ *
+ * Both images are downscaled before upload, and HTTP or network failures are mapped
+ * to typed [ScanException] values for the caller.
+ */
 class ScanRepositoryImpl : BaseRepository(), ScanRepository {
 
     private val api = RetrofitClient.api
@@ -60,8 +66,7 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
     }
 
     private fun getScaledDimensions(bitmap: Bitmap): Pair<Int, Int> {
-        val maxDim = 1200f
-        val scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height)
+        val scale = computeScale(bitmap)
         return if (scale < 1f) {
             Pair((bitmap.width * scale).toInt(), (bitmap.height * scale).toInt())
         } else {
@@ -80,8 +85,7 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
 
     private fun createImagePart(bitmap: Bitmap, partName: String, fileName: String): MultipartBody.Part {
         // Downscale to 1200px max dimension for faster upload and significantly faster Gemini processing
-        val maxDim = 1200f
-        val scale = Math.min(maxDim / bitmap.width, maxDim / bitmap.height)
+        val scale = computeScale(bitmap)
         
         val scaledBitmap = if (scale < 1f) {
             Bitmap.createScaledBitmap(
@@ -99,5 +103,13 @@ class ScanRepositoryImpl : BaseRepository(), ScanRepository {
         val byteArray = stream.toByteArray()
         val requestBody = byteArray.toRequestBody("image/jpeg".toMediaType())
         return MultipartBody.Part.createFormData(partName, fileName, requestBody)
+    }
+
+    private fun computeScale(bitmap: Bitmap): Float =
+        Math.min(MAX_IMAGE_DIMENSION / bitmap.width, MAX_IMAGE_DIMENSION / bitmap.height)
+
+    private companion object {
+        // 1200px cap keeps upload small and Gemini processing fast
+        const val MAX_IMAGE_DIMENSION = 1200f
     }
 }

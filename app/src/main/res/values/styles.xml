@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- ─────────────────────────────────────────────
+         Base Parent Styles (Required for AAPT dot notation)
+         ───────────────────────────────────────────── -->
+    <style name="TextStyle" parent="" />
+    <style name="CardStyle" parent="Widget.Material3.CardView.Filled" />
+    <style name="ButtonStyle" parent="Widget.Material3.Button" />
+
+    <!-- ─────────────────────────────────────────────
+         Summary Fragment — Text Styles
+         ───────────────────────────────────────────── -->
+
+    <!-- Section eyebrow label (e.g. DOSE BREAKDOWN, DETECTED ITEMS, CURRENT GLUCOSE, PORTION ANALYSIS) -->
+    <style name="TextStyle.SectionLabel">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textSize">10.5sp</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Body text — 14sp, inter, primary color -->
+    <style name="TextStyle.Body14">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- Body text — 14sp, inter, weight 500, primary color -->
+    <style name="TextStyle.Body14.Medium">
+        <item name="android:textFontWeight">500</item>
+    </style>
+
+    <!-- Large stat number (e.g. Total Carbs value, Recommended dose value) -->
+    <style name="TextStyle.StatValue">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textFontWeight">700</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- Data row left label (e.g. "Est. weight", "Plate", "Reference", "Confidence") -->
+    <style name="TextStyle.DataRowLabel">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textSize">13.5sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Data row right value -->
+    <style name="TextStyle.DataRowValue">
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textSize">13.5sp</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+
+    <!-- ─────────────────────────────────────────────
+         Card Styles
+         ───────────────────────────────────────────── -->
+
+    <!-- Standard surface card (corner 16dp, no elevation) -->
+    <style name="CardStyle.Standard">
+        <item name="cardCornerRadius">@dimen/corner_radius_card</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">@color/surface</item>
+    </style>
+
+    <!-- Warning / notice card (corner 12dp, warning background) -->
+    <style name="CardStyle.Warning">
+        <item name="cardCornerRadius">@dimen/summary_card_corner_small</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">@color/warning_bg</item>
+    </style>
+
+    <!-- ─────────────────────────────────────────────
+         Button Styles
+         ───────────────────────────────────────────── -->
+
+    <!-- Outlined secondary button (border, surface background) -->
+    <style name="ButtonStyle.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textFontWeight">500</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:backgroundTint">@color/surface</item>
+        <item name="strokeColor">@color/border</item>
+        <item name="strokeWidth">0.5dp</item>
+        <item name="cornerRadius">@dimen/corner_radius_button</item>
+    </style>
+
+    <!-- Primary filled button -->
+    <style name="ButtonStyle.Primary">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">@font/inter</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:backgroundTint">@color/primary</item>
+        <item name="cornerRadius">@dimen/corner_radius_button</item>
+    </style>
+
+</resources>

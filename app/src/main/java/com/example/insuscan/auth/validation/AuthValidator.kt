@@ -1,5 +1,9 @@
 package com.example.insuscan.auth.validation
 
+/**
+ * Client-side validation for login and sign-up fields.
+ * Each function returns an error message, or null if the value is valid.
+ */
 object AuthValidator {
 
     fun validateEmail(email: String): String? {
@@ -7,14 +11,18 @@ object AuthValidator {
         if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             return "Enter a valid email address"
         }
-        return null // Valid
+        return null
     }
 
     fun validatePasswordNotEmpty(password: String): String? {
         if (password.isEmpty()) return "Password is required"
-        return null // Valid
+        return null
     }
 
+    /**
+     * Full password-strength check for sign-up: length plus character-type rules.
+     * Returns the first failing rule as a message, or null if the password is strong.
+     */
     fun validatePassword(password: String): String? {
         if (password.isEmpty()) return "Password is required"
         if (password.length < 8) return "At least 8 characters"
@@ -22,12 +30,12 @@ object AuthValidator {
         if (!password.any { it.isLowerCase() }) return "Must contain a lowercase letter"
         if (!password.any { it.isDigit() }) return "Must contain a number"
         if (!password.any { it in "!@#\$%^&*()_+-=[]{}|;':\",./<>?" }) return "Must contain a special character"
-        return null // Valid
+        return null
     }
 
     fun validatePasswordsMatch(password: String, confirmPassword: String): String? {
         if (confirmPassword.isEmpty()) return "Please confirm your password"
         if (password != confirmPassword) return "Passwords don't match"
-        return null // Valid
+        return null
     }
 }

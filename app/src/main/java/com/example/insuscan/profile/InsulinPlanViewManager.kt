@@ -9,7 +9,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.example.insuscan.R
 import java.util.UUID
+import android.graphics.Color
+import android.text.Editable
+import android.text.TextWatcher
 
+/**
+ * Builds and manages the editable insulin-plan cards in the profile screen:
+ * loads plans (or defaults), tracks live edits, and reports changes via onPlansEdited.
+ */
 class InsulinPlanViewManager(
     private val context: Context,
     private val container: LinearLayout
@@ -38,22 +45,25 @@ class InsulinPlanViewManager(
         return listOf(
             InsulinPlan(
                 id = UUID.randomUUID().toString(),
-                name = "Sick Day",
+                name = context.getString(R.string.plan_name_sick_day),
                 isDefault = false
             ),
             InsulinPlan(
                 id = UUID.randomUUID().toString(),
-                name = "Workout",
+                name = context.getString(R.string.plan_name_workout),
                 isDefault = false
             ),
             InsulinPlan(
                 id = UUID.randomUUID().toString(),
-                name = "Stress",
+                name = context.getString(R.string.plan_name_stress),
                 isDefault = false
             )
         )
     }
 
+    /**
+     * Returns the plans with ICR/ISF/target read from their current field values.
+     */
     fun getPlans(): List<InsulinPlan> {
         return plans.map { plan ->
             val view = viewMap[plan.id] ?: return@map plan
@@ -99,9 +109,9 @@ class InsulinPlanViewManager(
             val tg = targetField.text.toString().toIntOrNull()
             if (icr != null || isf != null || tg != null) {
                 summaryText.text = buildString {
-                    if (icr != null) append("ICR 1:$icr")
-                    if (isf != null) append(" · ISF $isf")
-                    if (tg != null) append(" · TG $tg")
+                    if (icr != null) append(context.getString(R.string.plan_summary_icr, icr))
+                    if (isf != null) append(context.getString(R.string.plan_summary_isf, isf))
+                    if (tg != null) append(context.getString(R.string.plan_summary_tg, tg))
                 }
                 summaryText.visibility = View.VISIBLE
             }
@@ -112,10 +122,10 @@ class InsulinPlanViewManager(
         plan.targetGlucose?.let { targetField.setText(it.toString()) }
         updateSummary()
 
-        val planFieldsWatcher = object : android.text.TextWatcher {
+        val planFieldsWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: android.text.Editable?) {
+            override fun afterTextChanged(s: Editable?) {
                 updateSummary()
                 onPlansEdited?.invoke()
             }
@@ -153,7 +163,7 @@ class InsulinPlanViewManager(
                 layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 1).apply {
                     marginStart = 16
                 }
-                setBackgroundColor(android.graphics.Color.parseColor("#E5E7EB"))
+                setBackgroundColor(androidx.core.content.ContextCompat.getColor(context, R.color.divider))
             }
             container.addView(divider)
         }

@@ -5,12 +5,16 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.example.insuscan.R
 import com.example.insuscan.network.InsuScanApi
 import com.example.insuscan.network.dto.AiSearchRequestDto
 import com.example.insuscan.network.dto.ScoredFoodResultDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/**
+ * Runs a food search and classifies the result by confidence into a [SearchOutcome].
+ */
 sealed class SearchOutcome {
     data class HighConfidence(val result: ScoredFoodResultDto, val weight: Float) : SearchOutcome()
     data class MediumConfidence(val query: String, val weight: Float, val options: List<ScoredFoodResultDto>) : SearchOutcome()
@@ -120,7 +124,7 @@ class FoodSearchHelper(
             searchingIndicator.visibility = View.GONE
             searchingText.visibility = View.GONE
             btnAddFood.isEnabled = true
-            btnAddFood.text = "Add"
+            btnAddFood.text = btnAddFood.context.getString(R.string.action_add_food)
             etFoodName.isEnabled = true
             etWeight.isEnabled = true
         }

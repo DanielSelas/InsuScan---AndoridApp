@@ -16,6 +16,9 @@ import com.example.insuscan.network.dto.ScoredFoodResultDto
 import com.example.insuscan.utils.ToastHelper
 import com.google.android.material.textfield.TextInputEditText
 
+/**
+ * Builds the add, select, and edit food dialogs for manual entry.
+ */
 class FoodDialogHelper(
     private val context: Context,
     private val layoutInflater: LayoutInflater,
@@ -38,7 +41,7 @@ class FoodDialogHelper(
         val option3 = dialogView.findViewById<RadioButton>(R.id.option_3)
         val btnManual = dialogView.findViewById<Button>(R.id.btn_manual_entry)
 
-        tvSearchQuery.text = "Results for: $originalQuery"
+        tvSearchQuery.text = context.getString(R.string.msg_results_for, originalQuery)
 
         val radioButtons = listOf(option1, option2, option3)
         options.forEachIndexed { index, result ->
@@ -65,7 +68,7 @@ class FoodDialogHelper(
                         onResultSelected(selectedResult, weightGrams)
                     }
                 } else {
-                    ToastHelper.showShort(context, "Please select an item")
+                    ToastHelper.showShort(context, context.getString(R.string.msg_please_select_item))
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -89,15 +92,15 @@ class FoodDialogHelper(
             showInitialPreview = false
         ) { name, weight, carbsPer100g ->
             if (name.isEmpty()) {
-                ToastHelper.showShort(context, "Enter food name")
+                ToastHelper.showShort(context, context.getString(R.string.msg_enter_food_name_dialog))
                 return@showFoodDialog
             }
             if (weight == null || weight <= 0) {
-                ToastHelper.showShort(context, "Enter valid weight")
+                ToastHelper.showShort(context, context.getString(R.string.msg_enter_valid_weight))
                 return@showFoodDialog
             }
             if (carbsPer100g == null || carbsPer100g < 0) {
-                ToastHelper.showShort(context, "Enter carbs per 100g")
+                ToastHelper.showShort(context, context.getString(R.string.msg_enter_carbs_per_100g))
                 return@showFoodDialog
             }
             onItemAdded(name, weight, carbsPer100g)
@@ -119,7 +122,7 @@ class FoodDialogHelper(
                 item.carbsPer100g = carbsPer100g
                 onItemUpdated(item)
                 onNotifyAdapter()
-                ToastHelper.showShort(context, "Updated")
+                ToastHelper.showShort(context, context.getString(R.string.msg_updated))
             }
         }
     }
@@ -148,7 +151,7 @@ class FoodDialogHelper(
             val weight = etDialogWeight.text.toString().toFloatOrNull() ?: 0f
             val carbs = etCarbsPer100g.text.toString().toFloatOrNull() ?: 0f
             val totalCarbs = (weight * carbs) / 100f
-            tvCarbsPreview.text = "Total carbs: ${totalCarbs.toInt()}g"
+            tvCarbsPreview.text = context.getString(R.string.msg_total_carbs, totalCarbs.toInt())
         }
 
         if (showInitialPreview) updatePreview()

@@ -2,12 +2,14 @@ package com.example.insuscan.scan
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.scan.coach.CameraCoachEvaluator
 import com.example.insuscan.scan.helper.ScanFlowController
@@ -15,8 +17,6 @@ import com.example.insuscan.scan.helper.ScanHardwareController
 import com.example.insuscan.scan.ui.ScanDialogHelper
 import com.example.insuscan.scan.ui.ScanUiStateManager
 import com.example.insuscan.utils.ToastHelper
-import android.content.res.ColorStateList
-import androidx.navigation.fragment.findNavController
 
 class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateManager.Listener, ScanDialogHelper.Listener {
 
@@ -36,7 +36,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
     ) { isGranted ->
         if (isGranted) startCamera()
         else {
-            ToastHelper.showShort(requireContext(), "Camera permission is required to scan")
+            ToastHelper.showShort(requireContext(), getString(R.string.scan_req_camera_permission))
             callback?.onScanCancelled()
         }
     }
@@ -136,7 +136,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
         when {
             ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED -> startCamera()
             shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> {
-                ToastHelper.showLong(requireContext(), "Camera permission is required for scanning")
+                ToastHelper.showLong(requireContext(), getString(R.string.scan_req_camera_permission))
                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
             }
             else -> cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
@@ -172,7 +172,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
 
             val quality = hardwareController.cameraManager.lastQualityResult
             if (quality == null || !quality.isPlateFound) {
-                ToastHelper.showShort(requireContext(), "Center the plate in the frame \uD83C\uDF7D️")
+                ToastHelper.showShort(requireContext(), getString(R.string.scan_center_plate))
                 return@setOnClickListener
             }
             val state = coachEvaluator.evaluate(quality, flowController.isDeviceLevel, flowController.selectedReferenceType)
@@ -242,7 +242,7 @@ class CameraScanFragment : Fragment(R.layout.fragment_camera_scan), ScanUiStateM
             uiState.glucoseInput.text?.toString()?.takeIf { it.isNotBlank() }?.let { setText(it) }
         }
         androidx.appcompat.app.AlertDialog.Builder(requireContext())
-            .setTitle("Enter Glucose")
+            .setTitle(R.string.dialog_enter_glucose_title)
             .setMessage("Enter your current blood glucose, then continue to manual entry.")
             .setView(input)
             .setPositiveButton("Continue") { _, _ ->

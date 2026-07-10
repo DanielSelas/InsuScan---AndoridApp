@@ -2,7 +2,6 @@ package com.example.insuscan.network.dto
 
 import com.google.gson.annotations.SerializedName
 
-// Matches server's MealBoundary
 data class MealDto(
     val mealId: MealIdDto?,
     val userId: UserIdDto?,
@@ -22,12 +21,10 @@ data class MealDto(
     val insulinMessage: String?,
 
 
-    // added: server stores these at top level too
     val currentGlucose: Int?,
     val activityLevel: String?,
-    val glucoseUnits: String?,  // "mg/dL" or "mmol/L"
+    val glucoseUnits: String?,
 
-    // Calculation breakdown (top level)
     val carbDose: Float?,
     val correctionDose: Float?,
 
@@ -58,7 +55,7 @@ data class FoodItemDto(
     @SerializedName(value = "carbs", alternate = ["carbsGrams"])
     val carbsGrams: Float?,
     val confidence: Float?,
-    // bbox from GPT (% of image) for GrabCut segmentation
+
     val bboxXPct: Float? = null,
     val bboxYPct: Float? = null,
     val bboxWPct: Float? = null,
@@ -81,8 +78,6 @@ data class InsulinCalculationDto(
     val activePlanName: String?,
 
 )
-
-// For creating new meal
 data class CreateMealRequest(
     val userSystemId: String,
     val userEmail: String,

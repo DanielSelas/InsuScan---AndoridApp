@@ -128,10 +128,10 @@ class RegistrationStep3Fragment : Fragment(R.layout.fragment_registration_step3)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val success = helper.syncWithServer(email, pm.getDoseRounding(ctx))
-                if (success) ToastHelper.showShort(ctx, "Registration complete!")
+                if (success) ToastHelper.showShort(ctx, getString(R.string.msg_registration_complete))
             } catch (e: Exception) {
                 android.util.Log.e("Registration", "Sync failed", e)
-                ToastHelper.showShort(ctx, "Saved locally. Server sync failed.")
+                ToastHelper.showShort(ctx, getString(R.string.msg_sync_failed))
             } finally {
                 loadingOverlay.visibility = View.GONE
                 finishButton.isEnabled = true

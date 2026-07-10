@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
-    app:cardCornerRadius="16dp"
+    app:cardCornerRadius="@dimen/corner_radius_card"
     app:cardElevation="0dp"
     app:cardBackgroundColor="@color/surface">
 
@@ -32,14 +32,14 @@
                 android:layout_width="44dp"
                 android:layout_height="44dp"
                 android:background="@drawable/bg_meal_icon"
-                android:layout_marginEnd="12dp">
+                android:layout_marginEnd="@dimen/padding_input_horizontal">
 
                 <TextView
                     android:id="@+id/tv_meal_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:textSize="20sp" />
+                    android:textSize="@dimen/text_h2" />
 
             </FrameLayout>
 
@@ -54,7 +54,7 @@
                     android:id="@+id/tv_meal_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="14.5sp"
+                    android:textSize="@dimen/text_body2"
                     android:fontFamily="@font/inter"
                     android:textFontWeight="600"
                     android:textColor="@color/text_primary"
@@ -72,7 +72,7 @@
                         android:id="@+id/tv_meal_time"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="11sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textColor="@color/text_secondary" />
 
@@ -87,7 +87,7 @@
                         android:id="@+id/tv_meal_carbs"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="11sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textColor="@color/primary"
                         android:textFontWeight="500" />
@@ -101,7 +101,7 @@
                 android:id="@+id/tv_dose_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textFontWeight="700"
                 android:textColor="@color/white"
@@ -118,7 +118,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="›"
-                android:textSize="20sp"
+                android:textSize="@dimen/text_h2"
                 android:textColor="@color/text_secondary" />
 
         </LinearLayout>
@@ -166,7 +166,7 @@
                         android:id="@+id/tv_glucose"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="500"
                         android:textColor="@color/text_primary"
@@ -192,7 +192,7 @@
                         android:id="@+id/tv_plan"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="500"
                         android:textColor="@color/text_primary"
@@ -218,7 +218,7 @@
                         android:id="@+id/tv_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_caption"
                         android:fontFamily="@font/inter"
                         android:textFontWeight="500"
                         android:textColor="@color/secondary"
@@ -238,13 +238,13 @@
                 android:letterSpacing="0.08"
                 android:textAllCaps="true"
                 android:textColor="@color/text_secondary"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="@dimen/spacing_xs" />
 
             <TextView
                 android:id="@+id/tv_food_items"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_caption"
                 android:fontFamily="@font/inter"
                 android:textColor="@color/text_primary"
                 android:lineSpacingMultiplier="1.4"
@@ -262,7 +262,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="@dimen/padding_input_horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -274,7 +274,7 @@
                         android:letterSpacing="0.08"
                         android:textAllCaps="true"
                         android:textColor="@color/text_secondary"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginBottom="@dimen/spacing_small" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -285,14 +285,14 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Carb dose"
-                            android:textSize="12.5sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_secondary" />
                         <TextView
                             android:id="@+id/tv_carb_dose"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="12.5sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_primary" />
                     </LinearLayout>
@@ -302,21 +302,21 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="@dimen/spacing_xs"
                         android:visibility="gone">
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Correction"
-                            android:textSize="12.5sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/text_secondary" />
                         <TextView
                             android:id="@+id/tv_correction"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="12.5sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textColor="@color/status_warning" />
                     </LinearLayout>
@@ -325,8 +325,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="0.5dp"
                         android:background="@color/divider"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginBottom="8dp" />
+                        android:layout_marginTop="@dimen/spacing_small"
+                        android:layout_marginBottom="@dimen/spacing_small" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -337,7 +337,7 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="Final dose"
-                            android:textSize="13sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="600"
                             android:textColor="@color/text_primary" />
@@ -345,7 +345,7 @@
                             android:id="@+id/tv_final_dose"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textSize="13sp"
+                            android:textSize="@dimen/text_caption"
                             android:fontFamily="@font/inter"
                             android:textFontWeight="700"
                             android:textColor="@color/primary" />

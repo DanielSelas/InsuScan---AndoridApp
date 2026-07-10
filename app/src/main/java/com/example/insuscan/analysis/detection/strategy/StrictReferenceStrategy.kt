@@ -6,6 +6,12 @@ import com.example.insuscan.analysis.model.DetectionResult
 import org.opencv.core.MatOfPoint
 import org.opencv.core.RotatedRect
 
+/**
+ * Detects a long, thin reference object such as an insulin syringe.
+ *
+ * Uses a wide aspect-ratio range and a looser rectangularity bar than the card strategy,
+ * and derives the pixel-to-cm ratio from the object's length.
+ */
 class StrictReferenceStrategy : ReferenceObjectStrategy {
     companion object {
         private const val MIN_ASPECT_RATIO = 2.5

@@ -7,6 +7,9 @@ import com.example.insuscan.network.dto.InsulinCalcResponseDto
 import com.example.insuscan.network.dto.UserIdDto
 import com.example.insuscan.network.repository.base.BaseRepository
 
+/**
+ * Repository implementation for the server-side insulin dose calculation endpoint.
+ */
 class InsulinCalcRepositoryImpl : BaseRepository(), InsulinCalcRepository {
 
     private val api = RetrofitClient.api

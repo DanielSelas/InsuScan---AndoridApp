@@ -5,18 +5,17 @@ import android.view.View
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
-import com.example.insuscan.auth.exception.AuthException
 import com.example.insuscan.auth.helper.GoogleSignInHelper
 import com.example.insuscan.auth.helper.LoginFlowManager
 import com.example.insuscan.auth.util.AuthErrorHandler
 import com.example.insuscan.auth.validation.AuthValidator
 import com.example.insuscan.network.repository.UserRepositoryImpl
+import com.example.insuscan.utils.ToastHelper
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 
@@ -131,19 +130,19 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
 
     private fun updateUI() {
         if (isLoginMode) {
-            tvScreenTitle.text = "Sign In"
-            btnAction.text = "Sign In"
-            tvTogglePrompt.text = "Don't have an account? "
-            tvToggleAction.text = "Sign Up"
-            tvForgotPassword.isVisible = true
+            tvScreenTitle.text = getString(R.string.auth_sign_in)
+            btnAction.text = getString(R.string.auth_sign_in)
+            tvTogglePrompt.text = getString(R.string.auth_prompt_no_account)
+            tvToggleAction.text = getString(R.string.auth_sign_up)
+            tvForgotPassword.visibility = android.view.View.VISIBLE
             tilConfirmPassword.isVisible = false
             tvPasswordHint.isVisible = false
         } else {
-            tvScreenTitle.text = "Create Account"
-            btnAction.text = "Create Account"
-            tvTogglePrompt.text = "Already have an account? "
-            tvToggleAction.text = "Sign In"
-            tvForgotPassword.isVisible = false
+            tvScreenTitle.text = getString(R.string.auth_create_account)
+            btnAction.text = getString(R.string.auth_create_account)
+            tvTogglePrompt.text = getString(R.string.auth_prompt_has_account)
+            tvToggleAction.text = getString(R.string.auth_sign_in)
+            tvForgotPassword.visibility = android.view.View.GONE
             tilConfirmPassword.isVisible = true
             tvPasswordHint.isVisible = true
         }
@@ -204,7 +203,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             .addOnCompleteListener { task ->
                 showLoading(false)
                 if (task.isSuccessful) {
-                    Toast.makeText(requireContext(), "Password reset email sent to $email", Toast.LENGTH_LONG).show()
+                    ToastHelper.showLong(requireContext(), getString(R.string.msg_password_reset_sent, email))
                 } else {
                     showError(AuthErrorHandler.toAuthException(task.exception?.message).message ?: "Failed to send reset email")
                 }
@@ -231,6 +230,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     }
 
     private fun showError(message: String) {
-        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        ToastHelper.showShort(requireContext(), message)
     }
 }

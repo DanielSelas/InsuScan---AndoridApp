@@ -21,6 +21,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+/**
+ * Handles the profile photo: pick/capture, upload to Firebase Storage,
+ * remove, and render into the profile image view.
+ */
 class ProfileImageHandler(private val fragment: Fragment) {
     private var photoUri: Uri? = null
     private var uiManager: ProfileUiManager? = null
@@ -35,7 +39,7 @@ class ProfileImageHandler(private val fragment: Fragment) {
     }
 
     private val cameraPermissionLauncher = fragment.registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) openCamera() else ToastHelper.showShort(fragment.requireContext(), "Camera permission denied")
+        if (granted) openCamera() else ToastHelper.showShort(fragment.requireContext(), fragment.getString(R.string.error_camera_permission))
     }
 
     private var onUploadError: ((StorageException) -> Unit)? = null
@@ -47,9 +51,13 @@ class ProfileImageHandler(private val fragment: Fragment) {
     }
 
     fun showPhotoOptionsDialog() {
-        val options = arrayOf("Take Photo", "Choose from Gallery", "Remove Photo")
+        val options = arrayOf(
+            fragment.getString(R.string.profile_photo_take),
+            fragment.getString(R.string.profile_photo_choose),
+            fragment.getString(R.string.profile_photo_remove)
+        )
         AlertDialog.Builder(fragment.requireContext())
-            .setTitle("Profile Photo")
+            .setTitle(R.string.profile_photo_dialog_title)
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> checkCameraPermissionAndOpen()
@@ -85,7 +93,7 @@ class ProfileImageHandler(private val fragment: Fragment) {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         val storageRef = FirebaseStorage.getInstance().reference.child("profile_photos/$userId.jpg")
         val ctx = fragment.requireContext()
-        ToastHelper.showShort(ctx, "Uploading photo...")
+        ToastHelper.showShort(ctx, ctx.getString(R.string.msg_uploading_photo))
 
         storageRef.putFile(uri).addOnSuccessListener {
             storageRef.downloadUrl.addOnSuccessListener { downloadUrl ->
@@ -93,24 +101,32 @@ class ProfileImageHandler(private val fragment: Fragment) {
                 UserProfileManager.saveProfilePhotoUrl(ctx, url)
                 loadProfilePhoto(url)
                 onPhotoUpdated?.invoke()
-                ToastHelper.showShort(ctx, "Photo updated and saved!")
+                ToastHelper.showShort(ctx, ctx.getString(R.string.msg_photo_updated))
             }.addOnFailureListener { e ->
-                Log.e("ProfileImageHandler", "Failed to get download URL: ${e.message}")
+                Log.e(TAG, "Failed to get download URL: ${e.message}")
                 val error = StorageException.DownloadUrlFailed
                 onUploadError?.invoke(error) ?: ToastHelper.showShort(ctx, error.message ?: "Upload failed")
             }
         }.addOnFailureListener { e ->
-            Log.e("ProfileImageHandler", "Upload failed: ${e.message}")
+            Log.e(TAG, "Upload failed: ${e.message}")
             val error = StorageException.UploadFailed(e)
             onUploadError?.invoke(error) ?: ToastHelper.showShort(ctx, error.message ?: "Upload failed")
         }
     }
 
+    private fun showPlaceholderPhoto() {
+        val photo = uiManager?.profilePhoto ?: return
+        photo.setImageResource(R.drawable.ic_person)
+        photo.setPadding(PLACEHOLDER_PADDING, PLACEHOLDER_PADDING, PLACEHOLDER_PADDING, PLACEHOLDER_PADDING)
+    }
+
+    /**
+     * Loads the given photo URL into the profile image, or shows the placeholder if blank.
+     */
     fun loadProfilePhoto(url: String?) {
         val ui = uiManager ?: return
         if (url.isNullOrBlank()) {
-            ui.profilePhoto.setImageResource(R.drawable.ic_person)
-            ui.profilePhoto.setPadding(32, 32, 32, 32)
+            showPlaceholderPhoto()
             return
         }
         Glide.with(fragment).load(url).circleCrop().placeholder(R.drawable.ic_person).into(ui.profilePhoto)
@@ -120,8 +136,12 @@ class ProfileImageHandler(private val fragment: Fragment) {
     private fun removeProfilePhoto() {
         val ctx = fragment.requireContext()
         UserProfileManager.saveProfilePhotoUrl(ctx, "")
-        uiManager?.profilePhoto?.setImageResource(R.drawable.ic_person)
-        uiManager?.profilePhoto?.setPadding(32, 32, 32, 32)
-        ToastHelper.showShort(ctx, "Photo removed")
+        showPlaceholderPhoto()
+        ToastHelper.showShort(ctx, ctx.getString(R.string.msg_photo_removed))
+    }
+
+    companion object {
+        private const val TAG = "ProfileImageHandler"
+        private const val PLACEHOLDER_PADDING = 32
     }
 }

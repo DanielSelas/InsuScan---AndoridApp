@@ -2,6 +2,9 @@ package com.example.insuscan.network.repository
 
 import com.example.insuscan.network.dto.UserDto
 
+/**
+ * Defines user-related API operations for authentication and profile management.
+ */
 interface UserRepository {
     suspend fun login(email: String): Result<UserDto>
     suspend fun register(email: String, username: String): Result<UserDto>

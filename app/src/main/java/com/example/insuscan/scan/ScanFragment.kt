@@ -7,7 +7,6 @@ import androidx.navigation.fragment.findNavController
 import com.example.insuscan.R
 import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
-import com.example.insuscan.utils.TopBarHelper
 
 class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
 
@@ -25,7 +24,7 @@ class ScanFragment : Fragment(R.layout.fragment_scan), ScanResultCallback {
 
     private fun showResumeOrNewScanDialog() {
         android.app.AlertDialog.Builder(requireContext())
-            .setTitle("Resume scan?")
+            .setTitle(R.string.dialog_resume_scan_title)
             .setMessage("You have an unsaved scan from earlier.")
             .setCancelable(false)
             .setPositiveButton("View Summary") { _, _ ->

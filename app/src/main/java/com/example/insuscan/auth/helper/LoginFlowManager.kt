@@ -38,7 +38,6 @@ class LoginFlowManager(
     }
 
     fun handleLoginSuccess(email: String, displayName: String, photoUrl: String?) {
-        Log.e("LoginFlow", "Login Success! PhotoURL: $photoUrl")
         val storedEmail = UserProfileManager.getUserEmail(context)
         if (!storedEmail.isNullOrBlank() && !storedEmail.equals(email, ignoreCase = true)) {
             UserProfileManager.clearAllData(context)
@@ -48,8 +47,6 @@ class LoginFlowManager(
         UserProfileManager.saveUserName(context, displayName)
         if (photoUrl != null) {
             UserProfileManager.saveProfilePhotoUrl(context, photoUrl)
-        } else {
-            Log.e("LoginFlow", "PhotoURL is NULL from Auth!")
         }
 
         checkRegistrationAndNavigate(email)
@@ -77,7 +74,6 @@ class LoginFlowManager(
                 }
             } catch (e: Exception) {
                 onLoading(false)
-                Log.e("LoginFlow", "Error checking registration", e)
                 onNavigateToRegistration()
             }
         }

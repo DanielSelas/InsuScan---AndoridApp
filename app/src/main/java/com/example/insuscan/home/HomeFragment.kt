@@ -18,15 +18,19 @@ import kotlinx.coroutines.launch
 
 import com.example.insuscan.home.helpers.HomeDailySummaryHelper
 import com.example.insuscan.meal.MealSessionManager
-import com.example.insuscan.profile.InsulinPlan
 
 import android.text.format.DateUtils
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.insuscan.appdata.AppDataStore
 import com.example.insuscan.appdata.DataState
+import com.example.insuscan.mapping.InsulinPlanMapper
 import com.example.insuscan.meal.Meal
 
+/**
+ * Home screen: shows the greeting, the daily meal summary, the glucose gauge,
+ * and the active insulin plan selector. Observes state from AppDataStore.
+ */
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var greetingText: TextView
@@ -97,19 +101,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private fun applySelectedPlan() {
         val plan = planSelector.getSelectedPlan()
         if (plan != null) {
-            MealSessionManager.setActivePlan(plan.name ?: "Custom Plan", plan.icr, plan.isf, plan.targetGlucose)
+            MealSessionManager.setActivePlan(plan.name ?: PLAN_NAME_CUSTOM, plan.icr, plan.isf, plan.targetGlucose)
         } else {
-            MealSessionManager.setActivePlan("Default", null, null, null)
+            MealSessionManager.setActivePlan(PLAN_NAME_DEFAULT, null, null, null)
         }
     }
 
     private fun renderGreeting() {
-        val displayName = UserProfileManager.getUserName(ctx) ?: DEFAULT_NAME
+        val displayName = UserProfileManager.getUserName(ctx) ?: getString(R.string.default_greeting_name)
         val hour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
         val greeting = when {
-            hour < 12 -> "Good morning"
-            hour < 17 -> "Good afternoon"
-            else -> "Good evening"
+            hour < 12 -> getString(R.string.greeting_morning)
+            hour < 17 -> getString(R.string.greeting_afternoon)
+            else -> getString(R.string.greeting_evening)
         }
         greetingSubText.text = greeting
         greetingText.text = displayName
@@ -131,23 +135,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             is DataState.Ready -> {
                 renderGreeting()
                 val rawRatio = UserProfileManager.getInsulinCarbRatioRaw(ctx)
-                val defaultIcr = rawRatio?.split(":")?.lastOrNull()?.trim() ?: "--"
-                val defaultIsf = UserProfileManager.getCorrectionFactor(ctx)?.toInt()?.toString() ?: "--"
-                val defaultTg = UserProfileManager.getTargetGlucose(ctx)?.toString() ?: "--"
+                val placeholder = getString(R.string.value_placeholder)
+                val defaultIcr = rawRatio?.split(":")?.lastOrNull()?.trim() ?: placeholder
+                val defaultIsf = UserProfileManager.getCorrectionFactor(ctx)?.toInt()?.toString() ?: placeholder
+                val defaultTg = UserProfileManager.getTargetGlucose(ctx)?.toString() ?: placeholder
                 view?.findViewById<TextView>(R.id.tv_default_plan_details)?.text =
-                    "ICR $defaultIcr · ISF $defaultIsf · TG $defaultTg"
+                    getString(R.string.plan_details_format, defaultIcr, defaultIsf, defaultTg)
                 val plans = UserProfileManager.getInsulinPlans(ctx)
                 planSelector.loadPlans(plans)
-                MealSessionManager.availablePlans = plans?.map { dto ->
-                    InsulinPlan(
-                        id = dto.id ?: "",
-                        name = dto.name ?: "Custom",
-                        isDefault = dto.isDefault,
-                        icr = dto.icr,
-                        isf = dto.isf,
-                        targetGlucose = dto.targetGlucose
-                    )
-                } ?: emptyList()
+                MealSessionManager.availablePlans = InsulinPlanMapper.toModelList(plans)
             }
             is DataState.Error -> Log.e(TAG, "Profile refresh failed: ${state.cause.message}")
         }
@@ -173,6 +169,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     companion object {
         private const val TAG = "HomeFragment"
-        private const val DEFAULT_NAME = "Daniel"
+        private const val PLAN_NAME_DEFAULT = "Default"
+        private const val PLAN_NAME_CUSTOM = "Custom Plan"
+
     }
 }

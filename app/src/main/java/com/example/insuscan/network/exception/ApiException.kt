@@ -1,9 +1,10 @@
 package com.example.insuscan.network.exception
 
 /**
- * Sealed exception hierarchy for all HTTP / network failures.
- * Used by [com.example.insuscan.network.repository.base.BaseRepository]
- * so every repository gets typed errors for free.
+ * Represents errors that can occur while communicating with the backend API.
+ *
+ * This sealed hierarchy keeps network, HTTP, server, and unexpected failures
+ * in a single typed structure, so callers can handle each case explicitly.
  */
 sealed class ApiException(message: String, cause: Throwable? = null) : Exception(message, cause) {
 
