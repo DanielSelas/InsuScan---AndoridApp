@@ -97,6 +97,11 @@ This Android app is one half of the **InsuScan** platform:
            alt="InsuScan meal summary screen"
            width="280">
     </td>
+     <td align="center">
+           <img src="images/screen_history.png"
+                alt="InsuScan meal history screen"
+                width="280">
+         </td>
   </tr>
 </table>
 
