@@ -33,8 +33,11 @@ This Android app is one half of the **InsuScan** platform:
 
 ## 📋 Table of Contents
 
+- [Demo](#demo)
+- [Screenshots](#screenshots)
 - [Overview](#overview)
 - [Features](#features)
+- [System Architecture](#system-architecture)
 - [Technology Stack](#technology-stack)
 - [Screen Flow](#screen-flow)
 - [Architecture](#architecture)
@@ -42,6 +45,70 @@ This Android app is one half of the **InsuScan** platform:
 - [Configuration](#configuration)
 - [Permissions](#permissions)
 - [Project Structure](#project-structure)
+
+---
+
+## Demo
+
+<!-- ============================================================
+     🎬 VIDEO PLACEHOLDER — App Demo
+     GitHub supports two ways to embed a video in a README:
+
+     OPTION A — Upload directly to GitHub (recommended, max 10MB):
+       1. Edit this README on GitHub.com
+       2. Drag & drop your .mp4 file into the editor
+       3. GitHub will generate a URL like:
+          https://github.com/user-attachments/assets/xxxx.mp4
+       4. Replace the placeholder below with:
+          https://github.com/user-attachments/assets/YOUR-VIDEO-ID.mp4
+
+     OPTION B — YouTube thumbnail with clickable link:
+       1. Upload your demo to YouTube
+       2. Take a screenshot of the video thumbnail, save as docs/demo_thumb.png
+       3. Replace the placeholder below with:
+          [![InsuScan Demo](docs/demo_thumb.png)](https://youtu.be/YOUR_VIDEO_ID)
+     ============================================================ -->
+
+> 🎬 **Demo video** — add your video using one of the methods described above.
+>
+> <!-- https://github.com/user-attachments/assets/YOUR-VIDEO-ID.mp4 -->
+>
+> <!-- [![Watch Demo](docs/demo_thumb.png)](https://youtu.be/YOUR_VIDEO_ID) -->
+
+---
+
+## Screenshots
+
+<!-- ============================================================
+     📸 IMAGE PLACEHOLDERS — App Screenshots
+     Instructions:
+       1. Create a folder: docs/ (relative to this README)
+       2. Take screenshots on your device or emulator
+       3. Save them with the filenames below
+       4. Uncomment the corresponding image lines
+
+     Suggested screenshot filenames:
+       docs/screen_scan.png       — Camera scan screen (top/side capture)
+       docs/screen_result.png     — Scan result: food items + carbs + dose
+       docs/screen_history.png    — Meal history list
+       docs/screen_profile.png    — User profile & insulin settings
+       docs/screen_login.png      — Login / auth screen  (optional)
+       docs/screen_manual.png     — Manual food entry    (optional)
+     ============================================================ -->
+
+<!-- Uncomment and fill in as you add screenshots:
+
+<div align="center">
+
+| Scan | Result | History | Profile |
+|:---:|:---:|:---:|:---:|
+| ![Scan screen](docs/screen_scan.png) | ![Result screen](docs/screen_result.png) | ![History screen](docs/screen_history.png) | ![Profile screen](docs/screen_profile.png) |
+
+</div>
+
+-->
+
+> 🖼️ **Screenshots coming soon** — see the instructions above to add them.
 
 ---
 
@@ -65,6 +132,37 @@ The user **photographs their meal** from two angles; the app captures optional A
 | 🔐 **Firebase Authentication** | Email/password and Google Sign-In |
 | 👤 **User profile** | Store and update personalised insulin settings |
 | 💬 **Chat parse** | Conversational meal logging via text |
+
+---
+
+## System Architecture
+
+<!-- ============================================================
+     📸 IMAGE PLACEHOLDER — System Architecture Diagram
+     Instructions:
+       1. Save your architecture diagram at: docs/architecture.png
+       2. Uncomment the line below
+     ============================================================ -->
+
+> 🖼️ **Architecture diagram** — add your image at `docs/architecture.png` and uncomment the line below.
+>
+> <!-- ![InsuScan System Architecture](docs/architecture.png) -->
+
+```
+Android App (Kotlin)
+        │
+        ├── CameraX  ──► top-view.jpg ──┐
+        ├── CameraX  ──► side-view.jpg ─┼──► POST /vision/v2/scan
+        ├── ARCore   ──► depth.json  ───┘         │
+        └── Firebase Auth (token)                  ▼
+                                        InsuScan Server (:9693)
+                                                  │
+                               ┌──────────────────┼──────────────────┐
+                               ▼                  ▼                  ▼
+                        Firebase             Google              USDA Food
+                        Firestore           Gemini AI             Database
+                     (users & meals)    (food detection)     (nutrition data)
+```
 
 ---
 
@@ -124,7 +222,6 @@ UI (Fragment / Activity)
         │
         ▼
    RetrofitClient  ──►  InsuScan Server (:9693)
-                              └── Firebase Auth token (per request)
 ```
 
 Key architectural decisions:
@@ -160,12 +257,12 @@ Open the cloned directory in **Android Studio**.
 
 1. Go to [Firebase Console](https://console.firebase.google.com/) and open the same project used by the server.
 2. Add an **Android app** with package name `com.example.insuscan`.
-3. Download `google-services.json` and place it in the `app/` directory (already present in this repo for the linked Firebase project).
+3. Download `google-services.json` and place it in the `app/` directory.
 4. Enable **Email/Password** and **Google** sign-in methods in **Authentication → Sign-in method**.
 
 ### Server URL
 
-The server base URL is defined as a `BuildConfig` field in [`app/build.gradle.kts`](app/build.gradle.kts):
+The server base URL is defined as a `BuildConfig` field in `app/build.gradle.kts`:
 
 ```kotlin
 buildConfigField("String", "BASE_URL", "\"http://127.0.0.1:9693/\"")
@@ -191,8 +288,6 @@ Select your device/emulator in Android Studio and press **Run ▶**.
 ---
 
 ## Permissions
-
-The following permissions are declared in [`AndroidManifest.xml`](app/src/main/AndroidManifest.xml):
 
 | Permission | Reason |
 |---|---|
@@ -249,6 +344,14 @@ app/src/main/java/com/example/insuscan/
 │   └── exception/                # Network error handling
 │
 └── utils/                        # Extension functions & shared utilities
+
+docs/                             # 📁 Place README images here
+├── architecture.png              #    System architecture diagram
+├── screen_scan.png               #    Screenshot: scan screen
+├── screen_result.png             #    Screenshot: result screen
+├── screen_history.png            #    Screenshot: history screen
+├── screen_profile.png            #    Screenshot: profile screen
+└── demo_thumb.png                #    Demo video thumbnail (optional)
 ```
 
 ---
