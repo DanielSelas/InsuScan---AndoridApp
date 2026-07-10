@@ -64,8 +64,6 @@ This Android app is one half of the **InsuScan** platform:
 
 ## Screenshots
 
-## Screenshots
-
 <div align="center">
 
 <table cellpadding="14">
