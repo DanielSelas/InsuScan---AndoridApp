@@ -79,36 +79,29 @@ This Android app is one half of the **InsuScan** platform:
 
 ## Screenshots
 
-<!-- ============================================================
-     📸 IMAGE PLACEHOLDERS — App Screenshots
-     Instructions:
-       1. Create a folder: docs/ (relative to this README)
-       2. Take screenshots on your device or emulator
-       3. Save them with the filenames below
-       4. Uncomment the corresponding image lines
+## Screenshots
 
-     Suggested screenshot filenames:
-       docs/screen_scan.png       — Camera scan screen (top/side capture)
-       docs/screen_result.png     — Scan result: food items + carbs + dose
-       docs/screen_history.png    — Meal history list
-       docs/screen_profile.png    — User profile & insulin settings
-       docs/screen_login.png      — Login / auth screen  (optional)
-       docs/screen_manual.png     — Manual food entry    (optional)
-     ============================================================ -->
+<table>
+  <tr>
+    <th align="center">Scan</th>
+    <th align="center">Meal Summary</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="images/screen_scan.png"
+           alt="InsuScan scan screen"
+           width="280">
+    </td>
+    <td align="center">
+      <img src="images/screen_summary.png"
+           alt="InsuScan meal summary screen"
+           width="280">
+    </td>
+  </tr>
+</table>
 
-<!-- Uncomment and fill in as you add screenshots:
+<br>
 
-<div align="center">
-
-| Scan | Result | History | Profile |
-|:---:|:---:|:---:|:---:|
-| ![Scan screen](docs/screen_scan.png) | ![Result screen](docs/screen_result.png) | ![History screen](docs/screen_history.png) | ![Profile screen](docs/screen_profile.png) |
-
-</div>
-
--->
-
-> 🖼️ **Screenshots coming soon** — see the instructions above to add them.
 
 ---
 
@@ -137,18 +130,16 @@ The user **photographs their meal** from two angles; the app captures optional A
 
 ## System Architecture
 
-<!-- ============================================================
-     📸 IMAGE PLACEHOLDER — System Architecture Diagram
-     Instructions:
-       1. Save your architecture diagram at: docs/architecture.png
-       2. Uncomment the line below
-     ============================================================ -->
-
+============================================================
 <div align="center">
   <img src="images/Architecture.png"
        alt="InsuScan System Architecture"
        width="900">
 </div>
+
+<br>
+     ============================================================
+
 
 ```
 Android App (Kotlin)
