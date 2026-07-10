@@ -52,16 +52,16 @@ This Android app is one half of the **InsuScan** platform:
 
 <div align="center">
 
-  <a href="https://www.youtube.com/playlist?list=PLNM30qL3Mo7w">
+  <a href="https://www.youtube.com/watch?v=cxkoaeEQI3A">
     <img src="images/demo_thumbnail.png"
-         alt="Watch the InsuScan project demo"
-         width="900">
+         alt="Watch the InsuScan Android App Demo"
+         width="250">
   </a>
 
   <br><br>
 
-  <a href="https://www.youtube.com/playlist?list=PLNM30qL3Mo7w">
-    <strong>▶ Watch the InsuScan Project Demo</strong>
+  <a href="https://www.youtube.com/watch?v=cxkoaeEQI3A">
+    <strong>▶ Watch the InsuScan Android App Demo</strong>
   </a>
 
 </div>
