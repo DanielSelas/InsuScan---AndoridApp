@@ -144,9 +144,11 @@ The user **photographs their meal** from two angles; the app captures optional A
        2. Uncomment the line below
      ============================================================ -->
 
-> 🖼️ **Architecture diagram** — add your image at `docs/architecture.png` and uncomment the line below.
->
-> <!-- ![InsuScan System Architecture](docs/architecture.png) -->
+<div align="center">
+  <img src="images/Architecture.png"
+       alt="InsuScan System Architecture"
+       width="900">
+</div>
 
 ```
 Android App (Kotlin)
