@@ -50,30 +50,23 @@ This Android app is one half of the **InsuScan** platform:
 
 ## Demo
 
-<!-- ============================================================
-     🎬 VIDEO PLACEHOLDER — App Demo
-     GitHub supports two ways to embed a video in a README:
+<div align="center">
 
-     OPTION A — Upload directly to GitHub (recommended, max 10MB):
-       1. Edit this README on GitHub.com
-       2. Drag & drop your .mp4 file into the editor
-       3. GitHub will generate a URL like:
-          https://github.com/user-attachments/assets/xxxx.mp4
-       4. Replace the placeholder below with:
-          https://github.com/user-attachments/assets/YOUR-VIDEO-ID.mp4
+  <a href="https://www.youtube.com/playlist?list=PLNM30qL3Mo7w">
+    <img src="images/demo_thumbnail.png"
+         alt="Watch the InsuScan project demo"
+         width="900">
+  </a>
 
-     OPTION B — YouTube thumbnail with clickable link:
-       1. Upload your demo to YouTube
-       2. Take a screenshot of the video thumbnail, save as docs/demo_thumb.png
-       3. Replace the placeholder below with:
-          [![InsuScan Demo](docs/demo_thumb.png)](https://youtu.be/YOUR_VIDEO_ID)
-     ============================================================ -->
+  <br><br>
 
-> 🎬 **Demo video** — add your video using one of the methods described above.
->
-> <!-- https://github.com/user-attachments/assets/YOUR-VIDEO-ID.mp4 -->
->
-> <!-- [![Watch Demo](docs/demo_thumb.png)](https://youtu.be/YOUR_VIDEO_ID) -->
+  <a href="https://www.youtube.com/playlist?list=PLNM30qL3Mo7w">
+    <strong>▶ Watch the InsuScan Project Demo</strong>
+  </a>
+
+</div>
+
+<br>
 
 ---
 
