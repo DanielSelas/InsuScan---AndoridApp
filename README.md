@@ -27,7 +27,7 @@ This Android app is one half of the **InsuScan** platform:
 | **InsuScan Android App** *(you are here)* | Kotlin Android client with CameraX, ARCore & AR depth scanning | — |
 | [**InsuScan Server**](https://github.com/NimiB2/insuscan-server) | Spring Boot REST API + AI food-estimation pipeline | [View README](https://github.com/NimiB2/insuscan-server#readme) |
 
-> 📄 **Documentation site** — coming soon at `https://docs.insuscan.app`
+> 📄 **[Documentation site](https://nimib2.github.io/insuscan-server/)**
 
 ---
 
