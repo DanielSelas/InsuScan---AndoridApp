@@ -12,6 +12,9 @@ import com.example.insuscan.network.dto.ScoredFoodResultDto
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/**
+ * Runs a food search and classifies the result by confidence into a [SearchOutcome].
+ */
 sealed class SearchOutcome {
     data class HighConfidence(val result: ScoredFoodResultDto, val weight: Float) : SearchOutcome()
     data class MediumConfidence(val query: String, val weight: Float, val options: List<ScoredFoodResultDto>) : SearchOutcome()

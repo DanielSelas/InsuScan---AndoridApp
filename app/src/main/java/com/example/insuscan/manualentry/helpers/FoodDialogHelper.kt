@@ -16,6 +16,9 @@ import com.example.insuscan.network.dto.ScoredFoodResultDto
 import com.example.insuscan.utils.ToastHelper
 import com.google.android.material.textfield.TextInputEditText
 
+/**
+ * Builds the add, select, and edit food dialogs for manual entry.
+ */
 class FoodDialogHelper(
     private val context: Context,
     private val layoutInflater: LayoutInflater,

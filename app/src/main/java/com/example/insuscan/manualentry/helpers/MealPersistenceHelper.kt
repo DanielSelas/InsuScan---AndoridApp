@@ -6,6 +6,9 @@ import com.example.insuscan.meal.Meal
 import com.example.insuscan.meal.MealSessionManager
 import com.example.insuscan.meal.exception.MealException
 
+/**
+ * Loads the current meal's items for editing and builds the updated meal on save.
+ */
 class MealPersistenceHelper {
 
     fun loadExistingItems(): List<EditableFoodItem> {

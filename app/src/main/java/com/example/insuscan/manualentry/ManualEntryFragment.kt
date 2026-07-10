@@ -24,7 +24,6 @@ import com.example.insuscan.network.dto.ScoredFoodResultDto
 import com.example.insuscan.utils.MealInputValidator
 import com.example.insuscan.utils.ToastHelper
 import com.example.insuscan.utils.TopBarHelper
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class ManualEntryFragment : Fragment(R.layout.fragment_manual_entry) {
 
