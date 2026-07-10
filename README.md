@@ -143,7 +143,6 @@ The user **photographs their meal** from two angles; the app captures optional A
 
 ## System Architecture
 
-============================================================
 <div align="center">
   <img src="images/Architecture.png"
        alt="InsuScan System Architecture"
@@ -151,8 +150,6 @@ The user **photographs their meal** from two angles; the app captures optional A
 </div>
 
 <br>
-     ============================================================
-
 
 ```
 Android App (Kotlin)
