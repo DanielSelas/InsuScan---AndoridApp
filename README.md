@@ -85,23 +85,24 @@ This Android app is one half of the **InsuScan** platform:
   <tr>
     <th align="center">Scan</th>
     <th align="center">Meal Summary</th>
+    <th align="center">Meal History</th>
   </tr>
   <tr>
     <td align="center">
       <img src="images/screen_scan.png"
            alt="InsuScan scan screen"
-           width="280">
+           width="260">
     </td>
     <td align="center">
       <img src="images/screen_summary.png"
            alt="InsuScan meal summary screen"
-           width="280">
+           width="260">
     </td>
-     <td align="center">
-           <img src="images/screen_history.png"
-                alt="InsuScan meal history screen"
-                width="280">
-         </td>
+    <td align="center">
+      <img src="images/screen_history.png"
+           alt="InsuScan meal history screen"
+           width="260">
+    </td>
   </tr>
 </table>
 
