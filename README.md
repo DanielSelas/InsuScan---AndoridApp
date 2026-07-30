@@ -2,7 +2,7 @@
 
 <img src="https://img.shields.io/badge/InsuScan-Android-0A84FF?style=for-the-badge&logo=android&logoColor=white" alt="InsuScan Android"/>
 
-# InsuScan — Android App
+# InsuScan - Android App
 
 **AI-powered food scanning & insulin dose calculator for people with diabetes**  
 Built with Kotlin · CameraX · ARCore · Firebase
@@ -24,7 +24,7 @@ This Android app is one half of the **InsuScan** platform:
 
 | Repository | Description | README |
 |---|---|---|
-| **InsuScan Android App** *(you are here)* | Kotlin Android client with CameraX, ARCore & AR depth scanning | — |
+| **InsuScan Android App** *(you are here)* | Kotlin Android client with CameraX, ARCore & AR depth scanning | - |
 | [**InsuScan Server**](https://github.com/NimiB2/insuscan-server) | Spring Boot REST API + AI food-estimation pipeline | [View README](https://github.com/NimiB2/insuscan-server#readme) |
 
 > 📄 **[Documentation site](https://nimib2.github.io/insuscan-server/)**
@@ -104,7 +104,7 @@ This Android app is one half of the **InsuScan** platform:
 ## Overview
 
 InsuScan is an Android application designed to help people with diabetes manage their insulin doses with minimal friction.  
-The user **photographs their meal** from two angles; the app captures optional ARCore depth data, sends everything to the [InsuScan Server](https://github.com/NimiB2/insuscan-server), and displays a breakdown of every food item on the plate — its estimated weight, carbohydrate content, and a personalised recommended insulin dose.
+The user **photographs their meal** from two angles; the app captures optional ARCore depth data, sends everything to the [InsuScan Server](https://github.com/NimiB2/insuscan-server), and displays a breakdown of every food item on the plate - its estimated weight, carbohydrate content, and a personalised recommended insulin dose.
 
 ---
 
@@ -156,8 +156,8 @@ Android App (Kotlin)
 
 | Category | Library / Framework | Purpose |
 |---|---|---|
-| Language | Kotlin | — |
-| UI | Android Views + ViewBinding | — |
+| Language | Kotlin | - |
+| UI | Android Views + ViewBinding | - |
 | Navigation | Jetpack Navigation Component 2.9.6 | Fragment navigation & backstack |
 | Camera | CameraX (camera-core, camera2, lifecycle, view) | Camera preview & photo capture |
 | AR / Depth | ARCore | Real-world depth measurement |
@@ -212,10 +212,10 @@ UI (Fragment / Activity)
 
 Key architectural decisions:
 
-- **ViewBinding** — type-safe view access, no `findViewById`.
-- **Navigation Component** — single-activity architecture with `NavController`.
-- **Coroutines** — all network calls are `suspend` functions, no callback hell.
-- **ViewModel** — survives configuration changes; separates business logic from UI.
+- **ViewBinding** - type-safe view access, no `findViewById`.
+- **Navigation Component** - single-activity architecture with `NavController`.
+- **Coroutines** - all network calls are `suspend` functions, no callback hell.
+- **ViewModel** - survives configuration changes; separates business logic from UI.
 
 ---
 
@@ -281,7 +281,7 @@ Select your device/emulator in Android Studio and press **Run ▶**.
 | `CAMERA` | CameraX photo capture |
 | `READ_MEDIA_IMAGES` | Gallery image access |
 | `android.hardware.camera` | Required camera feature |
-| `android.hardware.camera.ar` | Optional — ARCore depth (not required to install) |
+| `android.hardware.camera.ar` | Optional - ARCore depth (not required to install) |
 
 ---
 
@@ -344,7 +344,7 @@ docs/                             # 📁 Place README images here
 
 <div align="center">
 
-**InsuScan** — Afeka College of Engineering  
+**InsuScan** - Afeka College of Engineering  
 Academic project · Not for clinical use
 
 [Server Repository](https://github.com/NimiB2/insuscan-server) · [Documentation](https://docs.insuscan.app) *(coming soon)*
