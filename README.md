@@ -199,7 +199,7 @@ The app follows the **MVVM** pattern with a repository layer that abstracts all 
 UI (Fragment / Activity)
         │
         ▼
-    ViewModel  ←──  LiveData / StateFlow
+    ViewModel  ◄──  LiveData / StateFlow
         │
         ▼
    Repository
