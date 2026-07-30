@@ -210,7 +210,6 @@ UI (Fragment / Activity)
 
 Key architectural decisions:
 
-- **ViewBinding** - type-safe view access, no `findViewById`.
 - **Navigation Component** - single-activity architecture with `NavController`.
 - **Coroutines** - all network calls are `suspend` functions, no callback hell.
 - **ViewModel** - survives configuration changes. separates business logic from UI.
