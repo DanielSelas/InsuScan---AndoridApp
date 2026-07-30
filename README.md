@@ -103,7 +103,7 @@ This Android app is one half of the **InsuScan** platform:
 
 ## Overview
 
-InsuScan is an Android application designed to help people with diabetes manage their insulin doses in a mostly automated and user-friendly way..  
+InsuScan is an Android application designed to help people with diabetes manage their insulin doses in a mostly automated and user-friendly way. 
 The user **photographs their meal** from two angles. the app captures optional ARCore depth data, sends everything to the [InsuScan Server](https://github.com/NimiB2/insuscan-server), and displays a breakdown of every food item on the plate - its estimated weight, carbohydrate content, and a personalised recommended insulin dose.
 
 ---
