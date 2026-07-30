@@ -327,13 +327,6 @@ app/src/main/java/com/example/insuscan/
 │
 └── utils/                        # Extension functions & shared utilities
 
-docs/                             # 📁 Place README images here
-├── architecture.png              #    System architecture diagram
-├── screen_scan.png               #    Screenshot: scan screen
-├── screen_result.png             #    Screenshot: result screen
-├── screen_history.png            #    Screenshot: history screen
-├── screen_profile.png            #    Screenshot: profile screen
-└── demo_thumb.png                #    Demo video thumbnail (optional)
 ```
 
 ---
