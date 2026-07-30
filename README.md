@@ -186,7 +186,6 @@ Splash Screen
                     ├── Manual Entry
                     ├── Meal History
                     │       └── Meal Detail
-                    ├── Food Search (AI)
                     └── Profile
 ```
 
