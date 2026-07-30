@@ -120,7 +120,6 @@ The user **photographs their meal** from two angles. the app captures optional A
 | 🔍 **AI food search** | Semantic food search backed by the USDA database |
 | 🔐 **Firebase Authentication** | Email/password and Google Sign-In |
 | 👤 **User profile** | Store and update personalised insulin settings |
-| 💬 **Chat parse** | Conversational meal logging via text |
 
 ---
 
@@ -315,7 +314,6 @@ app/src/main/java/com/example/insuscan/
 ├── meal/                         # Meal detail view
 ├── history/                      # Paginated meal history
 ├── manualentry/                  # Manual food-item entry
-├── chat/                         # Chat-based meal logging
 │
 ├── profile/                      # User profile management
 ├── appdata/                      # Shared data stores (UserSession, etc.)
