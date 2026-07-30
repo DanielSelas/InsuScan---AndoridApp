@@ -336,6 +336,6 @@ app/src/main/java/com/example/insuscan/
 **InsuScan** - Afeka College of Engineering  
 Academic project · Not for clinical use
 
-[Server Repository](https://github.com/NimiB2/insuscan-server) · [Documentation](https://docs.insuscan.app) *(coming soon)*
+[Server Repository](https://github.com/NimiB2/insuscan-server) · [Documentation](https://docs.insuscan.app) 
 
 </div>
